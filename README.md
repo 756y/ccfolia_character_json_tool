@@ -18,8 +18,8 @@ CCFOLIA 角色資料工具。
 | `memo` | 備註 |
 | `initiative` | 行動值 |
 | `externalUrl` | 外部連結 |
-| `status` | Status |
-| `params` | 固定變數 |
+| `status` | 變動屬性 |
+| `params` | 固定屬性 |
 | `iconUrl` | 角色主圖片 |
 | `faces` | 差分圖片 |
 | `x` | X 座標 |
@@ -29,10 +29,10 @@ CCFOLIA 角色資料工具。
 | `height` | 高度 |
 | `color` | 顏色 |
 | `active` | Active |
-| `secret` | Secret |
-| `invisible` | Invisible |
-| `hideStatus` | Hide Status |
-| `commands` | Commands |
+| `secret` | 不公開角色狀態 |
+| `invisible` | 發言時不顯示角色立繪 |
+| `hideStatus` | 不要在盤面的角色清單中顯示 |
+| `commands` | 常用指令 |
 | `owner` | Owner |
 
 工具會產生：
