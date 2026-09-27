@@ -72,7 +72,35 @@
   .grid:last-child{
     border-bottom:0
   }
+  
+  .position-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--panel2);
+  border-bottom:1px solid var(--line);
+}
 
+.position-header h2{
+  flex:1;
+  border-bottom:0;
+}
+
+.position-toggle{
+  margin-right:12px;
+  padding:6px 10px;
+  border:1px solid var(--line);
+  border-radius:6px;
+  background:var(--panel);
+  color:inherit;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.position-toggle:hover{
+  background:var(--panel2);
+}
+  
   .label{
     padding:12px 14px;
     border-right:1px solid var(--line)
@@ -614,11 +642,21 @@
     </div>
   </div>
 
+<!-- ==================== ⑤ 位置 ==================== -->
 
-  <!-- ==================== ⑤ 位置 ==================== -->
+<div class="section">
 
-  <div class="section">
+  <div class="position-header">
     <h2>⑤ 位置與外觀</h2>
+
+    <button
+      type="button"
+      class="position-toggle"
+      onclick="togglePositionSettings()"
+    >展開</button>
+  </div>
+
+  <div id="positionSettings" style="display:none;">
 
     <div class="grid">
       <div class="label">
@@ -675,40 +713,42 @@
       </div>
     </div>
 
-    <div class="grid">
-      <div class="label">
-        <strong>顏色</strong>
-        <span>color｜例如 #E0E0E0</span>
-      </div>
+  </div>
 
-      <div class="field">
-        <div style="display:flex; align-items:center; gap:8px;">
-  <input
-    id="color"
-    type="text"
-    value="#E0E0E0"
-    oninput="updateColorPreview()"
-    style="flex:1;"
-  >
+  <div class="grid">
+    <div class="label">
+      <strong>顏色</strong>
+      <span>color｜例如 #E0E0E0</span>
+    </div>
 
-  <input
-    id="colorPreview"
-    type="color"
-    value="#E0E0E0"
-    oninput="updateColorFromPicker()"
-    style="
-      width:42px;
-      height:42px;
-      padding:2px;
-      cursor:pointer;
-    "
-    title="選擇顏色"
-  >
-</div>
+    <div class="field">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <input
+          id="color"
+          type="text"
+          value="#E0E0E0"
+          oninput="updateColorPreview()"
+          style="flex:1;"
+        >
+
+        <input
+          id="colorPreview"
+          type="color"
+          value="#E0E0E0"
+          oninput="updateColorFromPicker()"
+          style="
+            width:42px;
+            height:42px;
+            padding:2px;
+            cursor:pointer;
+          "
+          title="選擇顏色"
+        >
       </div>
     </div>
   </div>
 
+</div>
 
   <!-- ==================== ⑥ 顯示 ==================== -->
 
@@ -1588,7 +1628,23 @@ function renumber(type){
 
 }
 
+/* =========================================================
+   位置與外觀的展開按鈕
+========================================================= */
+function togglePositionSettings() {
+  const settings = document.getElementById('positionSettings');
+  const button = document.querySelector('.position-toggle');
 
+  if (!settings || !button) return;
+
+  if (settings.style.display === 'none' || settings.style.display === '') {
+    settings.style.display = 'block';
+    button.textContent = '收起';
+  } else {
+    settings.style.display = 'none';
+    button.textContent = '展開';
+  }
+}
 /* =========================================================
    產生 JSON
 ========================================================= */
