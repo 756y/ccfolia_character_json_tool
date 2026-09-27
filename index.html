@@ -706,9 +706,16 @@
 
     <div id="facesList"></div>
 
-    <div style="padding:12px">
-      <button onclick="addFace()">＋ 新增差分</button>
-    </div>
+<div style="padding:12px; display:flex; gap:8px;">
+  <button onclick="addFace()">＋ 新增差分</button>
+
+  <button
+    type="button"
+    onclick="copyAllFaceLabels()"
+  >
+    複製差分名稱
+  </button>
+</div>
   </div>
 
 <!-- ==================== ⑤ 位置 ==================== -->
@@ -1837,6 +1844,41 @@ function generate(){
     );
 }
 
+
+async function copyAllFaceLabels(){
+
+  const labels = [
+    ...$('facesList').querySelectorAll('.f-label')
+  ]
+    .map(input => input.value.trim())
+    .filter(label => label !== '');
+
+  const text = labels.join('\n');
+
+  if(!text){
+    return;
+  }
+
+  try{
+
+    await navigator.clipboard.writeText(text);
+
+  }catch(error){
+
+    const textarea = document.createElement('textarea');
+
+    textarea.value = text;
+
+    document.body.appendChild(textarea);
+
+    textarea.select();
+
+    document.execCommand('copy');
+
+    textarea.remove();
+
+  }
+}
 
 /* =========================================================
    複製 / 下載
