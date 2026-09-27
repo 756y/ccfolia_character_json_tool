@@ -262,6 +262,75 @@
   .toast.show{
     display:block
   }
+  
+  /* checkbox */
+.checkbox-label{
+  grid-column:1 / -1;
+  border-right:0;
+  width:100%;
+}
+
+.checkbox-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+}
+
+.checkbox-title strong{
+  display:block;
+}
+
+/* Toggle Switch */
+.checkbox-title input[type="checkbox"]{
+  appearance:none;
+  -webkit-appearance:none;
+
+  width:52px;
+  height:28px;
+
+  margin:0;
+  padding:0;
+
+  border:1px solid var(--line);
+  border-radius:999px;
+
+  background:#555;
+  cursor:pointer;
+
+  position:relative;
+  flex:0 0 auto;
+
+  transition:background .2s ease;
+}
+
+/* 滑塊 */
+.checkbox-title input[type="checkbox"]::before{
+  content:"";
+
+  position:absolute;
+
+  width:22px;
+  height:22px;
+
+  top:2px;
+  left:2px;
+
+  border-radius:50%;
+  background:#fff;
+
+  transition:transform .2s ease;
+}
+
+/* 啟用 */
+.checkbox-title input[type="checkbox"]:checked{
+  background:var(--accent);
+}
+
+/* 啟用後滑到右邊 */
+.checkbox-title input[type="checkbox"]:checked::before{
+  transform:translateX(24px);
+}
 
   /* 匯入 JSON Modal */
 
@@ -750,69 +819,68 @@
 
 </div>
 
-  <!-- ==================== ⑥ 顯示 ==================== -->
+<!-- ==================== ⑥ 顯示 ==================== -->
 
-  <div class="section">
-    <h2>⑥ 顯示設定</h2>
+<div class="section">
+  <h2>⑥ 顯示設定</h2>
 
-    <div class="grid">
-      <div class="label">
+  <div class="grid">
+    <div class="label checkbox-label">
+      <div class="checkbox-title">
         <strong>啟用</strong>
-        <span>active｜boolean</span>
-      </div>
 
-      <div class="field">
-        <select id="active" onchange="generate()">
-          <option value="true">true</option>
-          <option value="false">false</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="label">
-        <strong>不公開角色狀態</strong>
-        <span>secret｜boolean</span>
-      </div>
-
-      <div class="field">
-        <select id="secret" onchange="generate()">
-          <option value="false">false</option>
-          <option value="true">true</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="label">
-        <strong>發言時不顯示角色立繪</strong>
-        <span>invisible｜boolean</span>
-      </div>
-
-      <div class="field">
-        <select id="invisible" onchange="generate()">
-          <option value="false">false</option>
-          <option value="true">true</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="label">
-        <strong>不要在盤面的角色清單中顯示</strong>
-        <span>hideStatus｜boolean</span>
-      </div>
-
-      <div class="field">
-        <select id="hideStatus" onchange="generate()">
-          <option value="false">false</option>
-          <option value="true">true</option>
-        </select>
+        <input
+          id="active"
+          type="checkbox"
+          checked
+          onchange="generate()"
+        >
       </div>
     </div>
   </div>
 
+  <div class="grid">
+    <div class="label checkbox-label">
+      <div class="checkbox-title">
+        <strong>不公開角色狀態</strong>
 
+        <input
+          id="secret"
+          type="checkbox"
+          onchange="generate()"
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="label checkbox-label">
+      <div class="checkbox-title">
+        <strong>發言時不顯示角色立繪</strong>
+
+        <input
+          id="invisible"
+          type="checkbox"
+          onchange="generate()"
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="label checkbox-label">
+      <div class="checkbox-title">
+        <strong>不要在盤面的角色清單中顯示</strong>
+
+        <input
+          id="hideStatus"
+          type="checkbox"
+          onchange="generate()"
+        >
+      </div>
+    </div>
+  </div>
+</div>
   <!-- ==================== ⑦ 指令 ==================== -->
 
   <div class="section">
@@ -1323,7 +1391,7 @@ function num(id){
 }
 
 function bool(id){
-  return $(id).value === 'true';
+  return $(id).checked;
 }
 
 function updateColorPreview(){
