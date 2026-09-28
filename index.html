@@ -124,6 +124,52 @@
     align-items:center;
     gap:8px
   }
+  
+  /* ===== 美化檔案選擇按鈕 ===== */
+
+.file-select-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  padding:9px 16px;
+
+  background:#242832;
+  color:#e8eaf0;
+
+  border:1px solid #3a404d;
+  border-radius:8px;
+
+  font-size:13px;
+  font-weight:600;
+
+  cursor:pointer;
+  transition:
+    background .15s ease,
+    border-color .15s ease,
+    transform .1s ease;
+}
+
+.file-select-btn:hover{
+  background:#2d333e;
+  border-color:#596171;
+}
+
+.file-select-btn:active{
+  transform:translateY(1px);
+}
+
+.file-select-btn::before{
+  content:"📁";
+  font-size:14px;
+}
+
+
+/* 隱藏原生檔案選擇器 */
+.file-select-input{
+  display:none !important;
+}
 
   input,textarea,select{
     width:100%;
@@ -145,16 +191,22 @@
     resize:vertical
   }
 
-  .row{
-    display:flex;
-    gap:8px;
-    width:100%;
-    align-items:center
-  }
+.row{
+  display:flex;
+  gap:8px;
+  width:100%;
+  align-items:center;
+}
 
-  .row>*{
-    flex:1
-  }
+.row>*{
+  flex:1;
+}
+
+/* 差分的「選擇圖片」按鈕不要被平均分成 50% */
+.row .file-select-btn{
+  flex:0 0 auto;
+  width:auto;
+}
 
   .row .small{
     flex:0 0 110px
@@ -427,12 +479,60 @@
 ========================================================= */
 
 .image-file-box{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
   width:100%;
 }
 
-.image-file-box input[type="file"]{
-  padding:7px;
-  cursor:pointer;
+/* 名稱與「選擇圖片」按鈕同一行 */
+.image-file-box .file-select-btn{
+  flex:0 0 auto;
+}
+
+/* =========================================================
+   主圖片：名稱＋選擇按鈕同一行，圖片在下一行
+========================================================= */
+
+.main-image-box{
+  padding:10px 12px;
+  border-bottom:1px solid var(--line);
+}
+
+.main-image-header{
+  display:flex;
+  align-items:center;
+  width:100%;
+}
+
+.main-image-header strong{
+  flex:0 0 auto;
+}
+
+.main-image-header .file-select-btn{
+  margin-left:auto;
+  flex:0 0 auto;
+}
+
+.main-image-header .file-select-input{
+  display:none;
+}
+
+.main-image-header .file-select-input{
+  display:none;
+}
+
+/* 圖片預覽一定放到下一行 */
+.main-image-box .image-preview{
+  display:none;
+  margin-top:10px;
+  max-width:180px;
+  max-height:180px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#171920;
+  object-fit:contain;
 }
 
 .image-file-info{
@@ -477,6 +577,10 @@
   object-fit:contain;
 }
 
+.face-hash-name{
+  display:none;
+}
+
 .zip-status{
   margin-top:10px;
   padding:10px 12px;
@@ -518,6 +622,11 @@
     .row .small{
       flex:1 1 100px
     }
+    
+    #commands{
+  min-height:150px;
+}
+
   }
 </style>
 </head>
@@ -641,63 +750,56 @@
   <div class="section">
     <h2>④ 角色圖片與差分</h2>
 
-<div class="grid">
-  <div class="label">
+<div class="main-image-box">
+
+  <!-- 第一行：名稱 + 選擇圖片按鈕 -->
+ <div class="main-image-box">
+
+  <!-- 第一行：名稱 + 最右側選擇圖片 -->
+  <div class="main-image-header">
     <strong>角色主圖片</strong>
-    <span>選擇本機 PNG → 自動計算 SHA-256</span>
+
+    <label class="file-select-btn" for="imageFile">
+      選擇圖片
+    </label>
+
+    <input
+      id="imageFile"
+      class="file-select-input"
+      type="file"
+      accept="image/png,.png"
+      onchange="handleImageFile(event)"
+    >
   </div>
 
-  <div class="field">
-    <div class="image-file-box">
+  <!-- 原始檔案名稱 -->
+  <div
+    id="originalImageName"
+    class="image-file-info"
+    style="display:none"
+  ></div>
 
-      <input
-        id="imageFile"
-        type="file"
-        accept="image/png,.png"
-        onchange="handleImageFile(event)"
-      >
+  <!-- 圖片資訊 -->
+  <div
+    id="imageFileInfo"
+    class="image-file-info"
+    style="display:none"
+  ></div>
 
-<!--
-      <div class="note">
-  ※ 主圖片與差分圖片都使用本機 PNG。選擇圖片後會自動計算 SHA-256，
-並使用 SHA-256.png 作為 Room ZIP 裡的圖片檔名。
+  <!-- 圖片預覽 -->
+  <img
+    id="imagePreview"
+    class="image-preview"
+    alt="主圖片預覽"
+  >
+
+  <input
+    id="iconUrl"
+    type="hidden"
+    value=""
+  >
+
 </div>
--->
-
-      <div
-        id="originalImageName"
-        class="image-file-info"
-      >
-        尚未選擇圖片
-      </div>
-
-      <div
-        id="imageFileInfo"
-        class="image-file-info"
-        style="display:none"
-      ></div>
-
-      <img
-        id="imagePreview"
-        class="image-preview"
-        alt="主圖片預覽"
-      >
-
-      <!--
-        保留 iconUrl 這個欄位 ID，
-        讓原本 generate() / JSON 匯入邏輯可以繼續使用。
-        但它現在由選擇圖片後自動填入。
-      -->
-      <input
-        id="iconUrl"
-        type="hidden"
-        value=""
-      >
-
-    </div>
-  </div>
-</div>
-  
 <!--
 <div class="note" style="padding:0 12px 10px">
   ※ Clipboard API 文件標示 iconUrl / faces[].iconUrl 不可設定外部資料，因此這裡保留欄位但不會強制把外部 URL 當成可用圖片。
@@ -891,14 +993,9 @@
   <!-- ==================== ⑦ 指令 ==================== -->
 
   <div class="section">
-    <h2>⑦ 指令與擁有者</h2>
+    <h2>⑦ 常用指令</h2>
 
     <div class="grid">
-      <div class="label">
-        <strong>角色指令</strong>
-        <span>commands｜貼入角色的 command</span>
-      </div>
-
       <div class="field">
         <textarea
           id="commands"
@@ -908,7 +1005,7 @@
       </div>
     </div>
 
-    <div class="grid">
+    <div class="grid" style="display:none">
       <div class="label">
         <strong>Owner</strong>
         <span>owner｜擁有者；可留空</span>
@@ -1241,26 +1338,11 @@ async function handleImageFile(event){
       顯示本機原始檔名
     */
     $('originalImageName').innerHTML =
-      '<strong>本機檔名：</strong> ' +
-      escapeHTML(file.name);
+  '<strong>原始檔名：</strong> ' +
+  escapeHTML(file.name);
 
-
-    /*
-      顯示圖片資訊
-    */
-    $('imageFileInfo').style.display =
-      'block';
-
-    $('imageFileInfo').innerHTML =
-      '<strong>ZIP 圖片檔名：</strong> ' +
-      escapeHTML(imageFilename) +
-      '<br>' +
-      '<strong>SHA-256：</strong> ' +
-      escapeHTML(hash) +
-      '<br>' +
-      '<strong>檔案大小：</strong> ' +
-      file.size.toLocaleString() +
-      ' bytes';
+$('originalImageName').style.display =
+  'block';
 
 
     /*
@@ -1348,7 +1430,7 @@ async function handleFaceImageFile(event, row){
       row.querySelector('.face-original-name');
 
     originalName.textContent =
-      '原始檔案：' + file.name;
+      '原始檔名：' + file.name;
 
     const hashName =
       row.querySelector('.face-hash-name');
@@ -1561,22 +1643,25 @@ function makeRow(type,index,data={}){
         value="${esc(data.label || '')}"
       >
 
-      <input
-        class="f-file"
-        type="file"
-        accept="image/png,.png"
-      >
+<label class="file-select-btn" for="faceFile_${index}">
+  選擇圖片
+</label>
+
+<input
+  id="faceFile_${index}"
+  class="f-file file-select-input"
+  type="file"
+  accept="image/png,.png"
+>
 
     </div>
 
     <div class="face-image-info">
 
       <div class="face-original-name">
-        尚未選擇圖片
       </div>
 
       <div class="face-hash-name">
-        SHA-256：尚未計算
       </div>
 
       <img
