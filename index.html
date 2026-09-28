@@ -6,18 +6,183 @@
 <title>CCFOLIA Character JSON 產生器</title>
 
 <style>
-  :root{
-    --bg:#15171c;
-    --panel:#20232b;
-    --panel2:#282c36;
-    --line:#3a3f4b;
-    --text:#f1f3f5;
-    --muted:#aeb4c0;
-    --accent:#8ab4ff;
-    --accent2:#6f9df0;
-    --danger:#ff7b7b;
-    --ok:#7bd99a
-  }
+:root{
+  /* 基本色 */
+  --bg:#15171c;
+  --panel:#20232b;
+  --panel2:#282c36;
+  --line:#3a3f4b;
+
+  /* 文字 */
+  --text:#f1f3f5;
+  --muted:#aeb4c0;
+
+  /* 強調色 */
+  --accent:#8ab4ff;
+  --accent2:#6f9df0;
+
+  /* 狀態色 */
+  --danger:#ff7b7b;
+  --ok:#7bd99a;
+  --warn:#f0c36a;
+
+  /* 輸入框 */
+  --input-bg:#171920;
+
+  /* 檔案選擇按鈕 */
+  --file-bg:#242832;
+  --file-text:#e8eaf0;
+  --file-border:#3a404d;
+  --file-hover:#2d333e;
+  --file-hover-border:#596171;
+
+  /* 一般按鈕 */
+  --button-text:#ffffff;
+  --secondary-bg:#3a3f4b;
+  --danger-bg:#9f4141;
+  --success-bg:#34764d;
+
+  /* 圖片 / 資訊區 */
+  --preview-bg:#171920;
+
+  /* Toast */
+  --toast-bg:#303641;
+
+  /* Checkbox */
+  --checkbox-bg:#555555;
+  --checkbox-knob:#ffffff;
+
+  /* Modal */
+  --modal-overlay:rgba(0,0,0,.72);
+
+  /* 陰影 */
+  --shadow:rgba(0,0,0,.53);
+  --modal-shadow:rgba(0,0,0,.73);
+}
+  
+  /* ===== 亮色模式 ===== */
+
+body.light{
+
+  /* 基本背景 */
+  --bg:#f1f2f4;
+  --panel:#ffffff;
+  --panel2:#e7e9ed;
+  --line:#c8ccd3;
+
+  /* 文字 */
+  --text:#25282d;
+  --muted:#626a75;
+
+  /* 強調色 */
+  --accent:#4774c7;
+  --accent2:#3b63ad;
+
+  /* 狀態顏色 */
+  --danger:#c94343;
+  --ok:#358653;
+  --warn:#a96f0d;
+
+  /* 輸入框 */
+  --input-bg:#ffffff;
+
+  /* 檔案按鈕 */
+  --file-bg:#e9ebef;
+  --file-text:#25282d;
+  --file-border:#c8ccd3;
+  --file-hover:#dfe2e7;
+  --file-hover-border:#aeb4be;
+
+  /* 一般按鈕 */
+  --button-text:#ffffff;
+  --secondary-bg:#d4d8df;
+  --danger-bg:#c94343;
+  --success-bg:#358653;
+
+  /* 圖片預覽 */
+  --preview-bg:#f7f7f8;
+
+  /* Toast 提示 */
+  --toast-bg:#ffffff;
+
+  /* Checkbox */
+  --checkbox-bg:#b8bec8;
+  --checkbox-knob:#ffffff;
+
+  /* Modal 遮罩 */
+  --modal-overlay:rgba(0,0,0,.35);
+
+  /* 陰影 */
+  --shadow:rgba(0,0,0,.16);
+  --modal-shadow:rgba(0,0,0,.22);
+}
+
+/* ===== 我已經完全學會設計模式 ===== */
+
+body.expert{
+  --bg:#ff00ff;
+  --panel:#00ff00;
+  --panel2:#00ffff;
+  --line:#ffff00;
+
+  --text:#ff0000;
+  --muted:#0000ff;
+
+  --accent:#ff6600;
+  --accent2:#ff00aa;
+
+  --danger:#00ffff;
+  --ok:#ff00ff;
+  --warn:#00ff00;
+
+  --input-bg:#ffff00;
+
+  --file-bg:#00ff00;
+  --file-text:#ff0000;
+  --file-border:#0000ff;
+  --file-hover:#ff00ff;
+  --file-hover-border:#00ffff;
+
+  --button-text:#ffff00;
+  --secondary-bg:#ff0000;
+  --danger-bg:#00ffff;
+  --success-bg:#ff00ff;
+
+  --preview-bg:#00ff00;
+
+  --toast-bg:#ffff00;
+
+  --checkbox-bg:#ff00ff;
+  --checkbox-knob:#00ffff;
+
+  --modal-overlay:rgba(255,0,255,.65);
+
+  --shadow:#00ffff;
+  --modal-shadow:#ff0000;
+}
+
+body.expert *{
+  text-shadow:
+    0 0 3px #ff00ff,
+    0 0 6px #00ffff;
+}
+
+body.expert button{
+  border:2px solid #ffff00;
+  box-shadow:
+    0 0 5px #ff00ff,
+    0 0 10px #00ffff,
+    0 0 15px #00ff00;
+}
+
+body.expert input,
+body.expert textarea,
+body.expert select{
+  border:2px solid #ff00ff;
+  box-shadow:
+    0 0 5px #00ffff,
+    0 0 10px #ff00ff;
+}
 
   *{box-sizing:border-box}
 
@@ -135,10 +300,9 @@
 
   padding:9px 16px;
 
-  background:#242832;
-  color:#e8eaf0;
-
-  border:1px solid #3a404d;
+  background:var(--panel);
+  color:var(--text);
+  border:1px solid var(--line);
   border-radius:8px;
 
   font-size:13px;
@@ -152,8 +316,8 @@
 }
 
 .file-select-btn:hover{
-  background:#2d333e;
-  border-color:#596171;
+background:var(--file-hover);
+border-color:var(--file-hover-border);
 }
 
 .file-select-btn:active{
@@ -173,7 +337,7 @@
 
   input,textarea,select{
     width:100%;
-    background:#171920;
+  background:var(--input-bg);
     color:var(--text);
     border:1px solid var(--line);
     border-radius:7px;
@@ -217,7 +381,7 @@
     border-radius:7px;
     padding:8px 12px;
     background:var(--accent2);
-    color:#fff;
+color:var(--button-text);
     font-weight:600;
     cursor:pointer
   }
@@ -226,17 +390,17 @@
     filter:brightness(1.08)
   }
 
-  .secondary{
-    background:#3a3f4b
-  }
+.secondary{
+  background:var(--secondary-bg);
+}
 
-  .danger{
-    background:#9f4141
-  }
+.danger{
+  background:var(--danger-bg);
+}
 
-  .success{
-    background:#34764d
-  }
+.success{
+  background:var(--success-bg);
+}
 
   .mini{
     padding:5px 9px;
@@ -270,9 +434,9 @@
     margin-top:6px
   }
 
-  .warn{
-    color:#f0c36a
-  }
+.warn{
+  color:var(--warn);
+}
 
   .ok{
     color:var(--ok)
@@ -303,12 +467,12 @@
     position:fixed;
     right:16px;
     bottom:16px;
-    background:#303641;
+background:var(--toast-bg);
     border:1px solid var(--line);
     padding:10px 14px;
     border-radius:8px;
     display:none;
-    box-shadow:0 8px 30px #0008
+box-shadow:0 8px 30px var(--shadow)
   }
 
   .toast.show{
@@ -347,7 +511,7 @@
   border:1px solid var(--line);
   border-radius:999px;
 
-  background:#555;
+background:var(--checkbox-bg);
   cursor:pointer;
 
   position:relative;
@@ -369,7 +533,7 @@
   left:2px;
 
   border-radius:50%;
-  background:#fff;
+background:var(--checkbox-knob);
 
   transition:transform .2s ease;
 }
@@ -389,7 +553,7 @@
   .modal{
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,.72);
+background:var(--modal-overlay);
     display:none;
     align-items:center;
     justify-content:center;
@@ -408,7 +572,7 @@
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:14px;
-    box-shadow:0 20px 60px #000b
+box-shadow:0 20px 60px var(--modal-shadow)
   }
 
   .modal-head{
@@ -451,7 +615,7 @@
     margin-bottom:12px;
     border:1px solid var(--line);
     border-radius:8px;
-    background:#171920;
+background:var(--input-bg);
     color:var(--muted);
     font-size:13px
   }
@@ -531,14 +695,14 @@
   max-height:180px;
   border:1px solid var(--line);
   border-radius:8px;
-  background:#171920;
+  background:var(--input-bg);
   object-fit:contain;
 }
 
 .image-file-info{
   margin-top:8px;
   padding:10px 12px;
-  background:#171920;
+  background:var(--input-bg);
   border:1px solid var(--line);
   border-radius:8px;
   font-size:12px;
@@ -558,7 +722,7 @@
   max-height:180px;
   border:1px solid var(--line);
   border-radius:8px;
-  background:#171920;
+  background:var(--input-bg);
   object-fit:contain;
 }
 
@@ -573,7 +737,7 @@
   max-height:180px;
   border:1px solid var(--line);
   border-radius:8px;
-  background:#171920;
+  background:var(--input-bg);
   object-fit:contain;
 }
 
@@ -583,10 +747,10 @@
 
 .zip-status{
   margin-top:10px;
-  padding:10px 12px;
+padding:0px 10px 18px;
   border-radius:8px;
   border:1px solid var(--line);
-  background:#171920;
+background:var(--input-bg);
   font-size:13px;
   white-space:pre-wrap;
   word-break:break-all;
@@ -598,6 +762,34 @@
 
 .zip-status.error{
   color:var(--danger);
+}
+
+/* ===== 主題切換按鈕 ===== */
+
+.theme-toggle{
+  position:fixed;
+  top:16px;
+  right:16px;
+  z-index:10000;
+
+  padding:8px 12px;
+
+  border:1px solid var(--line);
+  border-radius:8px;
+
+  background:var(--panel);
+  color:var(--text);
+
+  font-size:13px;
+  font-weight:600;
+
+  cursor:pointer;
+
+  box-shadow:0 2px 8px #0002;
+}
+
+.theme-toggle:hover{
+  background:var(--panel2);
 }
 
   @media(max-width:700px){
@@ -632,6 +824,14 @@
 </head>
 
 <body>
+
+<button
+  id="themeToggle"
+  class="theme-toggle"
+  onclick="toggleTheme()"
+>
+  ☀️ 亮色模式
+</button>
 
 <div class="wrap">
 
@@ -1786,6 +1986,102 @@ function renumber(type){
   });
 
 }
+
+/* =========================================================
+   深色 / 亮色 / 我已經完全學會設計模式
+========================================================= */
+
+let themeSwitchCount = 0;
+
+function applyTheme(theme){
+
+  document.body.classList.remove(
+    'light',
+    'expert'
+  );
+
+  if(theme === 'light'){
+
+    document.body.classList.add('light');
+
+    $('themeToggle').textContent =
+      '🌙 深色模式';
+
+  }else if(theme === 'expert'){
+
+    document.body.classList.add('expert');
+
+    $('themeToggle').textContent =
+      '🌈 我已經完全學會設計';
+
+  }else{
+
+    $('themeToggle').textContent =
+      '☀️ 亮色模式';
+
+  }
+
+  localStorage.setItem(
+    'ccfolia-theme',
+    theme
+  );
+
+}
+
+
+/* 主題按鈕 */
+
+function toggleTheme(){
+
+  /* 如果已經進入彩虹地獄 */
+
+  if(document.body.classList.contains('expert')){
+
+    themeSwitchCount = 0;
+
+    applyTheme('dark');
+
+    return;
+  }
+
+
+  themeSwitchCount++;
+
+
+  /* 連續切換 5 次 */
+
+  if(themeSwitchCount >= 5){
+
+    applyTheme('expert');
+
+    return;
+  }
+
+
+  const isLight =
+    document.body.classList.contains('light');
+
+
+  applyTheme(
+    isLight
+      ? 'dark'
+      : 'light'
+  );
+
+}
+
+
+/* 載入時讀取上次設定 */
+
+(function(){
+
+  const savedTheme =
+    localStorage.getItem('ccfolia-theme') ||
+    'dark';
+
+  applyTheme(savedTheme);
+
+})();
 
 /* =========================================================
    位置與外觀的展開按鈕
