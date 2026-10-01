@@ -715,6 +715,16 @@ background:var(--input-bg);
   color:var(--text);
 }
 
+/* 長檔名固定從左側開始顯示，並允許換行 */
+.image-file-info,
+.face-original-name{
+  direction:ltr;
+  text-align:left;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
 .image-preview{
   display:none;
   margin-top:10px;
@@ -3333,9 +3343,9 @@ async function handleZIPImport(event){
     ){
 
       $('originalImageName')
-        .textContent =
-          'ZIP：' +
-          mainFilename;
+        .innerHTML =
+          '<strong>原始檔名：</strong> ' + escapeHTML(mainFilename);
+      $('originalImageName').style.display = 'block';
 
     }
 
@@ -3344,30 +3354,8 @@ async function handleZIPImport(event){
       $('imageFileInfo')
     ){
 
-      $('imageFileInfo')
-        .style
-        .display =
-          'block';
-
-
-      $('imageFileInfo')
-        .innerHTML =
-          '<strong>ZIP 圖片檔名：</strong> ' +
-          escapeHTML(
-            mainFilename
-          ) +
-          '<br>' +
-
-          '<strong>SHA-256：</strong> ' +
-          escapeHTML(
-            mainHash
-          ) +
-          '<br>' +
-
-          '<strong>檔案大小：</strong> ' +
-          mainBytes.length
-            .toLocaleString() +
-          ' bytes';
+      $('imageFileInfo').style.display = 'none';
+      $('imageFileInfo').textContent = '';
 
     }
 
@@ -3496,9 +3484,7 @@ async function handleZIPImport(event){
         */
         row.querySelector(
           '.face-original-name'
-        ).textContent =
-          'ZIP：' +
-          filename;
+        ).textContent = '原始檔名：' + filename;
 
 
         /*
@@ -3506,8 +3492,8 @@ async function handleZIPImport(event){
         */
         row.querySelector(
           '.face-hash-name'
-        ).textContent =
-          'SHA-256：計算中';
+        ).textContent = '';
+        row.querySelector('.face-hash-name').style.display = 'none';
 
 
         /*
@@ -3570,11 +3556,8 @@ async function handleZIPImport(event){
           }
 
 
-          row.querySelector(
-            '.face-hash-name'
-          ).textContent =
-            'SHA-256：' +
-            hash;
+          // 匯入後不顯示內部雜湊值，只保留圖片檔名。
+          row.querySelector('.face-hash-name').textContent = '';
 
         });
 
