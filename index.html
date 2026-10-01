@@ -1007,6 +1007,13 @@ background:var(--input-bg);
 
     <div id="facesList"></div>
 
+<div style="padding:12px 12px 0;">
+  <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+    <input id="autoFaceLabel" type="checkbox" checked style="width:auto; margin:0;">
+    自動帶入圖片名稱
+  </label>
+</div>
+
 <div style="padding:12px; display:flex; gap:8px;">
   <button onclick="addFace()">＋ 新增差分</button>
 
@@ -1624,6 +1631,14 @@ async function handleFaceImageFile(event, row){
 
     urlInput.value =
       filename;
+
+    // 勾選「自動帶入圖片名稱」時，以原始圖片檔名更新差分名稱，移除副檔名。
+    const autoLabel = $('autoFaceLabel');
+    const labelInput = row.querySelector('.f-label');
+    if(autoLabel && autoLabel.checked && labelInput){
+      const imageName = file.name.replace(/\.[^.]+$/, '');
+      labelInput.value = '@' + imageName;
+    }
 
     const originalName =
       row.querySelector('.face-original-name');
