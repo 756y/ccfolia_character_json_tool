@@ -4571,14 +4571,11 @@ async function downloadRoomZIP(){
 
 
     /*
-      建立 Room Character ID
+      每次匯出 ZIP 都建立新的 Room Character ID，
+      避免同一個頁面連續匯出不同角色時重複使用舊 ID。
     */
-    if(!window.roomCharacterId){
-
-      window.roomCharacterId =
-        makeRoomCharacterId();
-
-    }
+    window.roomCharacterId =
+      makeRoomCharacterId();
 
 
     /*
