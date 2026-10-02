@@ -2663,6 +2663,9 @@ function importCharacterJSON(){
     '#E0E0E0'
   );
 
+  // 匯入角色 JSON 後，立即同步右側顏色選擇器預覽。
+  updateColorPreview();
+
 
   /*
     boolean
@@ -3695,6 +3698,9 @@ function loadJSON(obj){
     }
 
   });
+
+  // ZIP 匯入會經過 loadJSON；顏色文字欄位更新後立即同步色彩預覽。
+  updateColorPreview();
 
 
   [
