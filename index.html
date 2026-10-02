@@ -2765,12 +2765,13 @@ function importCharacterJSON(){
 
   /*
     Faces
+    只有匯入 JSON 明確包含 faces 陣列時，才更新差分清單。
+    若 JSON 沒有 faces 欄位，保留表單中既有的差分，避免匯入其他角色資料時被清空。
   */
 
-  $('facesList').innerHTML = '';
-
-
   if(Array.isArray(d.faces)){
+
+    $('facesList').innerHTML = '';
 
     d.faces.forEach(face => {
 
@@ -2787,12 +2788,6 @@ function importCharacterJSON(){
     });
 
   }
-
-
-  /*
-    如果外部 JSON 沒有 faces，
-    就不自動新增預設差分。
-  */
 
 
   /*
