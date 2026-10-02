@@ -1594,9 +1594,32 @@ $('originalImageName').style.display =
 
 async function handleFaceImageFile(event, row){
 
-  const file =
-    event.target.files &&
-    event.target.files[0];
+  const files = Array.from(event.target.files || []);
+  if(!files.length){
+    return;
+  }
+
+  // 同一個差分選擇器可一次選取多張圖片；每張圖片各自建立一筆差分。
+  // 第一張沿用目前列，其餘圖片新增獨立列，原有單張選取流程不變。
+  const input = event.target;
+  input.value = '';
+
+  for(let i = 0; i < files.length; i++){
+    const file = files[i];
+    let targetRow = row;
+    if(i > 0){
+      addFace();
+      targetRow = $('facesList').lastElementChild;
+    }
+
+    await processFaceImageFile(file, targetRow);
+  }
+
+  renumber('face');
+  generate();
+}
+
+async function processFaceImageFile(file, row){
 
   if(!file){
     return;
@@ -1607,24 +1630,16 @@ async function handleFaceImageFile(event, row){
     file.name.toLowerCase().endsWith('.png');
 
   if(!isPNG){
-    alert('差分圖片只能使用 PNG。');
-    event.target.value = '';
+    alert('差分圖片只能使用 PNG：' + file.name);
     return;
   }
 
   try{
 
-    const buffer =
-      await file.arrayBuffer();
-
-    const bytes =
-      new Uint8Array(buffer);
-
-    const hash =
-      await sha256Hex(bytes);
-
-    const filename =
-      hash + '.png';
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    const hash = await sha256Hex(bytes);
+    const filename = hash + '.png';
 
     faceImageData.set(
       row,
@@ -1636,13 +1651,10 @@ async function handleFaceImageFile(event, row){
       }
     );
 
-    const urlInput =
-      row.querySelector('.f-url');
+    const urlInput = row.querySelector('.f-url');
+    urlInput.value = filename;
 
-    urlInput.value =
-      filename;
-
-    // 勾選「自動帶入圖片名稱」時，以原始圖片檔名更新差分名稱，移除副檔名。
+    // 自動帶入圖片名稱時，使用原始檔名並移除副檔名。
     const autoLabel = $('autoFaceLabel');
     const labelInput = row.querySelector('.f-label');
     if(autoLabel && autoLabel.checked && labelInput){
@@ -1650,51 +1662,28 @@ async function handleFaceImageFile(event, row){
       labelInput.value = '@' + imageName;
     }
 
-    const originalName =
-      row.querySelector('.face-original-name');
+    const originalName = row.querySelector('.face-original-name');
+    originalName.textContent = '原始檔名：' + file.name;
 
-    originalName.textContent =
-      '原始檔名：' + file.name;
+    const hashName = row.querySelector('.face-hash-name');
+    hashName.textContent = 'ZIP 檔名：' + filename;
 
-    const hashName =
-      row.querySelector('.face-hash-name');
-
-    hashName.textContent =
-      'ZIP 檔名：' + filename;
-
-    const preview =
-      row.querySelector('.face-preview');
-
+    const preview = row.querySelector('.face-preview');
     if(row._faceObjectURL){
-      URL.revokeObjectURL(
-        row._faceObjectURL
-      );
+      URL.revokeObjectURL(row._faceObjectURL);
     }
 
-    const objectURL =
-      URL.createObjectURL(file);
-
-    row._faceObjectURL =
-      objectURL;
-
-    preview.src =
-      objectURL;
-
-    preview.style.display =
-      'block';
+    const objectURL = URL.createObjectURL(file);
+    row._faceObjectURL = objectURL;
+    preview.src = objectURL;
+    preview.style.display = 'block';
 
     generate();
 
   }catch(error){
 
-    console.error(
-      '差分圖片處理失敗：',
-      error
-    );
-
-    alert(
-      '差分圖片處理失敗，請確認圖片是否為有效 PNG。'
-    );
+    console.error('差分圖片處理失敗：', error);
+    alert('差分圖片處理失敗，請確認圖片是否為有效 PNG：' + file.name);
 
   }
 }
@@ -1876,6 +1865,7 @@ function makeRow(type,index,data={}){
   class="f-file file-select-input"
   type="file"
   accept="image/png,.png"
+  multiple
 >
 
     </div>
