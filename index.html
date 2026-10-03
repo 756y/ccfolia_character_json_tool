@@ -200,6 +200,26 @@ body.expert select{
     padding:24px 16px 50px
   }
 
+  /* 頂部導覽列 */
+  .top-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:12px 20px;
+    background:var(--panel);
+    border-bottom:1px solid var(--line);
+  }
+  .top-nav-title{
+    font-size:16px;
+    font-weight:700;
+    color:var(--text);
+  }
+  .top-nav .theme-toggle{
+    position:static;
+    flex:0 0 auto;
+  }
+
   h1{
     font-size:24px;
     margin:0 0 6px
@@ -374,6 +394,18 @@ border-color:var(--file-hover-border);
 
   .row .small{
     flex:0 0 110px
+  }
+
+  /* 常用指令輸入區在桌面版使用完整寬度 */
+  .section:has(#commands) .grid{
+    grid-template-columns:1fr;
+  }
+  .section:has(#commands) .field{
+    width:100%;
+  }
+  #commands{
+    width:100%;
+    min-height:250px;
   }
 
   button{
@@ -757,13 +789,25 @@ background:var(--input-bg);
 
 .zip-status{
   margin-top:10px;
-padding:0px 10px 18px;
+  padding:0 12px;
+  height:74px;
+  min-height:74px;
+  box-sizing:border-box;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  line-height:1.4;
   border-radius:8px;
   border:1px solid var(--line);
-background:var(--input-bg);
+  background:var(--input-bg);
   font-size:13px;
   white-space:pre-wrap;
-  word-break:break-all;
+  overflow-wrap:anywhere;
+}
+
+/* 只微調初始「尚未建立 Room ZIP」提示的位置，不影響其他狀態 */
+.zip-status-initial{
+  padding-bottom:18px;
 }
 
 .zip-status.success{
@@ -825,9 +869,6 @@ background:var(--input-bg);
       flex:1 1 100px
     }
     
-    #commands{
-  min-height:150px;
-}
 
   }
 </style>
@@ -835,20 +876,19 @@ background:var(--input-bg);
 
 <body>
 
-<button
-  id="themeToggle"
-  class="theme-toggle"
-  onclick="toggleTheme()"
->
-  ☀️ 亮色模式
-</button>
+<nav class="top-nav">
+  <div class="top-nav-title">CCFOLIA Character JSON 產生器</div>
+  <button
+    id="themeToggle"
+    class="theme-toggle"
+    onclick="toggleTheme()"
+  >☀️ 亮色</button>
+</nav>
 
 <div class="wrap">
 
-  <h1>CCFOLIA Character JSON 產生器</h1>
-
   <div class="sub">
-    填寫角色資料 → 產生 Clipboard API JSON → 複製後貼到 CCFOLIA。
+    填寫角色資料 → 上傳圖片 → 導入到 CCFOLIA。
   </div>
  
   <!-- 匯入工具 -->
@@ -1266,7 +1306,7 @@ background:var(--input-bg);
 
 <div
   id="zipStatus"
-  class="zip-status"
+  class="zip-status zip-status-initial"
 >
   尚未建立 Room ZIP。
 </div>
@@ -2020,19 +2060,20 @@ function applyTheme(theme){
     document.body.classList.add('light');
 
     $('themeToggle').textContent =
-      '🌙 深色模式';
+      '🌙 深色';
 
   }else if(theme === 'expert'){
 
     document.body.classList.add('expert');
 
+    // 彩虹模式啟用時，按鈕顯示模式名稱；點擊後仍可返回深色模式。
     $('themeToggle').textContent =
-      '🌈 我已經完全學會設計';
+      '🌈 我已經完全學會設計了';
 
   }else{
 
     $('themeToggle').textContent =
-      '☀️ 亮色模式';
+      '☀️ 亮色';
 
   }
 
