@@ -1172,8 +1172,17 @@
 
     <!-- ==================== ④ 圖片 ==================== -->
 
-    <div class="section">
-      <h2>④ 角色圖片與差分</h2>
+<div class="section">
+
+  <div class="position-header">
+    <h2>④ 角色圖片與差分</h2>
+
+    <button
+      type="button"
+      class="position-toggle"
+      onclick="toggleFaceSettings()"
+    >收起</button>
+  </div>
 
 
       <!-- 第一行：名稱 + 選擇圖片按鈕 -->
@@ -1209,21 +1218,25 @@
 </div>
 -->
 
-      <div id="facesList"></div>
+      <div id="faceSettings" style="display:block;">
 
-      <div style="padding:12px 12px 0;">
-        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
-          <input id="autoFaceLabel" type="checkbox" checked style="width:auto; margin:0;">
-          自動帶入圖片名稱
-        </label>
-      </div>
+        <div id="facesList"></div>
 
-      <div style="padding:12px; display:flex; gap:8px;">
-        <button onclick="addFace()">＋ 新增差分</button>
+        <div style="padding:12px 12px 0;">
+          <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+            <input id="autoFaceLabel" type="checkbox" checked style="width:auto; margin:0;">
+            自動帶入圖片名稱
+          </label>
+        </div>
 
-        <button type="button" onclick="copyAllFaceLabels()">
-          複製差分名稱
-        </button>
+        <div style="padding:12px; display:flex; gap:8px;">
+          <button onclick="addFace()">＋ 新增差分</button>
+
+          <button type="button" onclick="copyAllFaceLabels()">
+            複製差分名稱
+          </button>
+        </div>
+
       </div>
     </div>
 
@@ -2237,6 +2250,31 @@
         button.textContent = '展開';
       }
     }
+    
+    /* =========================================================
+   角色圖片與差分的展開按鈕
+========================================================= */
+function toggleFaceSettings() {
+  const settings = document.getElementById('faceSettings');
+
+  const button = document.querySelector(
+    '.position-header button[onclick="toggleFaceSettings()"]'
+  );
+
+  if (!settings || !button) return;
+
+  if (
+    settings.style.display === 'none' ||
+    settings.style.display === ''
+  ) {
+    settings.style.display = 'block';
+    button.textContent = '收起';
+  } else {
+    settings.style.display = 'none';
+    button.textContent = '展開';
+  }
+}
+
     /* =========================================================
        產生 JSON
     ========================================================= */
@@ -3044,7 +3082,7 @@
         const compressedSize =
           readU32LE(
             bytes,
-            offset + 18
+            offset 
           );
 
 
