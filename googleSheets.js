@@ -26,6 +26,9 @@
   let lastDeclinedFingerprint = '';
   let lastAppliedFingerprint = '';
   let lastSuccessfulUrl = '';
+  let importRefreshPending = false;
+  let importRefreshTimer = null;
+  let importWatchdogTimer = null;
   const inFlightUrls = new Set();
 
   function getElement(id) {
@@ -1116,7 +1119,7 @@
     if (typeof window.generate === 'function') window.generate();
   }
 
-  async function checkSheet(url, showFailure) {
+  async function checkSheet(url, showFailure, forceCheck) {
     const info = extractSpreadsheetInfo(url);
     if (!info || inFlightUrls.has(url)) return;
     inFlightUrls.add(url);
@@ -1154,8 +1157,8 @@
       }
 
       // 同一份試算表版本已處理過（套用或拒絕），定時檢查時不重複打擾。
-      if (remoteFingerprint === lastDeclinedFingerprint ||
-          remoteFingerprint === lastAppliedFingerprint) {
+      if (!forceCheck && (remoteFingerprint === lastDeclinedFingerprint ||
+          remoteFingerprint === lastAppliedFingerprint)) {
         return;
       }
 
@@ -1240,7 +1243,7 @@
     }, POLL_INTERVAL_MS);
   }
 
-  function scheduleCheck() {
+  function scheduleCheck(forceCheck = true) {
     const field = getElement('externalUrl');
     if (!field) return;
 
@@ -1254,22 +1257,80 @@
     }
 
     debounceTimer = window.setTimeout(async () => {
-      await checkSheet(url, true);
+      await checkSheet(url, true, forceCheck);
       startPolling(url);
     }, INPUT_DEBOUNCE_MS);
+  }
+
+  function markImportPending() {
+    importRefreshPending = true;
+    window.clearTimeout(importWatchdogTimer);
+    // ZIP 匯入可能還要載入圖片；保留觀察狀態，直到匯入後的 generate() 完成。
+    importWatchdogTimer = window.setTimeout(() => {
+      importRefreshPending = false;
+    }, 120000);
+  }
+
+  function scheduleImportedDataCheck() {
+    if (!importRefreshPending) return;
+    window.clearTimeout(importRefreshTimer);
+    // 等匯入流程最後一次 generate() 完成，避免拿到 ZIP 匯入中的半成品。
+    importRefreshTimer = window.setTimeout(() => {
+      importRefreshPending = false;
+      window.clearTimeout(importWatchdogTimer);
+      const field = getElement('externalUrl');
+      const url = field ? field.value.trim() : '';
+      if (extractSpreadsheetInfo(url)) {
+        checkSheet(url, true, true);
+      }
+    }, 1200);
+  }
+
+  function wrapImportFunction(name) {
+    const original = window[name];
+    if (typeof original !== 'function' || original.__googleSheetsImportWatchWrapped) return;
+
+    const wrapped = function (...args) {
+      markImportPending();
+      return original.apply(this, args);
+    };
+    wrapped.__googleSheetsImportWatchWrapped = true;
+    window[name] = wrapped;
+  }
+
+  function watchImportedData() {
+    // 一般 JSON 匯入與 Room ZIP 匯入會經過其中一個資料載入函式。
+    wrapImportFunction('importCharacterJSON');
+    wrapImportFunction('loadJSON');
+
+    // ZIP 匯入完成時會呼叫 generate()；只在已偵測到匯入流程時觸發同步，
+    // 不會把一般逐字編輯的每一次 generate() 都當成新匯入。
+    const originalGenerate = window.generate;
+    if (typeof originalGenerate === 'function' &&
+        !originalGenerate.__googleSheetsImportWatchWrapped) {
+      const wrappedGenerate = function (...args) {
+        const result = originalGenerate.apply(this, args);
+        scheduleImportedDataCheck();
+        return result;
+      };
+      wrappedGenerate.__googleSheetsImportWatchWrapped = true;
+      window.generate = wrappedGenerate;
+    }
   }
 
   function init() {
     const field = getElement('externalUrl');
     if (!field) return;
 
-    // 不更改原本的 oninput="generate()"，額外監聽同一欄位。
-    // 只監聽 input；change 通常會在失焦時再觸發一次，可能造成重複比對視窗。
-    field.addEventListener('input', scheduleCheck);
+    watchImportedData();
+
+    // 貼上或輸入試算表連結後，立即排程檢查；同一連結再次貼上也會強制比對。
+    // 只監聽 input，避免 change 事件在失焦時重複開啟比對視窗。
+    field.addEventListener('input', () => scheduleCheck(true));
 
     // 若表單原本已保存試算表連結，開啟時也嘗試讀取一次。
     if (extractSpreadsheetInfo(field.value)) {
-      scheduleCheck();
+      scheduleCheck(true);
     }
   }
 
