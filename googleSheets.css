@@ -1,0 +1,277 @@
+/* Google Sheets 角色差異比對視窗樣式；只影響 gs-diff-* 元件 */
+.gs-diff-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 16px;
+  background: rgba(12, 16, 25, .68);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.gs-diff-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(780px, 100%);
+  max-height: min(90vh, 940px);
+  overflow: hidden;
+  color: var(--text, #f3f4f6);
+  background: var(--panel, #20242c);
+  border: 1px solid var(--border, #4b5563);
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .42);
+  font: inherit;
+}
+
+.gs-diff-head {
+  padding: 20px 22px 16px;
+  background: linear-gradient(135deg, rgba(88, 132, 220, .16), transparent 72%);
+  border-bottom: 1px solid var(--border, #4b5563);
+}
+.gs-diff-head h3 {
+  margin: 0 0 7px;
+  font-size: 1.15rem;
+  line-height: 1.4;
+  letter-spacing: .01em;
+}
+.gs-diff-sub {
+  color: var(--muted, #aab2c0);
+  font-size: .9rem;
+  line-height: 1.6;
+}
+
+.gs-diff-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border, #4b5563);
+}
+.gs-diff-tools button,
+.gs-diff-actions button {
+  min-height: 40px;
+  padding: 9px 14px;
+  color: inherit;
+  background: var(--panel2, rgba(128, 128, 128, .12));
+  border: 1px solid var(--border, #626b79);
+  border-radius: 10px;
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.gs-diff-tools button:hover,
+.gs-diff-actions button:hover:not(:disabled) {
+  border-color: var(--accent, #5884dc);
+  background: rgba(88, 132, 220, .14);
+}
+.gs-diff-tools button:active,
+.gs-diff-actions button:active:not(:disabled) { transform: translateY(1px); }
+
+.gs-diff-list {
+  min-height: 100px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 8px 18px 14px;
+  scrollbar-gutter: stable;
+}
+.gs-diff-list > p { padding: 16px 4px; color: var(--muted, #aab2c0); }
+
+/* 每筆差異改成「上方名稱／勾選框，下方差異內容」，手機閱讀更直覺 */
+.gs-diff-item {
+  display: block;
+  margin: 10px 0;
+  padding: 13px 15px 14px;
+  overflow-wrap: anywhere;
+  color: var(--text, #f3f4f6);
+  background: var(--panel2, rgba(128, 128, 128, .08));
+  border: 1px solid var(--border, #4b5563);
+  border-radius: 13px;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.gs-diff-item:has(input:checked) {
+  border-color: color-mix(in srgb, var(--accent, #5884dc) 65%, var(--border, #4b5563));
+}
+.gs-diff-item-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  width: 100%;
+  font-weight: 700;
+  font-size: .98rem;
+  line-height: 1.5;
+}
+.gs-diff-item-top > span {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+}
+.gs-diff-item-top > .gs-diff-status {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: .76rem;
+  font-weight: 800;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.gs-diff-status-add {
+  color: #16834a;
+  background: rgba(34, 197, 94, .13);
+  border-color: rgba(34, 197, 94, .3) !important;
+}
+.gs-diff-status-delete {
+  color: #d92d3a;
+  background: rgba(240, 68, 68, .12);
+  border-color: rgba(240, 68, 68, .3) !important;
+}
+.gs-diff-status-edit {
+  color: #b7791f;
+  background: rgba(245, 158, 11, .13);
+  border-color: rgba(245, 158, 11, .3) !important;
+}
+.gs-diff-item input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 19px;
+  height: 19px;
+  margin: 2px 0 0;
+  accent-color: var(--accent, #5884dc);
+  cursor: pointer;
+}
+
+.gs-diff-values {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0 30px;
+  font-size: .9rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.gs-diff-before,
+.gs-diff-after {
+  min-width: 0;
+  padding: 9px 11px;
+  border-radius: 9px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.gs-diff-before {
+  color: var(--text, #f3f4f6);
+  background: rgba(128, 128, 128, .075);
+  border-left: 3px solid #8b95a5;
+}
+.gs-diff-after {
+  margin-top: 0;
+  color: var(--text, #f3f4f6);
+  background: rgba(55, 160, 110, .075);
+  border-left: 3px solid #38a879;
+}
+/* 差異只改文字顏色，不加背景色；新增綠、刪除紅、修改橘。
+   使用更明確的選擇器，避免通用差異樣式把新增／刪除覆蓋成橘色。 */
+.gs-diff-text-add,
+.gs-diff-values .gs-diff-text-add { color: #35c878; font-weight: 800; }
+.gs-diff-text-delete,
+.gs-diff-values .gs-diff-text-delete { color: #ff626d; font-weight: 800; }
+.gs-diff-text-edit,
+.gs-diff-values .gs-diff-text-edit { color: #ffb547; font-weight: 800; }
+.gs-diff-changed {
+  font-weight: 800;
+}
+.gs-diff-changed.gs-diff-text-add { color: #35c878; }
+.gs-diff-changed.gs-diff-text-delete { color: #ff626d; }
+.gs-diff-changed.gs-diff-text-edit { color: #ffb547; }
+.gs-diff-line-changed {
+  font-weight: 800;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.gs-diff-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 13px;
+  margin-top: 9px;
+  font-size: .84rem;
+  line-height: 1.5;
+}
+.gs-diff-legend span { white-space: nowrap; }
+.gs-diff-legend .gs-diff-text-add::before { content: '● '; }
+.gs-diff-legend .gs-diff-text-delete::before { content: '● '; }
+.gs-diff-legend .gs-diff-text-edit::before { content: '● '; }
+
+.gs-diff-preserved {
+  margin: 0 18px 12px;
+  padding: 11px 13px;
+  color: var(--muted, #aab2c0);
+  background: rgba(128, 128, 128, .1);
+  border: 1px solid var(--border, #4b5563);
+  border-radius: 10px;
+  font-size: .86rem;
+  line-height: 1.6;
+}
+.gs-diff-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 13px 18px max(13px, env(safe-area-inset-bottom));
+  background: var(--panel, #20242c);
+  border-top: 1px solid var(--border, #4b5563);
+}
+.gs-diff-actions .primary {
+  color: #fff;
+  background: var(--accent, #4f80dc);
+  border-color: var(--accent, #4f80dc);
+  font-weight: 750;
+}
+.gs-diff-actions .primary:hover:not(:disabled) {
+  background: var(--accent2, #3b68bd);
+}
+.gs-diff-actions button:disabled {
+  opacity: .7;
+  cursor: wait;
+}
+
+@media (max-width: 600px) {
+  .gs-diff-overlay {
+    align-items: flex-end;
+    padding: 6px 6px max(6px, env(safe-area-inset-bottom));
+  }
+  .gs-diff-dialog {
+    width: 100%;
+    max-height: 94dvh;
+    border-radius: 17px;
+  }
+  .gs-diff-head { padding: 16px 15px 12px; }
+  .gs-diff-head h3 { font-size: 1.05rem; }
+  .gs-diff-sub { font-size: .86rem; }
+  .gs-diff-tools { padding: 10px 12px; }
+  .gs-diff-tools button { flex: 1 1 auto; }
+  .gs-diff-list { padding: 5px 10px 12px; }
+  .gs-diff-item { margin: 8px 0; padding: 12px 11px; border-radius: 12px; }
+  /* 名稱獨立放在每張卡片最上方；內容比較放在名稱下面 */
+  .gs-diff-item-top { gap: 9px; font-size: .96rem; flex-wrap: wrap; }
+  .gs-diff-item-top > .gs-diff-status { margin-left: 30px; font-size: .73rem; }
+  .gs-diff-item input[type="checkbox"] { width: 21px; height: 21px; }
+  .gs-diff-values { margin: 10px 0 0; gap: 7px; font-size: .88rem; }
+  .gs-diff-before, .gs-diff-after { padding: 9px 10px; }
+  .gs-diff-preserved { margin: 0 10px 10px; }
+  .gs-diff-actions { padding: 10px 11px max(10px, env(safe-area-inset-bottom)); }
+  .gs-diff-actions button { flex: 1 1 140px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-diff-tools button,
+  .gs-diff-actions button,
+  .gs-diff-item { transition: none; }
+}
