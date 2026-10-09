@@ -15,12 +15,6 @@
     const faceImageData = new WeakMap();
 
 
-    /*
-      將 ArrayBuffer / Uint8Array
-      轉成 SHA-256 小寫十六進位字串
-    */
-
-
 
     /*
       選擇主圖片
@@ -688,7 +682,9 @@
     ========================================================= */
     function togglePositionSettings() {
       const settings = document.getElementById('positionSettings');
-      const button = document.querySelector('.position-toggle');
+      const button = document.querySelector(
+  '.position-header button[onclick="togglePositionSettings()"]'
+);
 
       if (!settings || !button) return;
 
@@ -1458,47 +1454,13 @@ function toggleFaceSettings() {
 
     }
 
-    /* =========================================================
-       ZIP 解析
-    ========================================================= */
-
-    /*
-      解析本工具建立的 Store ZIP。
-    
-      ZIP 內容：
-    
-        __data.json
-        .token
-        <sha256>.png
-        <sha256>.png
-        ...
-    
-      目前工具產生的 ZIP 使用：
-        Store / 不壓縮
-    */
-
-
-
-    /*
-      讀取 ZIP Little Endian 16-bit
-    */
-
-
-
-    /*
-      讀取 ZIP Little Endian 32-bit
-    */
-
 
 
     /* =========================================================
-       ZIP 匯入
+       匯入資料的輔助函式
     ========================================================= */
 
-    /* =========================================================
-       匯入輔助函式
-    ========================================================= */
-
+/*把匯入的文字填入指定欄位；如果欄位不存在，就跳過，避免出錯。*/
     function setValueIfExists(id, value, fallback = '') {
 
       if ($(id)) {
@@ -1512,7 +1474,7 @@ function toggleFaceSettings() {
 
     }
 
-
+/*把匯入的資料轉成數字，再填入欄位。*/
     function setNumberIfExists(id, value) {
 
       if ($(id) && value !== undefined && value !== null) {
@@ -1530,7 +1492,7 @@ function toggleFaceSettings() {
 
     }
 
-
+/*處理布林值，例如 true、false，並填入欄位。*/
     function setBooleanIfExists(
       id,
       value,
@@ -1554,7 +1516,7 @@ function toggleFaceSettings() {
 
     }
 
-
+/*將特殊 HTML 字元轉換成安全文字，避免匯入內容被當成 HTML 程式碼執行。*/
     function escapeHTML(text) {
 
       return String(text)
@@ -2041,43 +2003,6 @@ function toggleFaceSettings() {
        ZIP 基礎工具
     ========================================================= */
 
-
-    /*
-      CRC-32
-    */
-
-
-
-    /*
-      Little Endian 16-bit
-    */
-
-
-
-    /*
-      Little Endian 32-bit
-    */
-
-
-
-    /*
-      合併 Uint8Array
-    */
-
-
-
-    /*
-      建立最簡單的 ZIP：
-      Store / 不壓縮
-    
-      ZIP 根目錄直接放：
-        __data.json
-        .token
-        <hash>.png
-    */
-
-
-
     /*
       檔名清理
     */
@@ -2096,10 +2021,6 @@ function toggleFaceSettings() {
 
     }
 
-
-    /* =========================================================
-       下載 CCFOLIA Room ZIP
-    ========================================================= */
 
 
     /* =========================================================
