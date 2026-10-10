@@ -25,7 +25,6 @@
   let currentRequestId = 0;
   let lastDeclinedFingerprint = '';
   let lastAppliedFingerprint = '';
-  let lastSuccessfulUrl = '';
   let importRefreshPending = false;
   let importRefreshTimer = null;
   let importWatchdogTimer = null;
@@ -226,24 +225,196 @@
   }
 
   function findCharacterJSON(response) {
-    const rows = response && response.table && response.table.rows
+    const rows = response && response.table && Array.isArray(response.table.rows)
       ? response.table.rows
       : [];
 
     for (const row of rows) {
       const cells = row && Array.isArray(row.c) ? row.c : [];
+
+      // 先維持原本行為：若整份角色 JSON 已在單一儲存格，直接讀取。
       for (const cell of cells) {
         if (!cell) continue;
-
-        const candidates = [cell.v, cell.f];
-        for (const candidate of candidates) {
+        for (const candidate of [cell.v, cell.f]) {
           const character = parseCharacterCandidate(candidate);
           if (character) return character;
+        }
+      }
+
+      // 此試算表會把角色 JSON 拆成相鄰多個儲存格（例如 name、initiative、status、commands、memo）。
+      // 將從 JSON 開頭開始的連續片段逐格串接，直到形成完整角色 JSON，避免完全讀不到或讀到舊資料。
+      for (let start = 0; start < cells.length; start++) {
+        const firstCell = cells[start];
+        if (!firstCell) continue;
+        const firstValue = firstCell.v !== undefined && firstCell.v !== null
+          ? firstCell.v : firstCell.f;
+        const firstText = typeof firstValue === 'string' ? firstValue.trim() : '';
+        if (!firstText.startsWith('{') || !firstText.includes('"kind":"character"')) continue;
+
+        let combined = '';
+        for (let end = start; end < Math.min(cells.length, start + 16); end++) {
+          const cell = cells[end];
+          const value = cell && cell.v !== undefined && cell.v !== null ? cell.v : (cell ? cell.f : '');
+          if (value !== undefined && value !== null) combined += String(value);
+          const character = parseCharacterCandidate(combined);
+          if (character) return character;
+
+          // 試算表的 JSON 模板偶爾會把空白行動順序輸出成 "initiative":,，補成 null 後再解析。
+          // 只修復這個已知空欄位，不改動其他 JSON 內容。
+          const repaired = combined.replace(/("initiative"\s*:\s*),(?=\s*")/g, '$1null,');
+          const repairedCharacter = parseCharacterCandidate(repaired);
+          if (repairedCharacter) return repairedCharacter;
         }
       }
     }
 
     return null;
+  }
+
+  let lastCharacterSheetResponse = null;
+
+  // 基礎數值標籤；幸運更新 Status，智力以試算表「靈感」數值為準。
+  const BASE_ATTRIBUTE_LABELS = ['力量', '敏捷', '意志', '體質', '外貌', '教育', '體型', '智力', '幸運', '靈感'];
+
+  function sheetCellValue(cell) {
+    if (!cell) return '';
+    const value = cell.v !== undefined && cell.v !== null ? cell.v : cell.f;
+    return value === undefined || value === null ? '' : value;
+  }
+
+  function sheetNumericValue(value) {
+    if (typeof value === 'number' && Number.isFinite(value)) return Math.floor(value);
+    const text = String(value == null ? '' : value).trim().replace(/[,，]/g, '');
+    if (!/^\d+(?:\.\d+)?$/.test(text)) return null;
+    const number = Number(text);
+    return Number.isFinite(number) ? Math.floor(number) : null;
+  }
+
+  function readBaseAttributes(response) {
+    const values = {};
+    const rows = response && response.table && Array.isArray(response.table.rows)
+      ? response.table.rows : [];
+
+    // 依照這份試算表的實際座標讀取，避免在同名標籤／初始值附近抓錯欄位。
+    // Google Visualization 會把第 5 列的欄名當成表頭排除，因此 response.table.rows[0] 對應試算表第 6 列。
+    // S6:S13 對應回傳資料列索引 0–7，欄 S = 索引 18。
+    const fixedCells = {
+      '力量': { row: 0, col: 18 },
+      '敏捷': { row: 1, col: 18 },
+      '意志': { row: 2, col: 18 },
+      '體質': { row: 3, col: 18 },
+      '外貌': { row: 4, col: 18 },
+      '教育': { row: 5, col: 18 }, // 後續由「知識」的 YZ10 最終值覆蓋
+      '體型': { row: 6, col: 18 },
+      '智力': { row: 7, col: 18 },
+      '幸運': { row: 8, col: 16 } // Q14；幸運欄沒有 S 欄的最終值格式
+    };
+
+    function valueAt(rowIndex, colIndex) {
+      const row = rows[rowIndex];
+      const cells = row && Array.isArray(row.c) ? row.c : [];
+      return sheetNumericValue(sheetCellValue(cells[colIndex]));
+    }
+
+    for (const [label, cell] of Object.entries(fixedCells)) {
+      const number = valueAt(cell.row, cell.col);
+      if (number !== null) values[label] = number;
+    }
+
+    // 「靈感」與「知識」位於 YZ 合併儲存格：合併值實際由 Y 欄提供。
+    // YZ9 = 靈感（比先前讀取位置往上一列）；YZ10 = 知識，作為「教育」檢定值。
+    let inspiration = valueAt(3, 24); // Y9；回傳資料列索引 3
+    if (inspiration === null) inspiration = valueAt(3, 25); // 若合併值在 Z9，回退讀取 Z9
+    if (inspiration !== null) {
+      values['靈感'] = inspiration;
+      // CCFOLIA 常用對話表的「智力」檢定值對應試算表 Y9「靈感」，
+      // 因此必須覆蓋上方 S13 的智力值，讓智力指令實際更新。
+      values['智力'] = inspiration;
+    }
+
+    let knowledge = valueAt(4, 24); // Y10；回傳資料列索引 4
+    if (knowledge === null) knowledge = valueAt(4, 25); // 若資料源將合併值放在 Z10，則回退讀取 Z10
+    if (knowledge !== null) values['教育'] = knowledge;
+
+    return values;
+  }
+
+  // 將試算表的基礎檢定值套回最終合併結果。
+  // 只替換對應的檢定行，保留本機常用對話表的其他指令，避免整段 commands 被後續 JSON 合併覆蓋。
+  function syncBaseCommandLines(targetData, sourceData, response) {
+    if (!targetData || !sourceData || typeof targetData.commands !== 'string' ||
+        typeof sourceData.commands !== 'string') return;
+
+    const labels = BASE_ATTRIBUTE_LABELS.filter(label => label !== '幸運');
+    const fixedValues = response ? readBaseAttributes(response) : {};
+    let targetCommands = targetData.commands;
+    for (const label of labels) {
+      if (fixedValues[label] !== undefined) {
+        const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const fixedPattern = new RegExp('^CC<=[^\r\n]*\\s+' + escapedLabel + '\\s*$', 'm');
+        if (fixedPattern.test(targetCommands)) {
+          targetCommands = targetCommands.replace(fixedPattern, 'CC<=' + fixedValues[label] + ' ' + label);
+          continue;
+        }
+      }
+      const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const linePattern = new RegExp('^CC<=[^\r\n]*\\s+' + escaped + '\\s*$', 'm');
+      const sourceLine = sourceData.commands.split(/\r?\n/).find(line => linePattern.test(line));
+      if (!sourceLine) continue;
+      const targetPattern = new RegExp('^CC<=[^\r\n]*\\s+' + escaped + '\\s*$', 'm');
+      if (targetPattern.test(targetCommands)) {
+        targetCommands = targetCommands.replace(targetPattern, sourceLine);
+      }
+    }
+    targetData.commands = targetCommands;
+  }
+
+  // 智力檢定固定以試算表 Y9「靈感」為準；即使其他欄位沒有差異，仍確保本機智力指令同步。
+  function syncIntelligenceFromInspiration(targetCharacter, response) {
+    const data = targetCharacter && targetCharacter.kind === 'character' && targetCharacter.data
+      ? targetCharacter.data
+      : (targetCharacter && targetCharacter.data && typeof targetCharacter.data === 'object' ? targetCharacter.data : targetCharacter);
+    if (!data || typeof data.commands !== 'string' || !response) return false;
+
+    const values = readBaseAttributes(response);
+    const inspiration = values['靈感'];
+    if (inspiration === undefined) return false;
+
+    const pattern = /^\s*CC\s*<=\s*[^\r\n]*?\s+智力\s*$/m;
+    if (!pattern.test(data.commands)) return false;
+    const updatedCommands = data.commands.replace(pattern, 'CC<=' + inspiration + ' 智力');
+    const changed = updatedCommands !== data.commands;
+    data.commands = updatedCommands;
+    return changed;
+  }
+
+  function syncBaseAttributesOnly(character, response) {
+    const data = character && character.kind === 'character' && character.data
+      ? character.data
+      : (character && character.data && typeof character.data === 'object' ? character.data : character);
+    if (!data || typeof data !== 'object') return character;
+
+    const values = readBaseAttributes(response);
+    if (typeof data.commands === 'string') {
+      let commands = data.commands;
+      for (const label of BASE_ATTRIBUTE_LABELS) {
+        if (label === '幸運' || values[label] === undefined) continue;
+        const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const pattern = new RegExp('^CC<=.*?\\s+' + escaped + '\\s*$', 'm');
+        commands = commands.replace(pattern, 'CC<=' + values[label] + ' ' + label);
+      }
+      data.commands = commands;
+    }
+
+    if (values['幸運'] !== undefined && Array.isArray(data.status)) {
+      const luck = data.status.find(item => item && String(item.label || '').trim() === '幸運');
+      if (luck) {
+        luck.value = values['幸運'];
+        luck.max = values['幸運'];
+      }
+    }
+
+    return character;
   }
 
   async function readCharacterFromSheet(info) {
@@ -253,7 +424,10 @@
       try {
         const response = await jsonpGoogleSheet(queryUrl);
         const character = findCharacterJSON(response);
-        if (character) return character;
+        if (character) {
+          lastCharacterSheetResponse = response;
+          return syncBaseAttributesOnly(character, response);
+        }
         lastError = new Error(
           '已連線到試算表，但在「' + SHEET_NAME +
           '」分頁找不到完整的 CCFOLIA 角色 JSON。'
@@ -330,10 +504,6 @@
     'invisible',     // 底部勾選框：發言時不顯示立繪
     'hideStatus'     // 底部勾選框：不在角色清單顯示
   ]);
-
-  // 僅比對原本匯入角色 JSON 時需要同步的欄位。
-  // 不比對位置／外觀、備註、圖片、顏色或底部勾選框。
-  const SYNC_FIELDS = new Set(['name', 'status', 'params', 'commands', 'initiative']);
 
   const FIELD_LABELS = {
     name: '角色名稱',
@@ -1132,7 +1302,6 @@
 
       const remoteData = unwrapCharacter(remoteCharacter);
       const remoteFingerprint = fingerprint(remoteCharacter);
-      lastSuccessfulUrl = url;
 
       let currentCharacter;
       try {
@@ -1145,14 +1314,22 @@
       const comparison = compareCharacters(currentCharacter, remoteCharacter);
 
       if (!comparison.changes.length) {
-        lastAppliedFingerprint = remoteFingerprint;
-        lastDeclinedFingerprint = '';
-        if (showFailure) {
+        // 若一般差異比較沒有列出智力指令，仍以 Y9「靈感」強制核對並同步智力。
+        const currentForIntelligence = cloneJSON(comparison.current);
+        if (syncIntelligenceFromInspiration(currentForIntelligence, lastCharacterSheetResponse)) {
+          if (Object.prototype.hasOwnProperty.call(comparison.current, 'externalUrl')) {
+            currentForIntelligence.externalUrl = comparison.current.externalUrl;
+          }
+          applyCharacter({ kind: 'character', data: currentForIntelligence }, url);
+          if (showFailure) notify('已依試算表 Y9「靈感」同步智力。');
+        } else if (showFailure) {
           const protectedNote = comparison.preserved.length
             ? '；以下項目保留目前檔案：' + comparison.preserved.map(item => item.label).join('、')
             : '';
           notify('沒有需要更新的可同步欄位' + protectedNote + '。');
         }
+        lastAppliedFingerprint = remoteFingerprint;
+        lastDeclinedFingerprint = '';
         return;
       }
 
@@ -1201,6 +1378,11 @@
           delete mergedData[key];
         }
       }
+      // 最後才同步基礎檢定行，確保不會被 JSON 合併或其他欄位更新覆蓋。
+      // 只更新八項基礎數值，其他常用對話表指令仍依原本的差異選取邏輯保留。
+      syncBaseCommandLines(mergedData, remoteData, lastCharacterSheetResponse);
+      // 智力不採用 S13；最後再次明確以 Y9「靈感」覆寫，避免其他合併步驟蓋回舊值。
+      syncIntelligenceFromInspiration(mergedData, lastCharacterSheetResponse);
       if (Object.prototype.hasOwnProperty.call(comparison.current, 'externalUrl')) {
         mergedData.externalUrl = comparison.current.externalUrl;
       }
