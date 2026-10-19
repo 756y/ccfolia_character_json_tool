@@ -72,7 +72,7 @@
     }
 
     // 修正常見的「\(文字)」寫法：左括號已明確表示字面括號時，配對右括號也視為字面符號。
-    // 例如：列車警察 \({N}) 會自動修正為 列車警察 \({N}\)，避免出現未配對右括號錯誤。
+    // 例如：角色 \({N}) 會自動修正為 角色 \({N}\)，避免出現未配對右括號錯誤。
     function normalizeRegexInput(value) {
         return value.replace(/\\\(([^()]*)\)/g, (_, inside) => '\\(' + inside + '\\)');
     }
@@ -116,6 +116,7 @@
     }
 
     // 依差分名稱推測可批次替換的共同前綴，優先辨識括號數字、數字底線與一般底線。
+    // 只在智慧偵測時容許少數名稱格式不同；原有規則與優先順序保留。
     function autoDetectPrefix() {
         const names = [...document.querySelectorAll('#facesList .f-label')]
             .map(input => (input.value ?? '').trim())
@@ -128,49 +129,66 @@
         let searchRule = '';
         const escape = escapeRegexLiteral;
 
-        // 例如「列車警察 (1)微笑」「列車警察 (2)生氣」→ 列車警察 \({D}\)
-        const parenNumber = names.map(name => name.match(/^(.*?)(\(\d+\))/));
-        if (parenNumber.every(Boolean)) {
-            const bases = parenNumber.map(match => match[1]);
-            const nums = parenNumber.map(match => match[2]);
-            if (nums.some((v, i) => v !== nums[0]) && bases.every(v => v === bases[0])) {
-                searchRule = escape(bases[0]) + '{(N)}';
-            }
+        // 例如「角色 (1)微笑」「角色 (2)生氣」→ 角色 {(N)}。
+        // 只比較有括號數字的名稱，並採用其中數量最多的共同前綴，忽略少數異格式名稱。
+        const parenGroups = new Map();
+        names.forEach(name => {
+            const match = name.match(/^(.*?)(\(\d+\))/);
+            if (!match) return;
+            if (!parenGroups.has(match[1])) parenGroups.set(match[1], []);
+            parenGroups.get(match[1]).push(match[2]);
+        });
+        const bestParen = [...parenGroups.entries()].sort((a, b) => b[1].length - a[1].length)[0];
+        if (bestParen && new Set(bestParen[1]).size > 1) {
+            searchRule = escape(bestParen[0]) + '{(N)}';
         }
 
-        // 例如「列車警察1_微笑」「列車警察2_生氣」→ 列車警察{D}_
+        // 例如「角色1_微笑」「角色2_生氣」→ 角色{N_}
+        // 同樣只比較符合此格式且共同前綴最多的名稱。
         if (!searchRule) {
-            const numericUnderscore = names.map(name => name.match(/^(.*?)(\d+)_/));
-            if (numericUnderscore.every(Boolean)) {
-                const bases = numericUnderscore.map(match => match[1]);
-                const nums = numericUnderscore.map(match => match[2]);
-                if (nums.some((v, i) => v !== nums[0]) && bases.every(v => v === bases[0])) {
-                    searchRule = escape(bases[0]) + '{N_}';
-                }
-            }
-        }
-
-        // 例如「列車警察_微笑」「列車警察_生氣」或「列車警察1_微笑」等。
-        if (!searchRule) {
-            const underscorePrefixes = names.map(name => {
-                const index = name.indexOf('_');
-                return index > 0 ? name.slice(0, index + 1) : null;
+            const numericGroups = new Map();
+            names.forEach(name => {
+                const match = name.match(/^(.*?)(\d+)_/);
+                if (!match) return;
+                if (!numericGroups.has(match[1])) numericGroups.set(match[1], []);
+                numericGroups.get(match[1]).push(match[2]);
             });
-            if (underscorePrefixes.every(Boolean)) {
-                const stems = underscorePrefixes.map(prefix => prefix.slice(0, -1));
+            const bestNumeric = [...numericGroups.entries()].sort((a, b) => b[1].length - a[1].length)[0];
+            if (bestNumeric && new Set(bestNumeric[1]).size > 1) {
+                searchRule = escape(bestNumeric[0]) + '{N_}';
+            }
+        }
+
+        // 例如「角色_微笑」「角色_生氣」或「角色1_微笑」等。
+        // 在符合底線格式的名稱中，沿用原本的相同前綴／數字前綴規則，忽略不符合格式的少數名稱。
+        if (!searchRule) {
+            const underscoreGroups = new Map();
+            names.forEach(name => {
+                const index = name.indexOf('_');
+                if (index <= 0) return;
+                const stem = name.slice(0, index);
+                const base = stem.replace(/\d+$/, '');
+                const key = base;
+                if (!underscoreGroups.has(key)) underscoreGroups.set(key, []);
+                underscoreGroups.get(key).push({ stem, prefix: name.slice(0, index + 1), hasDigits: stem !== base, number: (stem.match(/(\d+)$/) || [])[1] || '' });
+            });
+            const bestUnderscore = [...underscoreGroups.entries()].sort((a, b) => b[1].length - a[1].length)[0];
+            if (bestUnderscore) {
+                const entries = bestUnderscore[1];
+                const stems = entries.map(entry => entry.stem);
                 const withoutTrailingDigits = stems.map(stem => stem.replace(/\d+$/, ''));
                 const sameBase = withoutTrailingDigits.every(stem => stem === withoutTrailingDigits[0]);
                 const exactSame = stems.every(stem => stem === stems[0]);
                 if (exactSame) {
-                    searchRule = escape(underscorePrefixes[0]);
-                } else if (sameBase) {
+                    searchRule = escape(entries[0].prefix);
+                } else if (sameBase && entries.some(entry => entry.hasDigits) && new Set(entries.map(entry => entry.number)).size > 1) {
                     searchRule = escape(withoutTrailingDigits[0]) + '{N_}';
                 }
             }
         }
 
         if (!searchRule) {
-            // 備援：找最長共同開頭；但若共同開頭包含正規表示式符號，會先跳脫成字面文字。
+            // 備援：維持原本找所有名稱最長共同開頭的方式。
             let common = names[0];
             for (const name of names.slice(1)) {
                 let i = 0;
