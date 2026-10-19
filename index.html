@@ -2,1529 +2,1642 @@
 <html lang="zh-Hant">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CCFOLIA Character JSON 產生器</title>
-
-<link rel="stylesheet" href="googleSheets.css">
-
-  <style>
-    :root {
-      /* 基本色 */
-      --bg: #15171c;
-      --panel: #20232b;
-      --panel2: #282c36;
-      --line: #3a3f4b;
-
-      /* 文字 */
-      --text: #f1f3f5;
-      --muted: #aeb4c0;
-
-      /* 強調色 */
-      --accent: #8ab4ff;
-      --accent2: #6f9df0;
-
-      /* 狀態色 */
-      --danger: #ff7b7b;
-      --ok: #7bd99a;
-      --warn: #f0c36a;
-
-      /* 輸入框 */
-      --input-bg: #171920;
-
-      /* 檔案選擇按鈕 */
-      --file-bg: #242832;
-      --file-text: #e8eaf0;
-      --file-border: #3a404d;
-      --file-hover: #2d333e;
-      --file-hover-border: #596171;
-
-      /* 一般按鈕 */
-      --button-text: #ffffff;
-      --secondary-bg: #3a3f4b;
-      --danger-bg: #9f4141;
-      --success-bg: #34764d;
-
-      /* 圖片 / 資訊區 */
-      --preview-bg: #171920;
-
-      /* Toast */
-      --toast-bg: #303641;
-
-      /* Checkbox */
-      --checkbox-bg: #555555;
-      --checkbox-knob: #ffffff;
-
-      /* Modal */
-      --modal-overlay: rgba(0, 0, 0, .72);
-
-      /* 陰影 */
-      --shadow: rgba(0, 0, 0, .53);
-      --modal-shadow: rgba(0, 0, 0, .73);
-    }
-
-    /* ===== 亮色模式 ===== */
-
-    body.light {
-
-      /* 基本背景 */
-      --bg: #f1f2f4;
-      --panel: #ffffff;
-      --panel2: #e7e9ed;
-      --line: #c8ccd3;
-
-      /* 文字 */
-      --text: #25282d;
-      --muted: #626a75;
-
-      /* 強調色 */
-      --accent: #4774c7;
-      --accent2: #3b63ad;
-
-      /* 狀態顏色 */
-      --danger: #c94343;
-      --ok: #358653;
-      --warn: #a96f0d;
-
-      /* 輸入框 */
-      --input-bg: #ffffff;
-
-      /* 檔案按鈕 */
-      --file-bg: #e9ebef;
-      --file-text: #25282d;
-      --file-border: #c8ccd3;
-      --file-hover: #dfe2e7;
-      --file-hover-border: #aeb4be;
-
-      /* 一般按鈕 */
-      --button-text: #ffffff;
-      --secondary-bg: #d4d8df;
-      --danger-bg: #c94343;
-      --success-bg: #358653;
-
-      /* 圖片預覽 */
-      --preview-bg: #f7f7f8;
-
-      /* Toast 提示 */
-      --toast-bg: #ffffff;
-
-      /* Checkbox */
-      --checkbox-bg: #b8bec8;
-      --checkbox-knob: #ffffff;
-
-      /* Modal 遮罩 */
-      --modal-overlay: rgba(0, 0, 0, .35);
-
-      /* 陰影 */
-      --shadow: rgba(0, 0, 0, .16);
-      --modal-shadow: rgba(0, 0, 0, .22);
-    }
-
-    /* ===== 我已經完全學會設計模式 ===== */
-
-    body.expert {
-      --bg: #ff00ff;
-      --panel: #00ff00;
-      --panel2: #00ffff;
-      --line: #ffff00;
-
-      --text: #ff0000;
-      --muted: #0000ff;
-
-      --accent: #ff6600;
-      --accent2: #ff00aa;
-
-      --danger: #00ffff;
-      --ok: #ff00ff;
-      --warn: #00ff00;
-
-      --input-bg: #ffff00;
-
-      --file-bg: #00ff00;
-      --file-text: #ff0000;
-      --file-border: #0000ff;
-      --file-hover: #ff00ff;
-      --file-hover-border: #00ffff;
-
-      --button-text: #ffff00;
-      --secondary-bg: #ff0000;
-      --danger-bg: #00ffff;
-      --success-bg: #ff00ff;
-
-      --preview-bg: #00ff00;
-
-      --toast-bg: #ffff00;
-
-      --checkbox-bg: #ff00ff;
-      --checkbox-knob: #00ffff;
-
-      --modal-overlay: rgba(255, 0, 255, .65);
-
-      --shadow: #00ffff;
-      --modal-shadow: #ff0000;
-    }
-
-    body.expert * {
-      text-shadow:
-        0 0 3px #ff00ff,
-        0 0 6px #00ffff;
-    }
-
-    body.expert button {
-      border: 2px solid #ffff00;
-      box-shadow:
-        0 0 5px #ff00ff,
-        0 0 10px #00ffff,
-        0 0 15px #00ff00;
-    }
-
-    body.expert input,
-    body.expert textarea,
-    body.expert select {
-      border: 2px solid #ff00ff;
-      box-shadow:
-        0 0 5px #00ffff,
-        0 0 10px #ff00ff;
-    }
-
-    * {
-      box-sizing: border-box
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, "Noto Sans TC", sans-serif;
-      line-height: 1.5
-    }
-
-    .wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px 16px 50px
-    }
-
-    /* 頂部導覽列 */
-    .top-nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 12px 20px;
-      background: var(--panel);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .top-nav-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .top-nav .theme-toggle {
-      position: static;
-      flex: 0 0 auto;
-    }
-
-    h1 {
-      font-size: 24px;
-      margin: 0 0 6px
-    }
-
-    .sub {
-      color: var(--muted);
-      font-size: 14px;
-      margin-bottom: 20px
-    }
-
-    .section {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      margin: 14px 0;
-      overflow: hidden
-    }
-
-    .section h2 {
-      font-size: 17px;
-      margin: 0;
-      padding: 13px 16px;
-      background: var(--panel2);
-      border-bottom: 1px solid var(--line)
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1.5fr;
-      gap: 0;
-      border-bottom: 1px solid var(--line)
-    }
-
-    .grid:last-child {
-      border-bottom: 0
-    }
-
-    .position-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--panel2);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .position-header h2 {
-      flex: 1;
-      border-bottom: 0;
-    }
-
-    .position-toggle {
-      margin-right: 12px;
-      padding: 6px 10px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: var(--panel);
-      color: inherit;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .position-toggle:hover {
-      background: var(--panel2);
-    }
-
-    .label {
-      padding: 12px 14px;
-      border-right: 1px solid var(--line)
-    }
-
-    .label strong {
-      display: block;
-      font-size: 14px
-    }
-
-    .label span {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 3px
-    }
-
-    .field {
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px
-    }
-
-    /* ===== 美化檔案選擇按鈕 ===== */
-
-    .file-select-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-
-      padding: 9px 16px;
-
-      background: var(--panel);
-      color: var(--text);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-
-      font-size: 13px;
-      font-weight: 600;
-
-      cursor: pointer;
-      transition:
-        background .15s ease,
-        border-color .15s ease,
-        transform .1s ease;
-    }
-
-    .file-select-btn:hover {
-      background: var(--file-hover);
-      border-color: var(--file-hover-border);
-    }
-
-    .file-select-btn:active {
-      transform: translateY(1px);
-    }
-
-    .file-select-btn::before {
-      content: "📁";
-      font-size: 14px;
-    }
-
-
-    /* 隱藏原生檔案選擇器 */
-    .file-select-input {
-      display: none !important;
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      background: var(--input-bg);
-      color: var(--text);
-      border: 1px solid var(--line);
-      border-radius: 7px;
-      padding: 8px 9px;
-      font: inherit;
-      outline: none
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: var(--accent)
-    }
-
-    textarea {
-      min-height: 85px;
-      resize: vertical
-    }
-
-    .row {
-      display: flex;
-      gap: 8px;
-      width: 100%;
-      align-items: center;
-    }
-
-    .row>* {
-      flex: 1;
-    }
-
-    /* 差分的「選擇圖片」按鈕不要被平均分成 50% */
-    .row .file-select-btn {
-      flex: 0 0 auto;
-      width: auto;
-    }
-
-    .row .small {
-      flex: 0 0 110px
-    }
-
-    /* 常用指令輸入區在桌面版使用完整寬度 */
-    .section:has(#commands) .grid {
-      grid-template-columns: 1fr;
-    }
-
-    .section:has(#commands) .field {
-      width: 100%;
-    }
-
-    #commands {
-      width: 100%;
-      min-height: 250px;
-    }
-
-    button {
-      border: 0;
-      border-radius: 7px;
-      padding: 8px 12px;
-      background: var(--accent2);
-      color: var(--button-text);
-      font-weight: 600;
-      cursor: pointer
-    }
-
-    button:hover {
-      filter: brightness(1.08)
-    }
-
-    .secondary {
-      background: var(--secondary-bg);
-    }
-
-    .danger {
-      background: var(--danger-bg);
-    }
-
-    .success {
-      background: var(--success-bg);
-    }
-
-    .mini {
-      padding: 5px 9px;
-      font-size: 12px
-    }
-
-    .repeat {
-      padding: 12px;
-      border-bottom: 1px solid var(--line)
-    }
-
-    .repeat:last-child {
-      border-bottom: 0
-    }
-
-    .repeat-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 8px
-    }
-
-    .repeat-title {
-      color: var(--muted);
-      font-size: 13px
-    }
-
-    .note {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 6px
-    }
-
-    .warn {
-      color: var(--warn);
-    }
-
-    .ok {
-      color: var(--ok)
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 16px 0
-    }
-
-    .actions button {
-      flex: 0 0 auto
-    }
-
-    .jsonbox {
-      position: relative
-    }
-
-    .jsonbox textarea {
-      min-height: 330px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 12px
-    }
-
-    .toast {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      background: var(--toast-bg);
-      border: 1px solid var(--line);
-      padding: 10px 14px;
-      border-radius: 8px;
-      display: none;
-      box-shadow: 0 8px 30px var(--shadow)
-    }
-
-    .toast.show {
-      display: block
-    }
-
-    /* checkbox */
-    .checkbox-label {
-      grid-column: 1 / -1;
-      border-right: 0;
-      width: 100%;
-    }
-
-    .checkbox-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-    }
-
-    .checkbox-title strong {
-      display: block;
-    }
-
-    /* Toggle Switch */
-    .checkbox-title input[type="checkbox"] {
-      appearance: none;
-      -webkit-appearance: none;
-
-      width: 52px;
-      height: 28px;
-
-      margin: 0;
-      padding: 0;
-
-      border: 1px solid var(--line);
-      border-radius: 999px;
-
-      background: var(--checkbox-bg);
-      cursor: pointer;
-
-      position: relative;
-      flex: 0 0 auto;
-
-      transition: background .2s ease;
-    }
-
-    /* 滑塊 */
-    .checkbox-title input[type="checkbox"]::before {
-      content: "";
-
-      position: absolute;
-
-      width: 22px;
-      height: 22px;
-
-      top: 2px;
-      left: 2px;
-
-      border-radius: 50%;
-      background: var(--checkbox-knob);
-
-      transition: transform .2s ease;
-    }
-
-    /* 啟用 */
-    .checkbox-title input[type="checkbox"]:checked {
-      background: var(--accent);
-    }
-
-    /* 啟用後滑到右邊 */
-    .checkbox-title input[type="checkbox"]:checked::before {
-      transform: translateX(24px);
-    }
-
-    /* 匯入 JSON Modal */
-
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: var(--modal-overlay);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      padding: 20px
-    }
-
-    .modal.show {
-      display: flex
-    }
-
-    .modal-box {
-      width: min(900px, 100%);
-      max-height: 90vh;
-      overflow: auto;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      box-shadow: 0 20px 60px var(--modal-shadow)
-    }
-
-    .modal-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 14px 16px;
-      background: var(--panel2);
-      border-bottom: 1px solid var(--line)
-    }
-
-    .modal-head h2 {
-      margin: 0;
-      font-size: 18px
-    }
-
-    .modal-body {
-      padding: 16px
-    }
-
-    .modal-body textarea {
-      width: 100%;
-      min-height: 360px;
-      resize: vertical;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 12px;
-      line-height: 1.6
-    }
-
-    .modal-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px
-    }
-
-    .import-info {
-      padding: 10px 12px;
-      margin-bottom: 12px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--input-bg);
-      color: var(--muted);
-      font-size: 13px
-    }
-
-    .import-info strong {
-      color: var(--text)
-    }
-
-    .import-error {
-      color: var(--danger);
-      margin-top: 8px;
-      font-size: 13px;
-      white-space: pre-wrap
-    }
-
-    .import-success {
-      color: var(--ok);
-      margin-top: 8px;
-      font-size: 13px;
-      white-space: pre-wrap
-    }
-
-    /* =========================================================
-   主圖片檔案選擇 / 預覽
-========================================================= */
-
-    .image-file-box {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-    }
-
-    /* 名稱與「選擇圖片」按鈕同一行 */
-    .image-file-box .file-select-btn {
-      flex: 0 0 auto;
-    }
-
-    /* =========================================================
-   主圖片：名稱＋選擇按鈕同一行，圖片在下一行
-========================================================= */
-
-    .main-image-box {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .main-image-header {
-      display: flex;
-      align-items: center;
-      width: 100%;
-    }
-
-    .main-image-header strong {
-      flex: 0 0 auto;
-    }
-
-    .main-image-header .file-select-btn {
-      margin-left: auto;
-      flex: 0 0 auto;
-    }
-
-    .main-image-header .file-select-input {
-      display: none;
-    }
-
-    .main-image-header .file-select-input {
-      display: none;
-    }
-
-    /* 圖片預覽一定放到下一行 */
-    .main-image-box .image-preview {
-      display: none;
-      margin-top: 10px;
-      max-width: 180px;
-      max-height: 180px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--input-bg);
-      object-fit: contain;
-    }
-
-    .image-file-info {
-      margin-top: 8px;
-      padding: 10px 12px;
-      background: var(--input-bg);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.7;
-      word-break: break-all;
-    }
-
-    .image-file-info strong {
-      color: var(--text);
-    }
-
-    /* 長檔名固定從左側開始顯示，並允許換行 */
-    .image-file-info,
-    .face-original-name {
-      direction: ltr;
-      text-align: left;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
-
-    .image-preview {
-      display: none;
-      margin-top: 10px;
-      max-width: 180px;
-      max-height: 180px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--input-bg);
-      object-fit: contain;
-    }
-
-    .image-preview.show {
-      display: block;
-    }
-
-    .face-preview {
-      display: none;
-      margin-top: 10px;
-      max-width: 180px;
-      max-height: 180px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--input-bg);
-      object-fit: contain;
-    }
-
-    .face-hash-name {
-      display: none;
-    }
-
-    .zip-status {
-      margin-top: 10px;
-      padding: 0 12px;
-      height: 74px;
-      min-height: 74px;
-      box-sizing: border-box;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      line-height: 1.4;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: var(--input-bg);
-      font-size: 13px;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    /* 只微調初始「尚未建立 Room ZIP」提示的位置，不影響其他狀態 */
-    .zip-status-initial {
-      padding-bottom: 0px;
-      padding-right: 35px;
-    }
-
-    .zip-status.success {
-      color: var(--ok);
-    }
-
-    .zip-status.error {
-      color: var(--danger);
-    }
-
-    /* ===== 主題切換按鈕 ===== */
-
-    .theme-toggle {
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      z-index: 10000;
-
-      padding: 8px 12px;
-
-      border: 1px solid var(--line);
-      border-radius: 8px;
-
-      background: var(--panel);
-      color: var(--text);
-
-      font-size: 13px;
-      font-weight: 600;
-
-      cursor: pointer;
-
-      box-shadow: 0 2px 8px #0002;
-    }
-
-    .theme-toggle:hover {
-      background: var(--panel2);
-    }
-
-
-    /* ===== 左側導覽側欄 ===== */
-    .nav-title-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0
-    }
-
-    .nav-menu-toggle {
-      appearance: none !important;
-      -webkit-appearance: none !important;
-      background: transparent !important;
-      border: 0 !important;
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      padding: 4px 0 !important;
-      margin: 0 !important;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 4px;
-      flex: 0 0 24px;
-      color: var(--text);
-      cursor: pointer
-    }
-
-    .nav-menu-toggle:hover {
-      filter: none !important;
-      opacity: .75
-    }
-
-    .nav-menu-toggle span {
-      display: block;
-      width: 22px;
-      height: 2px;
-      background: currentColor;
-      border-radius: 1px
-    }
-
-    .nav-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, .48);
-      z-index: 10001;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity .25s ease, visibility .25s ease
-    }
-
-    .nav-backdrop.show {
-      opacity: 1;
-      visibility: visible
-    }
-
-    .nav-sidebar {
-      position: fixed;
-      z-index: 10002;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      width: min(320px, 82vw);
-      background: var(--panel);
-      border-right: 1px solid var(--line);
-      box-shadow: 8px 0 28px var(--shadow);
-      transform: translateX(-102%);
-      transition: transform .28s ease;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column
-    }
-
-    .nav-sidebar.show {
-      transform: translateX(0)
-    }
-
-    .nav-sidebar-head {
-      padding: 18px 16px;
-      border-bottom: 1px solid var(--line);
-      font-weight: 700;
-      color: var(--text);
-      flex: 0 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px
-    }
-
-    .nav-sidebar-close {
-      background: none;
-      border: 0;
-      padding: 0;
-      margin: 0;
-      color: inherit;
-      font: inherit;
-      line-height: inherit;
-      cursor: pointer;
-      appearance: none;
-      -webkit-appearance: none;
-    }
-
-    .nav-sidebar-close:hover {
-      background: none;
-      border: 0;
-      padding: 0;
-      margin: 0;
-      color: inherit;
-      font: inherit;
-      line-height: inherit;
-      cursor: pointer;
-      appearance: none;
-      -webkit-appearance: none;
-    }
-
-    .nav-guide-image-wrap {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      background: var(--bg);
-      padding: 10px
-    }
-
-    .nav-guide-image {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: center;
-    }
-
-    .nav-sidebar-note {
-      padding: 10px 14px;
-      color: var(--muted);
-      font-size: 12px;
-      text-align: center;
-      border-top: 1px solid var(--line);
-      flex: 0 0 auto
-    }
-
-    @media(max-width:700px) {
-      .top-nav {
-        gap: 10px;
-        padding: 12px 14px
-      }
-
-      .top-nav-title {
-        font-size: 14px;
-        overflow-wrap: anywhere
-      }
-
-      .nav-title-group {
-        gap: 10px
-      }
-    }
-
-    @media(max-width:700px) {
-      .grid {
-        grid-template-columns: 1fr
-      }
-
-      .label {
-        border-right: 0;
-        border-bottom: 1px solid var(--line);
-        padding-bottom: 7px
-      }
-
-      .field {
-        padding-top: 8px
-      }
-
-      .row {
-        flex-wrap: wrap
-      }
-
-      .row .small {
-        flex: 1 1 100px
-      }
-
-
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCFOLIA Character JSON 產生器</title>
+
+    <link rel="stylesheet" href="googleSheets.css">
+
+    <style>
+        :root {
+          /* 基本色 */
+          --bg: #15171c;
+          --panel: #20232b;
+          --panel2: #282c36;
+          --line: #3a3f4b;
+        
+          /* 文字 */
+          --text: #f1f3f5;
+          --muted: #aeb4c0;
+        
+          /* 強調色 */
+          --accent: #8ab4ff;
+          --accent2: #6f9df0;
+        
+          /* 狀態色 */
+          --danger: #ff7b7b;
+          --ok: #7bd99a;
+          --warn: #f0c36a;
+        
+          /* 輸入框 */
+          --input-bg: #171920;
+        
+          /* 檔案選擇按鈕 */
+          --file-bg: #242832;
+          --file-text: #e8eaf0;
+          --file-border: #3a404d;
+          --file-hover: #2d333e;
+          --file-hover-border: #596171;
+        
+          /* 一般按鈕 */
+          --button-text: #ffffff;
+          --secondary-bg: #3a3f4b;
+          --danger-bg: #9f4141;
+          --success-bg: #34764d;
+        
+          /* 圖片 / 資訊區 */
+          --preview-bg: #171920;
+        
+          /* Toast */
+          --toast-bg: #303641;
+        
+          /* Checkbox */
+          --checkbox-bg: #555555;
+          --checkbox-knob: #ffffff;
+        
+          /* Modal */
+          --modal-overlay: rgba(0, 0, 0, .72);
+        
+          /* 陰影 */
+          --shadow: rgba(0, 0, 0, .53);
+          --modal-shadow: rgba(0, 0, 0, .73);
+        }
+        
+        /* ===== 亮色模式 ===== */
+        
+        body.light {
+        
+          /* 基本背景 */
+          --bg: #f1f2f4;
+          --panel: #ffffff;
+          --panel2: #e7e9ed;
+          --line: #c8ccd3;
+        
+          /* 文字 */
+          --text: #25282d;
+          --muted: #626a75;
+        
+          /* 強調色 */
+          --accent: #4774c7;
+          --accent2: #3b63ad;
+        
+          /* 狀態顏色 */
+          --danger: #c94343;
+          --ok: #358653;
+          --warn: #a96f0d;
+        
+          /* 輸入框 */
+          --input-bg: #ffffff;
+        
+          /* 檔案按鈕 */
+          --file-bg: #e9ebef;
+          --file-text: #25282d;
+          --file-border: #c8ccd3;
+          --file-hover: #dfe2e7;
+          --file-hover-border: #aeb4be;
+        
+          /* 一般按鈕 */
+          --button-text: #ffffff;
+          --secondary-bg: #d4d8df;
+          --danger-bg: #c94343;
+          --success-bg: #358653;
+        
+          /* 圖片預覽 */
+          --preview-bg: #f7f7f8;
+        
+          /* Toast 提示 */
+          --toast-bg: #ffffff;
+        
+          /* Checkbox */
+          --checkbox-bg: #b8bec8;
+          --checkbox-knob: #ffffff;
+        
+          /* Modal 遮罩 */
+          --modal-overlay: rgba(0, 0, 0, .35);
+        
+          /* 陰影 */
+          --shadow: rgba(0, 0, 0, .16);
+          --modal-shadow: rgba(0, 0, 0, .22);
+        }
+        
+        /* ===== 我已經完全學會設計模式 ===== */
+        
+        body.expert {
+          --bg: #ff00ff;
+          --panel: #00ff00;
+          --panel2: #00ffff;
+          --line: #ffff00;
+        
+          --text: #ff0000;
+          --muted: #0000ff;
+        
+          --accent: #ff6600;
+          --accent2: #ff00aa;
+        
+          --danger: #00ffff;
+          --ok: #ff00ff;
+          --warn: #00ff00;
+        
+          --input-bg: #ffff00;
+        
+          --file-bg: #00ff00;
+          --file-text: #ff0000;
+          --file-border: #0000ff;
+          --file-hover: #ff00ff;
+          --file-hover-border: #00ffff;
+        
+          --button-text: #ffff00;
+          --secondary-bg: #ff0000;
+          --danger-bg: #00ffff;
+          --success-bg: #ff00ff;
+        
+          --preview-bg: #00ff00;
+        
+          --toast-bg: #ffff00;
+        
+          --checkbox-bg: #ff00ff;
+          --checkbox-knob: #00ffff;
+        
+          --modal-overlay: rgba(255, 0, 255, .65);
+        
+          --shadow: #00ffff;
+          --modal-shadow: #ff0000;
+        }
+        
+        body.expert * {
+          text-shadow:
+            0 0 3px #ff00ff,
+            0 0 6px #00ffff;
+        }
+        
+        body.expert button {
+          border: 2px solid #ffff00;
+          box-shadow:
+            0 0 5px #ff00ff,
+            0 0 10px #00ffff,
+            0 0 15px #00ff00;
+        }
+        
+        body.expert input,
+        body.expert textarea,
+        body.expert select {
+          border: 2px solid #ff00ff;
+          box-shadow:
+            0 0 5px #00ffff,
+            0 0 10px #ff00ff;
+        }
+        
+        * {
+          box-sizing: border-box
+        }
+        
+        body {
+          margin: 0;
+          background: var(--bg);
+          color: var(--text);
+          font-family: system-ui, -apple-system, "Noto Sans TC", sans-serif;
+          line-height: 1.5
+        }
+        
+        .wrap {
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 24px 16px 50px
+        }
+        
+        /* 頂部導覽列 */
+        .top-nav {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          padding: 12px 20px;
+          background: var(--panel);
+          border-bottom: 1px solid var(--line);
+        }
+        
+        .top-nav-title {
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--text);
+        }
+        
+        .top-nav .theme-toggle {
+          position: static;
+          flex: 0 0 auto;
+        }
+        
+        h1 {
+          font-size: 24px;
+          margin: 0 0 6px
+        }
+        
+        .sub {
+          color: var(--muted);
+          font-size: 14px;
+          margin-bottom: 20px
+        }
+        
+        .section {
+          background: var(--panel);
+          border: 1px solid var(--line);
+          border-radius: 12px;
+          margin: 14px 0;
+          overflow: hidden
+        }
+        
+        .section h2 {
+          font-size: 17px;
+          margin: 0;
+          padding: 13px 16px;
+          background: var(--panel2);
+          border-bottom: 1px solid var(--line)
+        }
+        
+        .grid {
+          display: grid;
+          grid-template-columns: 1fr 1.5fr;
+          gap: 0;
+          border-bottom: 1px solid var(--line)
+        }
+        
+        .grid:last-child {
+          border-bottom: 0
+        }
+        
+        .position-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: var(--panel2);
+          border-bottom: 1px solid var(--line);
+        }
+        
+        .position-header h2 {
+          flex: 1;
+          border-bottom: 0;
+        }
+        
+        .position-toggle {
+          margin-right: 12px;
+          padding: 6px 10px;
+          border: 1px solid var(--line);
+          border-radius: 6px;
+          background: var(--panel);
+          color: inherit;
+          cursor: pointer;
+          font-size: 14px;
+        }
+        
+        .position-toggle:hover {
+          background: var(--panel2);
+        }
+        
+        .label {
+          padding: 12px 14px;
+          border-right: 1px solid var(--line)
+        }
+        
+        .label strong {
+          display: block;
+          font-size: 14px
+        }
+        
+        .label span {
+          display: block;
+          color: var(--muted);
+          font-size: 12px;
+          margin-top: 3px
+        }
+        
+        .field {
+          padding: 10px 12px;
+          display: flex;
+          align-items: center;
+          gap: 8px
+        }
+        
+        /* ===== 美化檔案選擇按鈕 ===== */
+        
+        .file-select-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        
+          padding: 9px 16px;
+        
+          background: var(--panel);
+          color: var(--text);
+          border: 1px solid var(--line);
+          border-radius: 8px;
+        
+          font-size: 13px;
+          font-weight: 600;
+        
+          cursor: pointer;
+          transition:
+            background .15s ease,
+            border-color .15s ease,
+            transform .1s ease;
+        }
+        
+        .file-select-btn:hover {
+          background: var(--file-hover);
+          border-color: var(--file-hover-border);
+        }
+        
+        .file-select-btn:active {
+          transform: translateY(1px);
+        }
+        
+        .file-select-btn::before {
+          content: "📁";
+          font-size: 14px;
+        }
+        
+        
+        /* 隱藏原生檔案選擇器 */
+        .file-select-input {
+          display: none !important;
+        }
+        
+        input,
+        textarea,
+        select {
+          width: 100%;
+          background: var(--input-bg);
+          color: var(--text);
+          border: 1px solid var(--line);
+          border-radius: 7px;
+          padding: 8px 9px;
+          font: inherit;
+          outline: none
+        }
+        
+        input:focus,
+        textarea:focus,
+        select:focus {
+          border-color: var(--accent)
+        }
+        
+        textarea {
+          min-height: 85px;
+          resize: vertical
+        }
+        
+        .row {
+          display: flex;
+          gap: 8px;
+          width: 100%;
+          align-items: center;
+        }
+        
+        .row>* {
+          flex: 1;
+        }
+        
+        /* 差分的「選擇圖片」按鈕不要被平均分成 50% */
+        .row .file-select-btn {
+          flex: 0 0 auto;
+          width: auto;
+        }
+        
+        .row .small {
+          flex: 0 0 110px
+        }
+        
+        /* 常用指令輸入區在桌面版使用完整寬度 */
+        .section:has(#commands) .grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .section:has(#commands) .field {
+          width: 100%;
+        }
+        
+        #commands {
+          width: 100%;
+          min-height: 250px;
+        }
+        
+        button {
+          border: 0;
+          border-radius: 7px;
+          padding: 8px 12px;
+          background: var(--accent2);
+          color: var(--button-text);
+          font-weight: 600;
+          cursor: pointer
+        }
+        
+        button:hover {
+          filter: brightness(1.08)
+        }
+        
+        .secondary {
+          background: var(--secondary-bg);
+        }
+        
+        .danger {
+          background: var(--danger-bg);
+        }
+        
+        .success {
+          background: var(--success-bg);
+        }
+        
+        .mini {
+          padding: 5px 9px;
+          font-size: 12px
+        }
+        
+        .repeat {
+          padding: 12px;
+          border-bottom: 1px solid var(--line)
+        }
+        
+        .repeat:last-child {
+          border-bottom: 0
+        }
+        
+        .repeat-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 8px
+        }
+        
+        .repeat-title {
+          color: var(--muted);
+          font-size: 13px
+        }
+        
+        .note {
+          font-size: 12px;
+          color: var(--muted);
+          margin-top: 6px
+        }
+        
+        .warn {
+          color: var(--warn);
+        }
+        
+        .ok {
+          color: var(--ok)
+        }
+        
+        .actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin: 16px 0
+        }
+        
+        .actions button {
+          flex: 0 0 auto
+        }
+        
+        .jsonbox {
+          position: relative
+        }
+        
+        .jsonbox textarea {
+          min-height: 330px;
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-size: 12px
+        }
+        
+        .toast {
+          position: fixed;
+          right: 16px;
+          bottom: 16px;
+          background: var(--toast-bg);
+          border: 1px solid var(--line);
+          padding: 10px 14px;
+          border-radius: 8px;
+          display: none;
+          box-shadow: 0 8px 30px var(--shadow)
+        }
+        
+        .toast.show {
+          display: block
+        }
+        
+        /* checkbox */
+        .checkbox-label {
+          grid-column: 1 / -1;
+          border-right: 0;
+          width: 100%;
+        }
+        
+        .checkbox-title {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+        }
+        
+        .checkbox-title strong {
+          display: block;
+        }
+        
+        /* Toggle Switch */
+        .checkbox-title input[type="checkbox"] {
+          appearance: none;
+          -webkit-appearance: none;
+        
+          width: 52px;
+          height: 28px;
+        
+          margin: 0;
+          padding: 0;
+        
+          border: 1px solid var(--line);
+          border-radius: 999px;
+        
+          background: var(--checkbox-bg);
+          cursor: pointer;
+        
+          position: relative;
+          flex: 0 0 auto;
+        
+          transition: background .2s ease;
+        }
+        
+        /* 滑塊 */
+        .checkbox-title input[type="checkbox"]::before {
+          content: "";
+        
+          position: absolute;
+        
+          width: 22px;
+          height: 22px;
+        
+          top: 2px;
+          left: 2px;
+        
+          border-radius: 50%;
+          background: var(--checkbox-knob);
+        
+          transition: transform .2s ease;
+        }
+        
+        /* 啟用 */
+        .checkbox-title input[type="checkbox"]:checked {
+          background: var(--accent);
+        }
+        
+        /* 啟用後滑到右邊 */
+        .checkbox-title input[type="checkbox"]:checked::before {
+          transform: translateX(24px);
+        }
+        
+        /* 匯入 JSON Modal */
+        
+        .modal {
+          position: fixed;
+          inset: 0;
+          background: var(--modal-overlay);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          padding: 20px
+        }
+        
+        .modal.show {
+          display: flex
+        }
+        
+        .modal-box {
+          width: min(900px, 100%);
+          max-height: 90vh;
+          overflow: auto;
+          background: var(--panel);
+          border: 1px solid var(--line);
+          border-radius: 14px;
+          box-shadow: 0 20px 60px var(--modal-shadow)
+        }
+        
+        .modal-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 14px 16px;
+          background: var(--panel2);
+          border-bottom: 1px solid var(--line)
+        }
+        
+        .modal-head h2 {
+          margin: 0;
+          font-size: 18px
+        }
+        
+        .modal-body {
+          padding: 16px
+        }
+        
+        .modal-body textarea {
+          width: 100%;
+          min-height: 360px;
+          resize: vertical;
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-size: 12px;
+          line-height: 1.6
+        }
+        
+        .modal-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 12px
+        }
+        
+        .import-info {
+          padding: 10px 12px;
+          margin-bottom: 12px;
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          background: var(--input-bg);
+          color: var(--muted);
+          font-size: 13px
+        }
+        
+        .import-info strong {
+          color: var(--text)
+        }
+        
+        .import-error {
+          color: var(--danger);
+          margin-top: 8px;
+          font-size: 13px;
+          white-space: pre-wrap
+        }
+        
+        .import-success {
+          color: var(--ok);
+          margin-top: 8px;
+          font-size: 13px;
+          white-space: pre-wrap
+        }
+        
+        /* =========================================================
+           主圖片檔案選擇 / 預覽
+        ========================================================= */
+        
+        .image-file-box {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+        }
+        
+        /* 名稱與「選擇圖片」按鈕同一行 */
+        .image-file-box .file-select-btn {
+          flex: 0 0 auto;
+        }
+        
+        /* =========================================================
+           主圖片：名稱＋選擇按鈕同一行，圖片在下一行
+        ========================================================= */
+        
+        .main-image-box {
+          padding: 10px 12px;
+          border-bottom: 1px solid var(--line);
+        }
+        
+        .main-image-header {
+          display: flex;
+          align-items: center;
+          width: 100%;
+        }
+        
+        .main-image-header strong {
+          flex: 0 0 auto;
+        }
+        
+        .main-image-header .file-select-btn {
+          margin-left: auto;
+          flex: 0 0 auto;
+        }
+        
+        .main-image-header .file-select-input {
+          display: none;
+        }
+        
+        .main-image-header .file-select-input {
+          display: none;
+        }
+        
+        /* 圖片預覽一定放到下一行 */
+        .main-image-box .image-preview {
+          display: none;
+          margin-top: 10px;
+          max-width: 180px;
+          max-height: 180px;
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          background: var(--input-bg);
+          object-fit: contain;
+        }
+        
+        .image-file-info {
+          margin-top: 8px;
+          padding: 10px 12px;
+          background: var(--input-bg);
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          font-size: 12px;
+          color: var(--muted);
+          line-height: 1.7;
+          word-break: break-all;
+        }
+        
+        .image-file-info strong {
+          color: var(--text);
+        }
+        
+        /* 長檔名固定從左側開始顯示，並允許換行 */
+        .image-file-info,
+        .face-original-name {
+          direction: ltr;
+          text-align: left;
+          white-space: normal;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+        }
+        
+        .image-preview {
+          display: none;
+          margin-top: 10px;
+          max-width: 180px;
+          max-height: 180px;
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          background: var(--input-bg);
+          object-fit: contain;
+        }
+        
+        .image-preview.show {
+          display: block;
+        }
+        
+        .face-preview {
+          display: none;
+          margin-top: 10px;
+          max-width: 180px;
+          max-height: 180px;
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          background: var(--input-bg);
+          object-fit: contain;
+        }
+        
+        .face-hash-name {
+          display: none;
+        }
+        
+        .zip-status {
+          margin-top: 10px;
+          padding: 0 12px;
+          height: 74px;
+          min-height: 74px;
+          box-sizing: border-box;
+          display: grid;
+          place-items: center;
+          text-align: center;
+          line-height: 1.4;
+          border-radius: 8px;
+          border: 1px solid var(--line);
+          background: var(--input-bg);
+          font-size: 13px;
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+        }
+        
+        /* 只微調初始「尚未建立 Room ZIP」提示的位置，不影響其他狀態 */
+        .zip-status-initial {
+          padding-bottom: 0px;
+          padding-right: 35px;
+        }
+        
+        .zip-status.success {
+          color: var(--ok);
+        }
+        
+        .zip-status.error {
+          color: var(--danger);
+        }
+        
+        /* ===== 主題切換按鈕 ===== */
+        
+        .theme-toggle {
+          position: fixed;
+          top: 16px;
+          right: 16px;
+          z-index: 10000;
+        
+          padding: 8px 12px;
+        
+          border: 1px solid var(--line);
+          border-radius: 8px;
+        
+          background: var(--panel);
+          color: var(--text);
+        
+          font-size: 13px;
+          font-weight: 600;
+        
+          cursor: pointer;
+        
+          box-shadow: 0 2px 8px #0002;
+        }
+        
+        .theme-toggle:hover {
+          background: var(--panel2);
+        }
+        
+        
+        /* ===== 左側導覽側欄 ===== */
+        .nav-title-group {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0
+        }
+        
+        .nav-menu-toggle {
+          appearance: none !important;
+          -webkit-appearance: none !important;
+          background: transparent !important;
+          border: 0 !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          padding: 4px 0 !important;
+          margin: 0 !important;
+          width: 24px;
+          height: 24px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 4px;
+          flex: 0 0 24px;
+          color: var(--text);
+          cursor: pointer
+        }
+        
+        .nav-menu-toggle:hover {
+          filter: none !important;
+          opacity: .75
+        }
+        
+        .nav-menu-toggle span {
+          display: block;
+          width: 22px;
+          height: 2px;
+          background: currentColor;
+          border-radius: 1px
+        }
+        
+        .nav-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, .48);
+          z-index: 10001;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity .25s ease, visibility .25s ease
+        }
+        
+        .nav-backdrop.show {
+          opacity: 1;
+          visibility: visible
+        }
+        
+        .nav-sidebar {
+          position: fixed;
+          z-index: 10002;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          width: min(320px, 82vw);
+          background: var(--panel);
+          border-right: 1px solid var(--line);
+          box-shadow: 8px 0 28px var(--shadow);
+          transform: translateX(-102%);
+          transition: transform .28s ease;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column
+        }
+        
+        .nav-sidebar.show {
+          transform: translateX(0)
+        }
+        
+        .nav-sidebar-head {
+          padding: 18px 16px;
+          border-bottom: 1px solid var(--line);
+          font-weight: 700;
+          color: var(--text);
+          flex: 0 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px
+        }
+        
+        .nav-sidebar-close {
+          background: none;
+          border: 0;
+          padding: 0;
+          margin: 0;
+          color: inherit;
+          font: inherit;
+          line-height: inherit;
+          cursor: pointer;
+          appearance: none;
+          -webkit-appearance: none;
+        }
+        
+        .nav-sidebar-close:hover {
+          background: none;
+          border: 0;
+          padding: 0;
+          margin: 0;
+          color: inherit;
+          font: inherit;
+          line-height: inherit;
+          cursor: pointer;
+          appearance: none;
+          -webkit-appearance: none;
+        }
+        
+        .nav-guide-image-wrap {
+          flex: 1;
+          min-height: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          background: var(--bg);
+          padding: 10px
+        }
+        
+        .nav-guide-image {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          object-position: center;
+        }
+        
+        .nav-sidebar-note {
+          padding: 10px 14px;
+          color: var(--muted);
+          font-size: 12px;
+          text-align: center;
+          border-top: 1px solid var(--line);
+          flex: 0 0 auto
+        }
+        
+        @media(max-width:700px) {
+          .top-nav {
+            gap: 10px;
+            padding: 12px 14px
+          }
+        
+          .top-nav-title {
+            font-size: 14px;
+            overflow-wrap: anywhere
+          }
+        
+          .nav-title-group {
+            gap: 10px
+          }
+        }
+        
+        @media(max-width:700px) {
+          .grid {
+            grid-template-columns: 1fr
+          }
+        
+          .label {
+            border-right: 0;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 7px
+          }
+        
+          .field {
+            padding-top: 8px
+          }
+        
+          .row {
+            flex-wrap: wrap
+          }
+        
+          .row .small {
+            flex: 1 1 100px
+          }
+        
+        
+        }
+    </style>
 </head>
 
 <body>
 
-  <nav class="top-nav">
-    <div class="nav-title-group">
-      <button type="button" id="navMenuToggle" class="nav-menu-toggle" aria-label="開啟導覽側欄" aria-expanded="false"
-        onclick="toggleGuideSidebar()">
-        <span></span><span></span><span></span>
-      </button>
-      <div class="top-nav-title">CCFOLIA Character JSON 產生器</div>
-    </div>
-    <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()">☀️ 亮色</button>
-  </nav>
-
-  <div id="navBackdrop" class="nav-backdrop" onclick="closeGuideSidebar()" aria-hidden="true"></div>
-  <aside id="navSidebar" class="nav-sidebar" aria-hidden="true" aria-label="導覽側邊欄">
-    <div class="nav-sidebar-head">
-      <span>導覽人員</span>
-      <span class="nav-sidebar-close" onclick="closeGuideSidebar()" role="button" tabindex="0" aria-label="關閉導覽側欄"
-        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeGuideSidebar();}">ㄑ</span>
-    </div>
-    <div class="nav-guide-image-wrap">
-      <img id="navGuideImage" class="nav-guide-image" alt="隨機導覽人員圖片">
-    </div>
-  </aside>
-
-  <div class="wrap">
-
-    <div class="sub">
-      填寫角色資料 → 上傳圖片 → 導入到 CCFOLIA。
-    </div>
-
-    <!-- 匯入工具 -->
-    <div class="actions">
-
-      <button class="success" onclick="openImportModal()">
-        ＋ 匯入外部角色 JSON
-      </button>
-
-      <!-- ZIP 匯入 -->
-      <button class="secondary" onclick="$('zipFile').click()">
-        ＋ 匯入 ZIP
-      </button>
-
-      <input id="zipFile" type="file" accept=".zip,application/zip" style="display:none"
-        onchange="handleZIPImport(event)">
-
-    </div>
-
-
-
-
-    <!-- ==================== ① 基本資料 ==================== -->
-
-    <div class="section">
-      <h2>① 基本資料</h2>
-
-      <div class="grid">
-        <div class="label">
-          <strong>角色名稱</strong>
-          <span>name｜角色顯示名稱</span>
+    <nav class="top-nav">
+        <div class="nav-title-group">
+            <button type="button" id="navMenuToggle" class="nav-menu-toggle" aria-label="開啟導覽側欄" aria-expanded="false" onclick="toggleGuideSidebar()">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="top-nav-title">CCFOLIA Character JSON 產生器</div>
         </div>
-        <div class="field">
-          <input id="name" value="" placeholder="古閣雲" oninput="generate()">
+        <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()">☀️ 亮色</button>
+    </nav>
+
+    <div id="navBackdrop" class="nav-backdrop" onclick="closeGuideSidebar()" aria-hidden="true"></div>
+    <aside id="navSidebar" class="nav-sidebar" aria-hidden="true" aria-label="導覽側邊欄">
+        <div class="nav-sidebar-head">
+            <span>導覽人員</span>
+            <span class="nav-sidebar-close" onclick="closeGuideSidebar()" role="button" tabindex="0" aria-label="關閉導覽側欄" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeGuideSidebar();}">ㄑ</span>
         </div>
-      </div>
-
-      <div class="grid">
-        <div class="label">
-          <strong>備註</strong>
-          <span>memo｜角色的備註文字</span>
+        <div class="nav-guide-image-wrap">
+            <img id="navGuideImage" class="nav-guide-image" alt="隨機導覽人員圖片">
         </div>
-        <div class="field">
-          <textarea id="memo" placeholder="可留空" oninput="generate()"></textarea>
-        </div>
-      </div>
+    </aside>
 
-      <div class="grid">
-        <div class="label">
-          <strong>行動值</strong>
-          <span>initiative｜行動值</span>
-        </div>
-        <div class="field">
-          <input id="initiative" type="number" value="0" oninput="generate()">
-        </div>
-      </div>
+    <div class="wrap">
 
-      <div class="grid">
-        <div class="label">
-          <strong>外部連結</strong>
-          <span>externalUrl｜網址</span>
-        </div>
-        <div class="field">
-          <input id="externalUrl" placeholder="https://..." oninput="generate()">
-        </div>
-      </div>
-    </div>
-
-
-    <!-- ==================== ② Status ==================== -->
-
-    <div class="section">
-      <h2>② 變動屬性</h2>
-
-      <div id="statusList"></div>
-
-      <div style="padding:12px">
-        <button onclick="addStatus()">＋ 新增變動屬性</button>
-      </div>
-    </div>
-
-
-    <!-- ==================== ③ Params ==================== -->
-
-    <div class="section">
-      <h2>③ 固定屬性</h2>
-
-      <div id="paramsList"></div>
-
-      <div style="padding:12px">
-        <button onclick="addParam()">＋ 新增固定屬性</button>
-      </div>
-    </div>
-
-
-    <!-- ==================== ④ 圖片 ==================== -->
-
-<div class="section">
-
-  <div class="position-header">
-    <h2>④ 角色圖片與差分</h2>
-
-    <button
-      type="button"
-      class="position-toggle"
-      onclick="toggleFaceSettings()"
-    >收起</button>
-  </div>
-
-
-      <!-- 第一行：名稱 + 選擇圖片按鈕 -->
-      <div class="main-image-box">
-
-        <!-- 第一行：名稱 + 最右側選擇圖片 -->
-        <div class="main-image-header">
-          <strong>角色主圖片</strong>
-
-          <label class="file-select-btn" for="imageFile">
-            選擇圖片
-          </label>
-
-          <input id="imageFile" class="file-select-input" type="file" accept="image/png,.png"
-            onchange="handleImageFile(event)">
+        <div class="sub">
+            填寫角色資料 → 上傳圖片 → 導入到 CCFOLIA。
         </div>
 
-        <!-- 原始檔案名稱 -->
-        <div id="originalImageName" class="image-file-info" style="display:none"></div>
+        <!-- 匯入工具 -->
+        <div class="actions">
 
-        <!-- 圖片資訊 -->
-        <div id="imageFileInfo" class="image-file-info" style="display:none"></div>
+            <button class="success" onclick="openImportModal()">
+                ＋ 匯入外部角色 JSON
+            </button>
 
-        <!-- 圖片預覽 -->
-        <img id="imagePreview" class="image-preview" alt="主圖片預覽">
+            <!-- ZIP 匯入 -->
+            <button class="secondary" onclick="$('zipFile').click()">
+                ＋ 匯入 ZIP
+            </button>
 
-        <input id="iconUrl" type="hidden" value="">
+            <input id="zipFile" type="file" accept=".zip,application/zip" style="display:none" onchange="handleZIPImport(event)">
 
-      </div>
-      <!--
+        </div>
+
+
+
+
+        <!-- ==================== ① 基本資料 ==================== -->
+
+        <div class="section">
+            <h2>① 基本資料</h2>
+
+            <div class="grid">
+                <div class="label">
+                    <strong>角色名稱</strong>
+                    <span>name｜角色顯示名稱</span>
+                </div>
+                <div class="field">
+                    <input id="name" value="" placeholder="古閣雲" oninput="generate()">
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="label">
+                    <strong>備註</strong>
+                    <span>memo｜角色的備註文字</span>
+                </div>
+                <div class="field">
+                    <textarea id="memo" placeholder="可留空" oninput="generate()"></textarea>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="label">
+                    <strong>行動值</strong>
+                    <span>initiative｜行動值</span>
+                </div>
+                <div class="field">
+                    <input id="initiative" type="number" value="0" oninput="generate()">
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="label">
+                    <strong>外部連結</strong>
+                    <span>externalUrl｜網址</span>
+                </div>
+                <div class="field">
+                    <input id="externalUrl" placeholder="https://..." oninput="generate()">
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==================== ② Status ==================== -->
+
+        <div class="section">
+            <h2>② 變動屬性</h2>
+
+            <div id="statusList"></div>
+
+            <div style="padding:12px">
+                <button onclick="addStatus()">＋ 新增變動屬性</button>
+            </div>
+        </div>
+
+
+        <!-- ==================== ③ Params ==================== -->
+
+        <div class="section">
+            <h2>③ 固定屬性</h2>
+
+            <div id="paramsList"></div>
+
+            <div style="padding:12px">
+                <button onclick="addParam()">＋ 新增固定屬性</button>
+            </div>
+        </div>
+
+
+        <!-- ==================== ④ 圖片 ==================== -->
+
+        <div class="section">
+
+            <div class="position-header">
+                <h2>④ 角色圖片與差分</h2>
+
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button type="button" id="faceAdvancedSettingsButton">進階設定</button>
+                    <button type="button" class="position-toggle" onclick="toggleFaceSettings()">收起</button>
+                </div>
+            </div>
+
+
+            <!-- 第一行：名稱 + 選擇圖片按鈕 -->
+            <div class="main-image-box">
+
+                <!-- 第一行：名稱 + 最右側選擇圖片 -->
+                <div class="main-image-header">
+                    <strong>角色主圖片</strong>
+
+                    <label class="file-select-btn" for="imageFile">
+                        選擇圖片
+                    </label>
+
+                    <input id="imageFile" class="file-select-input" type="file" accept="image/png,.png" onchange="handleImageFile(event)">
+                </div>
+
+                <!-- 原始檔案名稱 -->
+                <div id="originalImageName" class="image-file-info" style="display:none"></div>
+
+                <!-- 圖片資訊 -->
+                <div id="imageFileInfo" class="image-file-info" style="display:none"></div>
+
+                <!-- 圖片預覽 -->
+                <img id="imagePreview" class="image-preview" alt="主圖片預覽">
+
+                <input id="iconUrl" type="hidden" value="">
+
+            </div>
+            <!--
 <div class="note" style="padding:0 12px 10px">
   ※ Clipboard API 文件標示 iconUrl / faces[].iconUrl 不可設定外部資料，因此這裡保留欄位但不會強制把外部 URL 當成可用圖片。
 </div>
 -->
 
-      <div id="faceSettings" style="display:block;">
+            <div id="faceSettings" style="display:block;">
 
-        <div id="facesList"></div>
+                <div id="facesList"></div>
 
-        <div style="padding:12px 12px 0;">
-          <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
-            <input id="autoFaceLabel" type="checkbox" checked style="width:auto; margin:0;">
-            自動帶入圖片名稱
-          </label>
+                <div style="padding:12px 12px 0;">
+                    <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input id="autoFaceLabel" type="checkbox" checked style="width:auto; margin:0;">
+                        自動帶入圖片名稱
+                    </label>
+                </div>
+
+                <div style="padding:12px; display:flex; gap:8px;">
+                    <button onclick="addFace()">＋ 新增差分</button>
+
+                    <button type="button" onclick="copyAllFaceLabels()">
+                        複製差分名稱
+                    </button>
+                </div>
+
+            </div>
         </div>
 
-        <div style="padding:12px; display:flex; gap:8px;">
-          <button onclick="addFace()">＋ 新增差分</button>
+        <!-- ==================== ⑤ 位置 ==================== -->
 
-          <button type="button" onclick="copyAllFaceLabels()">
-            複製差分名稱
-          </button>
-        </div>
+        <div class="section">
 
-      </div>
-    </div>
+            <div class="position-header">
+                <h2>⑤ 位置與外觀</h2>
 
-    <!-- ==================== ⑤ 位置 ==================== -->
+                <button type="button" class="position-toggle" onclick="togglePositionSettings()">展開</button>
+            </div>
 
-    <div class="section">
+            <div id="positionSettings" style="display:none;">
 
-      <div class="position-header">
-        <h2>⑤ 位置與外觀</h2>
+                <div class="grid">
+                    <div class="label">
+                        <strong>X 座標</strong>
+                        <span>x｜官方註記：預設值優先</span>
+                    </div>
 
-        <button type="button" class="position-toggle" onclick="togglePositionSettings()">展開</button>
-      </div>
+                    <div class="field">
+                        <input id="x" type="number" value="0" oninput="generate()">
+                    </div>
+                </div>
 
-      <div id="positionSettings" style="display:none;">
+                <div class="grid">
+                    <div class="label">
+                        <strong>Y 座標</strong>
+                        <span>y｜官方註記：預設值優先</span>
+                    </div>
 
-        <div class="grid">
-          <div class="label">
-            <strong>X 座標</strong>
-            <span>x｜官方註記：預設值優先</span>
-          </div>
+                    <div class="field">
+                        <input id="y" type="number" value="0" oninput="generate()">
+                    </div>
+                </div>
 
-          <div class="field">
-            <input id="x" type="number" value="0" oninput="generate()">
-          </div>
-        </div>
+                <div class="grid">
+                    <div class="label">
+                        <strong>旋轉角度</strong>
+                        <span>angle｜number</span>
+                    </div>
 
-        <div class="grid">
-          <div class="label">
-            <strong>Y 座標</strong>
-            <span>y｜官方註記：預設值優先</span>
-          </div>
+                    <div class="field">
+                        <input id="angle" type="number" value="0" oninput="generate()">
+                    </div>
+                </div>
 
-          <div class="field">
-            <input id="y" type="number" value="0" oninput="generate()">
-          </div>
-        </div>
+                <div class="grid">
+                    <div class="label">
+                        <strong>寬度</strong>
+                        <span>width｜number</span>
+                    </div>
 
-        <div class="grid">
-          <div class="label">
-            <strong>旋轉角度</strong>
-            <span>angle｜number</span>
-          </div>
+                    <div class="field">
+                        <input id="width" type="number" value="10" oninput="generate()">
+                    </div>
+                </div>
 
-          <div class="field">
-            <input id="angle" type="number" value="0" oninput="generate()">
-          </div>
-        </div>
+                <div class="grid">
+                    <div class="label">
+                        <strong>高度</strong>
+                        <span>height｜number</span>
+                    </div>
 
-        <div class="grid">
-          <div class="label">
-            <strong>寬度</strong>
-            <span>width｜number</span>
-          </div>
+                    <div class="field">
+                        <input id="height" type="number" value="10" oninput="generate()">
+                    </div>
+                </div>
 
-          <div class="field">
-            <input id="width" type="number" value="10" oninput="generate()">
-          </div>
-        </div>
+            </div>
 
-        <div class="grid">
-          <div class="label">
-            <strong>高度</strong>
-            <span>height｜number</span>
-          </div>
+            <div class="grid">
+                <div class="label">
+                    <strong>顏色</strong>
+                    <span>color｜例如 #E0E0E0</span>
+                </div>
 
-          <div class="field">
-            <input id="height" type="number" value="10" oninput="generate()">
-          </div>
-        </div>
+                <div class="field">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <input id="color" type="text" value="#E0E0E0" oninput="updateColorPreview()" style="flex:1;">
 
-      </div>
-
-      <div class="grid">
-        <div class="label">
-          <strong>顏色</strong>
-          <span>color｜例如 #E0E0E0</span>
-        </div>
-
-        <div class="field">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <input id="color" type="text" value="#E0E0E0" oninput="updateColorPreview()" style="flex:1;">
-
-            <input id="colorPreview" type="color" value="#E0E0E0" oninput="updateColorFromPicker()" style="
+                        <input id="colorPreview" type="color" value="#E0E0E0" oninput="updateColorFromPicker()" style="
             width:42px;
             height:42px;
             padding:2px;
             cursor:pointer;
           " title="選擇顏色">
-          </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
-      </div>
+
+        <!-- ==================== ⑥ 顯示 ==================== -->
+
+        <div class="section">
+            <h2>⑥ 顯示設定</h2>
+
+            <div class="grid">
+                <div class="label checkbox-label">
+                    <div class="checkbox-title">
+                        <strong>啟用</strong>
+
+                        <input id="active" type="checkbox" checked onchange="generate()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="label checkbox-label">
+                    <div class="checkbox-title">
+                        <strong>不公開角色狀態</strong>
+
+                        <input id="secret" type="checkbox" onchange="generate()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="label checkbox-label">
+                    <div class="checkbox-title">
+                        <strong>發言時不顯示角色立繪</strong>
+
+                        <input id="invisible" type="checkbox" onchange="generate()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="label checkbox-label">
+                    <div class="checkbox-title">
+                        <strong>不要在盤面的角色清單中顯示</strong>
+
+                        <input id="hideStatus" type="checkbox" onchange="generate()">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ==================== ⑦ 指令 ==================== -->
+
+        <div class="section">
+            <h2>⑦ 常用指令</h2>
+
+            <div class="grid">
+                <div class="field">
+                    <textarea id="commands" placeholder="cc<=99 鬥毆" oninput="generate()"></textarea>
+                </div>
+            </div>
+
+            <div class="grid" style="display:none">
+                <div class="label">
+                    <strong>Owner</strong>
+                    <span>owner｜擁有者；可留空</span>
+                </div>
+
+                <div class="field">
+                    <input id="owner" value="" placeholder="通常為空" oninput="generate()">
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==================== 操作按鈕 ==================== -->
+
+        <div class="actions">
+
+            <button onclick="copyJSON()">
+                複製 CCFOLIA JSON
+            </button>
+
+            <button class="secondary" onclick="downloadJSON()">
+                下載 JSON
+            </button>
+
+            <button class="success" onclick="downloadRoomZIP()">
+                📦 下載 CCFOLIA Room ZIP
+            </button>
+
+            <button class="danger" onclick="resetAll()">
+                全部清空
+            </button>
+
+        </div>
+
+        <div id="zipStatus" class="zip-status zip-status-initial">
+            尚未建立 Room ZIP。
+        </div>
+        <!-- ==================== ⑧ JSON ==================== -->
+
+        <div class="section jsonbox">
+
+            <h2>⑧ 最終 JSON</h2>
+
+            <div style="padding:12px">
+
+                <textarea id="output" spellcheck="false" readonly></textarea>
+
+                <div class="note">
+                    這裡的內容就是要複製後貼到 CCFOLIA 的 JSON 字串。
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
-    <!-- ==================== ⑥ 顯示 ==================== -->
 
-    <div class="section">
-      <h2>⑥ 顯示設定</h2>
+    <!-- ========================================================= -->
+    <!-- 匯入 JSON 視窗 -->
+    <!-- ========================================================= -->
 
-      <div class="grid">
-        <div class="label checkbox-label">
-          <div class="checkbox-title">
-            <strong>啟用</strong>
+    <div class="modal" id="importModal" onclick="closeImportModalOutside(event)">
 
-            <input id="active" type="checkbox" checked onchange="generate()">
-          </div>
+        <div class="modal-box">
+
+            <div class="modal-head">
+
+                <h2>匯入外部角色 JSON</h2>
+
+                <button class="secondary mini" onclick="closeImportModal()">
+                    ✕ 關閉
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div class="import-info">
+
+                    <strong>使用方式：</strong>
+                    把 CCFOLIA / 外部工具匯出的角色 JSON 貼到下面。
+
+                    <br>
+
+                    支援一般 JSON，也支援
+                    <span class="warn">
+                        "{""kind"":""character""...}"
+                    </span>
+                    這種被 Excel / CSV 包過的格式。
+
+                    <br>
+
+                    匯入後會自動填入：
+                    <strong>
+                        名稱、行動值、Status、固定變數、指令、備註、圖片、位置與顯示設定
+                    </strong>。
+                </div>
+
+
+                <textarea id="importInput" spellcheck="false" placeholder="請把外部角色 JSON 貼在這裡..."></textarea>
+
+
+                <div id="importMessage"></div>
+
+
+                <div class="modal-actions">
+
+                    <button onclick="importCharacterJSON()">
+                        匯入並填入表單
+                    </button>
+
+                    <button class="secondary" onclick="clearImportInput()">
+                        清空
+                    </button>
+
+                    <button class="danger" onclick="closeImportModal()">
+                        取消
+                    </button>
+
+                </div>
+
+            </div>
+
         </div>
-      </div>
-
-      <div class="grid">
-        <div class="label checkbox-label">
-          <div class="checkbox-title">
-            <strong>不公開角色狀態</strong>
-
-            <input id="secret" type="checkbox" onchange="generate()">
-          </div>
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="label checkbox-label">
-          <div class="checkbox-title">
-            <strong>發言時不顯示角色立繪</strong>
-
-            <input id="invisible" type="checkbox" onchange="generate()">
-          </div>
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="label checkbox-label">
-          <div class="checkbox-title">
-            <strong>不要在盤面的角色清單中顯示</strong>
-
-            <input id="hideStatus" type="checkbox" onchange="generate()">
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- ==================== ⑦ 指令 ==================== -->
-
-    <div class="section">
-      <h2>⑦ 常用指令</h2>
-
-      <div class="grid">
-        <div class="field">
-          <textarea id="commands" placeholder="cc<=99 鬥毆" oninput="generate()"></textarea>
-        </div>
-      </div>
-
-      <div class="grid" style="display:none">
-        <div class="label">
-          <strong>Owner</strong>
-          <span>owner｜擁有者；可留空</span>
-        </div>
-
-        <div class="field">
-          <input id="owner" value="" placeholder="通常為空" oninput="generate()">
-        </div>
-      </div>
-    </div>
-
-
-    <!-- ==================== 操作按鈕 ==================== -->
-
-    <div class="actions">
-
-      <button onclick="copyJSON()">
-        複製 CCFOLIA JSON
-      </button>
-
-      <button class="secondary" onclick="downloadJSON()">
-        下載 JSON
-      </button>
-
-      <button class="success" onclick="downloadRoomZIP()">
-        📦 下載 CCFOLIA Room ZIP
-      </button>
-
-      <button class="danger" onclick="resetAll()">
-        全部清空
-      </button>
 
     </div>
 
-    <div id="zipStatus" class="zip-status zip-status-initial">
-      尚未建立 Room ZIP。
-    </div>
-    <!-- ==================== ⑧ JSON ==================== -->
 
-    <div class="section jsonbox">
+    <div class="toast" id="toast"></div>
 
-      <h2>⑧ 最終 JSON</h2>
+    <div id="faceAdvancedModal" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.72); align-items:center; justify-content:center; padding:16px;">
+        <div style="width:min(680px,100%); max-height:90vh; overflow:auto; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:12px; padding:18px; box-shadow:0 12px 40px var(--shadow);">
+            <h3 style="margin:0 0 16px;">差分名稱批次修改</h3>
+            <div id="faceAdvancedEditor">
+                <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px;">
+                    <div>
+                        <label>搜尋內容<input id="faceAdvancedSearch" type="text" placeholder="例如：角色{N}_" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;"></label>
+                        <button type="button" id="faceAdvancedAutoDetect" style="margin-top:7px;">✨ 智慧偵測共同前綴</button>
+                        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">自動分析目前所有差分名稱，先把可能重複的角色名稱／編號／底線填進搜尋欄，並將取代欄填成 @；你仍可自行修改，確認後再按「預覽」。</div>
+                    </div>
+                    <label>取代為<input id="faceAdvancedReplace" type="text" placeholder="例如：@" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;"></label>
+                </div>
+                <div style="margin-top:14px;display:grid;gap:12px;">
+                    <div>
+                        <div style="display:block;">
+                            <label style="display:inline-flex;align-items:center;gap:8px;margin:0;"><input type="checkbox" id="faceAdvancedCaseSensitive" style="width:auto;"> 區分大小寫</label>
+                            <details style="display:block;font-size:13px;margin-top:6px;width:100%;">
+                                <summary style="color:var(--accent);cursor:pointer;display:list-item;">查看更多</summary>
+                                <div style="margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
+                                    <strong>區分大小寫是什麼？</strong><br>
+                                    開啟後，英文字母的大小寫必須完全相同才會符合。<br>
+                                    例如搜尋 <code>Face</code>：會找到 <code>Face</code>，不會找到 <code>face</code> 或 <code>FACE</code>。<br>
+                                    關閉時則不區分大小寫，這些寫法都可能符合。
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display:block;">
+                            <label style="display:inline-flex;align-items:center;gap:8px;margin:0;"><input type="checkbox" id="faceAdvancedWholeWord" style="width:auto;"> 全字匹配</label>
+                            <details style="display:block;font-size:13px;margin-top:6px;width:100%;">
+                                <summary style="color:var(--accent);cursor:pointer;display:list-item;">查看更多</summary>
+                                <div style="margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
+                                    <strong>全字匹配是什麼？</strong><br>
+                                    開啟後，搜尋文字左右不能緊貼英文字母、數字或底線的一部分，避免只改到較長英文／數字名稱中的片段。<br>
+                                    例如搜尋 <code>cat</code>：會匹配 <code>cat</code>，但不會匹配 <code>cats</code> 或 <code>bobcat</code>。<br>
+                                    注意：這裡的「字」主要依英文字母、數字與底線判斷；中文名稱請以實際預覽結果確認。
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display:block;">
+                            <label style="display:inline-flex;align-items:center;gap:8px;margin:0;"><input type="checkbox" id="faceAdvancedRegex" style="width:auto;"> 正規表示式</label>
+                            <details style="display:block;font-size:13px;margin-top:6px;width:100%;">
+                                <summary style="color:var(--accent);cursor:pointer;display:list-item;">查看更多</summary>
+                                <div style="margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
+                                    <strong>正規表示式是什麼？</strong><br>
+                                    開啟後，搜尋內容會被當成規則，而不是一般文字。常用符號如下：
+                                    <ul style="margin:6px 0;padding-left:22px;">
+                                        <li><code>.</code>：任意單一字元，例如 <code>面.</code> 可匹配「面A」「面1」。</li>
+                                        <li><code>*</code>：前一個項目重複 0 次以上，例如 <code>ab*</code> 可匹配「a」「ab」「abb」。</li>
+                                        <li><code>+</code>：前一個項目重複 1 次以上，例如 <code>ab+</code> 可匹配「ab」「abb」。</li>
+                                        <li><code>\d</code>：一個數字；<code>\w</code>：英文字母、數字或底線。</li>
+                                        <li><code>^</code>：文字開頭；<code>$</code>：文字結尾。</li>
+                                        <li><code>[abc]</code>：匹配 a、b 或 c 其中一個字元；<code>(a|b)</code>：匹配 a 或 b。</li>
+                                    </ul>
+                                    <strong>差分名稱常用例子：</strong><br>
+                                    <code>角色{N_}</code>：匹配「角色12_」這種前綴；<code>角色 {(N)}</code>：匹配「角色 (12)」。<br>
+                                    <code>角色{N}_</code>：匹配「角色_微笑」「角色2_生氣」等名稱的前段。<br>
+                                    也可以按上方「智慧偵測共同前綴」，讓工具先幫你分析。<br>
+                                    若只是要搜尋字面上的符號（例如 <code>.</code>），請關閉正規表示式；修改前先按「預覽」確認結果。
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                    <div id="faceAdvancedRegexTools" style="display:none;margin-top:4px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);">
+                        <strong style="display:block;margin-bottom:8px;">常用範例（點一下，自動填入搜尋與取代）</strong>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+                            <button type="button" class="face-regex-example" data-search="名稱_" data-replace="@">名稱_差分 → @差分</button>
+                            <button type="button" class="face-regex-example" data-search="名稱{N_}" data-replace="@">名稱＋數字＋底線 → @</button>
+                            <button type="button" class="face-regex-example" data-search="角色 {(N)}" data-replace="@">角色（數字）→ @</button>
+                            <button type="button" class="face-regex-example" data-search="角色{N}_" data-replace="@">角色／角色2_ → @</button>
+                        </div>
+                        <strong style="display:block;margin-bottom:8px;">快速插入規則（點一下就能使用）</strong>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{a}">{a}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{A}">{A}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{d}">{d}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{D}">{D}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{N}">{N}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{(N)}">{(N)}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{N_}">{N_}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{w}">{w}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{W}">{W}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{s}">{s}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{S}">{S}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{.}">{.}</button>
+                        </div>
 
-      <div style="padding:12px">
+                        <div style="font-size:13px;line-height:1.8;">
+                            <div><code>{a}</code> 一個英文字母；<code>{A}</code> 一段英文字母</div>
+                            <div><code>{d}</code> 一個數字；<code>{D}</code> 一串數字；<code>{N}</code> 可有可無的數字</div>
+                            <div><code>{(N)}</code> 括號中的數字，例如 <code>(12)</code>；<code>{N_}</code> 數字加底線，例如 <code>12_</code></div>
+                            <div><code>{w}</code> 一個英數字或底線；<code>{W}</code> 一段英數字或底線</div>
+                            <div><code>{s}</code> 一個空白；<code>{S}</code> 一段空白；<code>{.}</code> 任意一個字元</div>
+                            <div style="margin-top:6px;">取代欄也有快捷符號：<code>{0}</code> 代表整段符合的文字，<code>{1}</code>、<code>{2}</code> 代表搜尋規則中第 1、2 個 <code>( )</code> 捕獲的內容。</div>
+                            <div style="margin-top:6px;">例：搜尋 <code>角色{D}</code>、取代為 <code>人物{0}</code>，會把「角色123」改成「人物角色123」。若搜尋 <code>角色({D})</code>、取代為 <code>人物{1}</code>，則會改成「人物123」。</div>
+                            <div style="margin-top:6px;color:var(--muted);">這些大括號快捷符號只會在勾選「正規表示式」時生效；其他正規表示式語法仍可直接輸入。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <textarea id="output" spellcheck="false" readonly></textarea>
-
-        <div class="note">
-          這裡的內容就是要複製後貼到 CCFOLIA 的 JSON 字串。
+            <div id="faceAdvancedPreview" style="display:none;margin-top:14px;">
+                <h4 style="margin:0 0 8px;">修改預覽</h4>
+                <div id="faceAdvancedPreviewList" style="max-height:42vh;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px;"></div>
+                <p style="color:var(--muted);font-size:13px;">請確認左側原名稱與右側修改後名稱。按「儲存」才會套用。</p>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px;">
+                <button type="button" id="faceAdvancedBack" style="display:none;">返回修改</button>
+                <button type="button" id="faceAdvancedCancel">取消</button>
+                <button type="button" id="faceAdvancedConfirm">預覽</button>
+                <button type="button" id="faceAdvancedSave" style="display:none;">儲存</button>
+            </div>
         </div>
-
-      </div>
-
     </div>
 
-  </div>
-
-
-  <!-- ========================================================= -->
-  <!-- 匯入 JSON 視窗 -->
-  <!-- ========================================================= -->
-
-  <div class="modal" id="importModal" onclick="closeImportModalOutside(event)">
-
-    <div class="modal-box">
-
-      <div class="modal-head">
-
-        <h2>匯入外部角色 JSON</h2>
-
-        <button class="secondary mini" onclick="closeImportModal()">
-          ✕ 關閉
-        </button>
-
-      </div>
-
-      <div class="modal-body">
-
-        <div class="import-info">
-
-          <strong>使用方式：</strong>
-          把 CCFOLIA / 外部工具匯出的角色 JSON 貼到下面。
-
-          <br>
-
-          支援一般 JSON，也支援
-          <span class="warn">
-            "{""kind"":""character""...}"
-          </span>
-          這種被 Excel / CSV 包過的格式。
-
-          <br>
-
-          匯入後會自動填入：
-          <strong>
-            名稱、行動值、Status、固定變數、指令、備註、圖片、位置與顯示設定
-          </strong>。
-        </div>
-
-
-        <textarea id="importInput" spellcheck="false" placeholder="請把外部角色 JSON 貼在這裡..."></textarea>
-
-
-        <div id="importMessage"></div>
-
-
-        <div class="modal-actions">
-
-          <button onclick="importCharacterJSON()">
-            匯入並填入表單
-          </button>
-
-          <button class="secondary" onclick="clearImportInput()">
-            清空
-          </button>
-
-          <button class="danger" onclick="closeImportModal()">
-            取消
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <div class="toast" id="toast"></div>
-
-
-  <script src="zip.js"></script>
-  <script src="app.js"></script>
-  <script src="googleSheets.js"></script>
+    <script src="zip.js"></script>
+    <script src="app.js"></script>
+    <script src="googleSheets.js"></script>
+    <script src="faceAdvancedSettings.js"></script>
 
 </body>
 
