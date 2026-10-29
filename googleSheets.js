@@ -679,9 +679,20 @@
     const otherText = side === 'before' ? incomingText : beforeText;
     const targetLines = targetText.split('\n');
     const otherLines = otherText.split('\n');
+    const appendCommandLine = (line, state, render, includeNewline) => {
+      const wrapper = document.createElement('span');
+      wrapper.className = 'gs-diff-command-line ' + (state === 'same' ? 'gs-diff-line-same' : 'gs-diff-line-modified');
+      wrapper.style.whiteSpace = 'pre-wrap';
+      if (render) render(wrapper);
+      else wrapper.appendChild(document.createTextNode(line));
+      if (includeNewline) wrapper.appendChild(document.createTextNode('\n'));
+      container.appendChild(wrapper);
+    };
 
     if (targetText === otherText) {
-      container.appendChild(document.createTextNode(targetText));
+      targetLines.forEach((line, index) => {
+        appendCommandLine(line, 'same', null, index < targetLines.length - 1);
+      });
       return;
     }
 
@@ -722,10 +733,7 @@
       const emittedNameCounts = new Map();
 
       targetRows.forEach((row, index) => {
-        if (index > 0) container.appendChild(document.createTextNode('\n'));
         const line = row.line;
-        if (!line.trim()) return;
-
         let changeType = 'same';
         if (row.skill) {
           const name = row.skill.name;
@@ -743,14 +751,15 @@
           changeType = side === 'before' ? 'delete' : 'add';
         }
 
-        if (changeType === 'same') {
-          container.appendChild(document.createTextNode(line));
-        } else {
-          const span = document.createElement('span');
-          span.className = 'gs-diff-line-changed gs-diff-text-' + changeType;
-          span.textContent = line;
-          container.appendChild(span);
-        }
+        appendCommandLine(line, changeType === 'same' ? 'same' : 'modified', wrapper => {
+          if (changeType === 'same') wrapper.appendChild(document.createTextNode(line));
+          else {
+            const span = document.createElement('span');
+            span.className = 'gs-diff-line-changed gs-diff-text-' + changeType;
+            span.textContent = line;
+            wrapper.appendChild(span);
+          }
+        }, index < targetRows.length - 1);
       });
       return;
     }
@@ -784,17 +793,18 @@
       }
     }
 
-    const addLine = (line, otherLine, changeType) => {
-      // 常用對話表整行標示，但只改文字顏色、不加背景色。
-      if (changeType === 'same' || (changeType === 'paired' && line === otherLine)) {
-        container.appendChild(document.createTextNode(line));
-        return;
-      }
-
-      const span = document.createElement('span');
-      span.className = 'gs-diff-line-changed gs-diff-text-' + changeType;
-      span.textContent = line;
-      container.appendChild(span);
+    const addLine = (line, otherLine, changeType, includeNewline) => {
+      // 每行加上標記，讓「只顯示被修改內容」能隱藏完全相同的行。
+      const same = changeType === 'same' || (changeType === 'paired' && line === otherLine);
+      appendCommandLine(line, same ? 'same' : 'modified', wrapper => {
+        if (same) wrapper.appendChild(document.createTextNode(line));
+        else {
+          const span = document.createElement('span');
+          span.className = 'gs-diff-line-changed gs-diff-text-' + changeType;
+          span.textContent = line;
+          wrapper.appendChild(span);
+        }
+      }, includeNewline);
     };
     const addBlock = (tStart, tEnd, oStart, oEnd) => {
       const tCount = tEnd - tStart;
@@ -805,10 +815,7 @@
       if (tCount !== oCount) {
         for (let k = 0; k < tCount; k++) {
           const targetIndex = tStart + k;
-          addLine(targetLines[targetIndex], '', side === 'before' ? 'delete' : 'add');
-          if (targetIndex < targetLines.length - 1) {
-            container.appendChild(document.createTextNode('\n'));
-          }
+          addLine(targetLines[targetIndex], '', side === 'before' ? 'delete' : 'add', targetIndex < targetLines.length - 1);
         }
         return;
       }
@@ -816,27 +823,18 @@
       const paired = Math.min(tCount, oCount);
       for (let k = 0; k < paired; k++) {
         const targetIndex = tStart + k;
-        addLine(targetLines[targetIndex], otherLines[oStart + k], targetLines[targetIndex] === otherLines[oStart + k] ? 'same' : 'edit');
-        if (targetIndex < targetLines.length - 1) {
-          container.appendChild(document.createTextNode('\n'));
-        }
+        addLine(targetLines[targetIndex], otherLines[oStart + k], targetLines[targetIndex] === otherLines[oStart + k] ? 'same' : 'edit', targetIndex < targetLines.length - 1);
       }
       for (let k = paired; k < tCount; k++) {
         const targetIndex = tStart + k;
-        addLine(targetLines[targetIndex], '', side === 'before' ? 'delete' : 'add');
-        if (targetIndex < targetLines.length - 1) {
-          container.appendChild(document.createTextNode('\n'));
-        }
+        addLine(targetLines[targetIndex], '', side === 'before' ? 'delete' : 'add', targetIndex < targetLines.length - 1);
       }
     };
 
     let tPos = 0, oPos = 0;
     for (const [tAnchor, oAnchor] of anchors) {
       addBlock(tPos, tAnchor, oPos, oAnchor);
-      container.appendChild(document.createTextNode(targetLines[tAnchor]));
-      if (tAnchor < targetLines.length - 1) {
-        container.appendChild(document.createTextNode('\n'));
-      }
+      addLine(targetLines[tAnchor], otherLines[oAnchor], 'same', tAnchor < targetLines.length - 1);
       tPos = tAnchor + 1;
       oPos = oAnchor + 1;
     }
@@ -1014,9 +1012,59 @@
     });
   }
 
+  // 在第一輪比對前，將差分名稱／標題行視為本機既有且未修改的內容。
+  // 先把試算表中相應的行排除，再依本機原本的位置放回比對資料；因此它們不會成為可勾選的更新項目。
+  function normalizeFaceCommandsForComparison(currentData, remoteData) {
+    if (!currentData || !remoteData || typeof currentData.commands !== 'string' ||
+        typeof remoteData.commands !== 'string') return;
+
+    const faceNames = new Set();
+    const addName = value => {
+      if (typeof value === 'string' || typeof value === 'number') {
+        const name = String(value).trim();
+        if (name) faceNames.add(name);
+      }
+    };
+    const collectFaceNames = value => {
+      if (Array.isArray(value)) {
+        value.forEach(collectFaceNames);
+        return;
+      }
+      if (!value || typeof value !== 'object') return;
+      // 不只讀 label；不同版本／匯出格式可能使用 name、title、text 等欄位。
+      for (const key of ['label', 'name', 'title', 'text', 'displayName', 'faceName']) {
+        if (Object.prototype.hasOwnProperty.call(value, key)) addName(value[key]);
+      }
+    };
+    collectFaceNames(currentData.faces);
+
+    const isProtected = line => {
+      const value = String(line || '').trim();
+      if (!value) return false;
+      if (value.includes('差分')) return true;
+      return Array.from(faceNames).some(name => value.includes(name));
+    };
+
+    const currentLines = currentData.commands.split(/\r?\n/);
+    const remoteLines = remoteData.commands.split(/\r?\n/);
+    const protectedRows = currentLines
+      .map((line, index) => ({ line, index }))
+      .filter(row => isProtected(row.line));
+    if (!protectedRows.length) return;
+
+    // 這些行在比對資料中只採用本機版本；遠端同類行先移除，避免被誤判為刪除／修改。
+    // 依本機原始索引插回，因此不會在套用後再另外補行或改變原有行序。
+    const normalized = remoteLines.filter(line => !isProtected(line));
+    protectedRows.forEach(({ line, index }) => {
+      normalized.splice(Math.min(index, normalized.length), 0, line);
+    });
+    remoteData.commands = normalized.join('\n');
+  }
+
   function compareCharacters(currentCharacter, remoteCharacter) {
     const current = unwrapCharacter(currentCharacter);
-    const remote = unwrapCharacter(remoteCharacter);
+    const remote = cloneJSON(unwrapCharacter(remoteCharacter));
+    normalizeFaceCommandsForComparison(current, remote);
     // 只比對名稱、變動屬性、固定屬性、常用對話表與行動順序。
     // X/Y、角度、寬高、memo、圖片、顏色、勾選框等一律不列入差異。
     // 固定依照角色卡原本的區塊順序顯示差異。
@@ -1127,7 +1175,20 @@
       selectAll.type = 'button'; selectAll.textContent = '全選可更新項目';
       const selectNone = document.createElement('button');
       selectNone.type = 'button'; selectNone.textContent = '全部取消';
-      tools.append(selectAll, selectNone);
+      const filterLabel = document.createElement('label');
+      filterLabel.className = 'gs-diff-filter-label';
+      filterLabel.style.display = 'inline-flex';
+      filterLabel.style.alignItems = 'center';
+      filterLabel.style.gap = '6px';
+      filterLabel.style.marginLeft = '8px';
+      const filterCheckbox = document.createElement('input');
+      filterCheckbox.type = 'checkbox';
+      filterCheckbox.checked = true;
+      filterCheckbox.setAttribute('aria-label', '只顯示被修改內容');
+      const filterText = document.createElement('span');
+      filterText.textContent = '只顯示被修改內容';
+      filterLabel.append(filterCheckbox, filterText);
+      tools.append(selectAll, selectNone, filterLabel);
 
       const list = document.createElement('div');
       list.className = 'gs-diff-list';
@@ -1154,6 +1215,7 @@
         values.className = 'gs-diff-values';
         const before = document.createElement('div');
         before.className = 'gs-diff-before';
+        if (change.path.length === 1 && change.path[0] === 'commands') before.classList.add('gs-diff-command-value');
         before.appendChild(document.createTextNode('目前：'));
         if (change.path.length === 1 && change.path[0] === 'commands') {
           // 常用對話表的顯示與差異邏輯維持原樣。
@@ -1177,6 +1239,7 @@
         }
         const after = document.createElement('div');
         after.className = 'gs-diff-after';
+        if (change.path.length === 1 && change.path[0] === 'commands') after.classList.add('gs-diff-command-value');
         after.appendChild(document.createTextNode('試算表：'));
         if (change.path.length === 1 && change.path[0] === 'commands') {
           // 常用對話表的顯示與差異邏輯維持原樣。
@@ -1210,6 +1273,16 @@
 
       selectAll.addEventListener('click', () => checkboxes.forEach(box => { box.checked = true; }));
       selectNone.addEventListener('click', () => checkboxes.forEach(box => { box.checked = false; }));
+      const filterStyle = document.createElement('style');
+      filterStyle.textContent = '.gs-diff-command-value.gs-filter-unchanged .gs-diff-line-same{display:none!important;}';
+      dialog.appendChild(filterStyle);
+      const updateCommandFilter = () => {
+        dialog.querySelectorAll('.gs-diff-command-value').forEach(node => {
+          node.classList.toggle('gs-filter-unchanged', filterCheckbox.checked);
+        });
+      };
+      filterCheckbox.addEventListener('change', updateCommandFilter);
+      updateCommandFilter();
 
       let preservedBox = null;
       if (comparison.preserved.length) {
@@ -1288,6 +1361,7 @@
     if (externalUrl) externalUrl.value = sourceUrl;
     if (typeof window.generate === 'function') window.generate();
   }
+
 
   async function checkSheet(url, showFailure, forceCheck) {
     const info = extractSpreadsheetInfo(url);
