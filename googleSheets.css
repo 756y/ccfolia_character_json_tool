@@ -275,3 +275,51 @@
   .gs-diff-actions button,
   .gs-diff-item { transition: none; }
 }
+
+
+/* 差異比對視窗：工具列的「只顯示被修改內容」勾選項 */
+.gs-diff-filter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 0;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  justify-content: flex-start;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gs-diff-filter-label input[type="checkbox"] {
+  flex: 0 0 13px;
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  margin: 0;
+  padding: 0;
+}
+
+.gs-diff-filter-label > span {
+  display: inline;
+  white-space: nowrap;
+}
+
+/* 差異指令保留換行；勾選時隱藏未修改的行 */
+.gs-diff-command-line {
+  white-space: pre-wrap;
+}
+
+.gs-diff-command-value.gs-filter-unchanged .gs-diff-line-same {
+  display: none !important;
+}
+
+/* 亮色模式下提高「修改」文字的對比；深色模式維持原本的黃色。 */
+@media (prefers-color-scheme: light) {
+  .gs-diff-text-edit,
+  .gs-diff-values .gs-diff-text-edit,
+  .gs-diff-changed.gs-diff-text-edit {
+    color: #d97706;
+  }
+}

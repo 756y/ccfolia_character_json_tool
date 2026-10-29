@@ -682,7 +682,6 @@
     const appendCommandLine = (line, state, render, includeNewline) => {
       const wrapper = document.createElement('span');
       wrapper.className = 'gs-diff-command-line ' + (state === 'same' ? 'gs-diff-line-same' : 'gs-diff-line-modified');
-      wrapper.style.whiteSpace = 'pre-wrap';
       if (render) render(wrapper);
       else wrapper.appendChild(document.createTextNode(line));
       if (includeNewline) wrapper.appendChild(document.createTextNode('\n'));
@@ -1177,25 +1176,12 @@
       selectNone.type = 'button'; selectNone.textContent = '全部取消';
       const filterLabel = document.createElement('label');
       filterLabel.className = 'gs-diff-filter-label';
-      filterLabel.style.display = 'inline-flex';
-      filterLabel.style.alignItems = 'center';
-      filterLabel.style.gap = '4px';
-      filterLabel.style.marginLeft = '4px';
-      filterLabel.style.whiteSpace = 'nowrap';
-      filterLabel.style.flex = '0 0 auto';
-      filterLabel.style.width = 'max-content';
-      filterLabel.style.maxWidth = '100%';
       const filterCheckbox = document.createElement('input');
       filterCheckbox.type = 'checkbox';
       filterCheckbox.checked = true;
       filterCheckbox.setAttribute('aria-label', '只顯示被修改內容');
-      filterCheckbox.style.flex = '0 0 auto';
-      filterCheckbox.style.margin = '0';
       const filterText = document.createElement('span');
       filterText.textContent = '只顯示被修改內容';
-      filterText.style.whiteSpace = 'nowrap';
-      filterText.style.display = 'inline-block';
-      filterText.style.width = 'max-content';
       filterLabel.append(filterCheckbox, filterText);
       tools.append(selectAll, selectNone, filterLabel);
 
@@ -1282,9 +1268,6 @@
 
       selectAll.addEventListener('click', () => checkboxes.forEach(box => { box.checked = true; }));
       selectNone.addEventListener('click', () => checkboxes.forEach(box => { box.checked = false; }));
-      const filterStyle = document.createElement('style');
-      filterStyle.textContent = '.gs-diff-command-value.gs-filter-unchanged .gs-diff-line-same{display:none!important;}';
-      dialog.appendChild(filterStyle);
       const updateCommandFilter = () => {
         dialog.querySelectorAll('.gs-diff-command-value').forEach(node => {
           node.classList.toggle('gs-filter-unchanged', filterCheckbox.checked);
