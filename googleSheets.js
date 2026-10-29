@@ -1179,14 +1179,23 @@
       filterLabel.className = 'gs-diff-filter-label';
       filterLabel.style.display = 'inline-flex';
       filterLabel.style.alignItems = 'center';
-      filterLabel.style.gap = '6px';
-      filterLabel.style.marginLeft = '8px';
+      filterLabel.style.gap = '4px';
+      filterLabel.style.marginLeft = '4px';
+      filterLabel.style.whiteSpace = 'nowrap';
+      filterLabel.style.flex = '0 0 auto';
+      filterLabel.style.width = 'max-content';
+      filterLabel.style.maxWidth = '100%';
       const filterCheckbox = document.createElement('input');
       filterCheckbox.type = 'checkbox';
       filterCheckbox.checked = true;
       filterCheckbox.setAttribute('aria-label', '只顯示被修改內容');
+      filterCheckbox.style.flex = '0 0 auto';
+      filterCheckbox.style.margin = '0';
       const filterText = document.createElement('span');
       filterText.textContent = '只顯示被修改內容';
+      filterText.style.whiteSpace = 'nowrap';
+      filterText.style.display = 'inline-block';
+      filterText.style.width = 'max-content';
       filterLabel.append(filterCheckbox, filterText);
       tools.append(selectAll, selectNone, filterLabel);
 
@@ -1282,7 +1291,6 @@
         });
       };
       filterCheckbox.addEventListener('change', updateCommandFilter);
-      updateCommandFilter();
 
       let preservedBox = null;
       if (comparison.preserved.length) {
@@ -1301,6 +1309,8 @@
       apply.type = 'button'; apply.className = 'primary'; apply.textContent = '套用勾選項目';
       actions.append(cancel, apply);
       dialog.append(head, tools, list);
+      // 等比對內容實際加入 dialog 後再套用預設篩選；否則第一次查詢不到常用指令區塊。
+      updateCommandFilter();
       if (preservedBox) dialog.appendChild(preservedBox);
       dialog.appendChild(actions);
       overlay.appendChild(dialog);
