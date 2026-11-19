@@ -1010,6 +1010,23 @@
           border-top: 1px solid var(--line);
           flex: 0 0 auto
         }
+
+        .nav-sidebar-link {
+          display: block;
+          flex: 0 0 auto;
+          padding: 14px 16px;
+          border-top: 1px solid var(--line);
+          color: var(--accent);
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 600;
+          text-align: center;
+          transition: background .2s ease;
+        }
+
+        .nav-sidebar-link:hover {
+          background: var(--panel2);
+        }
         
         @media(max-width:700px) {
           .top-nav {
@@ -1073,6 +1090,7 @@
             <span>導覽人員</span>
             <span class="nav-sidebar-close" onclick="closeGuideSidebar()" role="button" tabindex="0" aria-label="關閉導覽側欄" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeGuideSidebar();}">ㄑ</span>
         </div>
+        <a class="nav-sidebar-link" href="https://minyu3108.github.io/sprite-namer/" target="_blank" rel="noopener noreferrer">立繪差分命名器</a>
         <div class="nav-guide-image-wrap">
             <img id="navGuideImage" class="nav-guide-image" alt="隨機導覽人員圖片">
         </div>
