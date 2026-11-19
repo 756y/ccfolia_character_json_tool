@@ -2076,6 +2076,107 @@ function toggleFaceSettings() {
       document.body.style.overflow = '';
     }
 
+/* =========================================================
+   差分 ZIP 匯入（讀取 sprite-namer.json；不依賴 JSZip）
+========================================================= */
+async function readZipEntries(zipFile) {
+  const bytes = new Uint8Array(await zipFile.arrayBuffer());
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const u32 = p => view.getUint32(p, true);
+  const u16 = p => view.getUint16(p, true);
+  let eocd = -1;
+  const min = Math.max(0, bytes.length - 22 - 0xffff);
+  for (let p = bytes.length - 22; p >= min; p--) {
+    if (u32(p) === 0x06054b50) { eocd = p; break; }
+  }
+  if (eocd < 0) throw new Error('無法辨識 ZIP 壓縮檔結構。');
+  const entryCount = u16(eocd + 10);
+  let cursor = u32(eocd + 16);
+  const decoder = new TextDecoder('utf-8');
+  const entries = new Map();
+  for (let i = 0; i < entryCount; i++) {
+    if (cursor + 46 > bytes.length || u32(cursor) !== 0x02014b50) throw new Error('ZIP 檔案目錄資料不完整。');
+    const flags = u16(cursor + 8);
+    const method = u16(cursor + 10);
+    const compressedSize = u32(cursor + 20);
+    const uncompressedSize = u32(cursor + 24);
+    const nameLength = u16(cursor + 28);
+    const extraLength = u16(cursor + 30);
+    const commentLength = u16(cursor + 32);
+    const localOffset = u32(cursor + 42);
+    const name = decoder.decode(bytes.subarray(cursor + 46, cursor + 46 + nameLength));
+    cursor += 46 + nameLength + extraLength + commentLength;
+    if (name.endsWith('/')) continue;
+    if (flags & 1) throw new Error('ZIP 內含加密檔案，無法匯入：' + name);
+    if (localOffset + 30 > bytes.length || u32(localOffset) !== 0x04034b50) throw new Error('ZIP 內的檔案資料損毀：' + name);
+    const dataStart = localOffset + 30 + u16(localOffset + 26) + u16(localOffset + 28);
+    const compressed = bytes.subarray(dataStart, dataStart + compressedSize);
+    let data;
+    if (method === 0) data = compressed.slice();
+    else if (method === 8) {
+      if (typeof DecompressionStream === 'undefined') throw new Error('目前瀏覽器不支援 ZIP 解壓縮，請使用最新版 Chrome 或 Edge。');
+      const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      data = new Uint8Array(await new Response(stream).arrayBuffer());
+    } else throw new Error('ZIP 使用不支援的壓縮方式（' + method + '）：' + name);
+    if (data.length !== uncompressedSize) throw new Error('ZIP 內的檔案大小不符：' + name);
+    entries.set(name, data);
+  }
+  return entries;
+}
+
+async function importFaceZIP(event) {
+  const input = event && event.target;
+  const zipFile = input && input.files && input.files[0];
+  if (!zipFile) return;
+  try {
+    if (!/\.zip$/i.test(zipFile.name)) throw new Error('請選擇副檔名為 .zip 的壓縮檔。');
+    const entries = await readZipEntries(zipFile);
+    const manifestBytes = entries.get('sprite-namer.json');
+    if (!manifestBytes) throw new Error('這個 ZIP 根目錄缺少 sprite-namer.json，無法讀取差分名稱與圖片對應。');
+    const manifest = JSON.parse(new TextDecoder('utf-8').decode(manifestBytes));
+    if (!manifest || manifest.app !== 'sprite-namer' || !Array.isArray(manifest.groups)) throw new Error('sprite-namer.json 格式不正確。');
+    const files = [];
+    for (const group of manifest.groups) {
+      if (!group || !Array.isArray(group.items)) continue;
+      for (const item of group.items) {
+        if (!item || !item.path) continue;
+        const imageBytes = entries.get(item.path);
+        if (!imageBytes) throw new Error('找不到 ZIP 內的圖片：' + item.path);
+        const ext = String(item.ext || item.path.split('.').pop()).toLowerCase();
+        if (ext !== 'png') throw new Error('目前差分圖片只支援 PNG：' + item.path);
+        const filename = item.path.split('/').pop();
+        const variant = String(group.variant || '').trim();
+        const desc = String(item.desc == null ? '' : item.desc).trim();
+        files.push({ file: new File([imageBytes], filename, { type: 'image/png' }), label: '@' + (variant ? variant + '-' : '') + desc });
+      }
+    }
+    if (!files.length) throw new Error('ZIP 中沒有可匯入的差分圖片。');
+    const facesList = $('facesList');
+    const autoLabel = $('autoFaceLabel');
+    const wasAutoLabel = autoLabel ? autoLabel.checked : false;
+    facesList.innerHTML = '';
+    if (autoLabel) autoLabel.checked = false;
+    try {
+      for (const item of files) {
+        addFace({ label: item.label, iconUrl: '' });
+        const row = facesList.lastElementChild;
+        await processFaceImageFile(item.file, row);
+        row.querySelector('.f-label').value = item.label;
+      }
+    } finally {
+      if (autoLabel) autoLabel.checked = wasAutoLabel;
+    }
+    renumber('face');
+    generate();
+    toast('已匯入 ' + files.length + ' 張差分圖片。');
+  } catch (error) {
+    console.error('差分 ZIP 匯入失敗：', error);
+    alert('差分 ZIP 匯入失敗：\n' + (error && error.message ? error.message : String(error)));
+  } finally {
+    if (input) input.value = '';
+  }
+}
+
     /* =========================================================
        ESC 關閉匯入視窗
     ========================================================= */

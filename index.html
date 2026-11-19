@@ -1239,6 +1239,11 @@
                     <button type="button" onclick="copyAllFaceLabels()">
                         複製差分名稱
                     </button>
+
+                    <button type="button" onclick="document.getElementById('faceZipInput').click()">
+                        匯入 ZIP
+                    </button>
+                    <input id="faceZipInput" type="file" accept=".zip,application/zip" style="display:none" onchange="importFaceZIP(event)">
                 </div>
 
             </div>
