@@ -1803,6 +1803,8 @@ function toggleFaceSettings() {
 
       $('color').value = '#E0E0E0';
 
+      // 全部清空後，立即同步文字色碼與旁邊的顏色預覽。
+      updateColorPreview();
 
       $('statusList').innerHTML = '';
 
