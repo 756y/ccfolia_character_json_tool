@@ -3,6 +3,38 @@
     ========================================================= */
 
     const $ = id => document.getElementById(id);
+
+    /* =========================================================
+       右上角設定：使用 localStorage 記住勾選狀態
+    ========================================================= */
+    (function initPersistentAppSettings() {
+      const settings = [
+        ['mainImageFromFaces', 'ccfolia-main-image-from-faces'],
+        ['autoFaceLabel', 'ccfolia-auto-face-label']
+      ];
+
+      settings.forEach(([elementId, storageKey]) => {
+        const checkbox = $(elementId);
+        if (!checkbox) return;
+
+        try {
+          const savedValue = localStorage.getItem(storageKey);
+          if (savedValue !== null) {
+            checkbox.checked = savedValue === 'true';
+          }
+        } catch (error) {
+          console.warn('讀取設定失敗：', storageKey, error);
+        }
+
+        checkbox.addEventListener('change', () => {
+          try {
+            localStorage.setItem(storageKey, String(checkbox.checked));
+          } catch (error) {
+            console.warn('儲存設定失敗：', storageKey, error);
+          }
+        });
+      });
+    })();
     /* =========================================================
        主圖片：本機 PNG
     ========================================================= */
