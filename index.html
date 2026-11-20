@@ -1202,7 +1202,7 @@
         <div class="actions">
 
             <button class="success" onclick="openImportModal()">
-                ＋ 匯入外部角色 JSON
+                ＋ 匯入 JSON
             </button>
 
             <!-- ZIP 匯入 -->
@@ -1298,7 +1298,7 @@
                 <h2>④ 角色圖片與差分</h2>
 
                 <div style="display:flex; gap:8px; align-items:center;">
-                    <button type="button" id="faceAdvancedSettingsButton">進階設定</button>
+                    <button type="button" id="faceAdvancedSettingsButton">修改名稱</button>
                     <button type="button" class="position-toggle" onclick="toggleFaceSettings()">收起</button>
                 </div>
             </div>
@@ -1570,7 +1570,7 @@
 
             <div class="modal-head">
 
-                <h2>匯入外部角色 JSON</h2>
+                <h2>匯入角色 JSON</h2>
 
                 <button class="secondary mini" onclick="closeImportModal()">
                     ✕ 關閉
@@ -1583,7 +1583,7 @@
                 <div class="import-info">
 
                     <strong>使用方式：</strong>
-                    把 CCFOLIA / 外部工具匯出的角色 JSON 貼到下面。
+                    把 CCFOLIA 的角色 JSON 貼到下面。
 
                     <br>
 
@@ -1597,12 +1597,12 @@
 
                     匯入後會自動填入：
                     <strong>
-                        名稱、行動值、Status、固定變數、指令、備註、圖片、位置與顯示設定
+                        名稱、行動值、變動屬性、固定屬性、指令、備註、位置與顯示
                     </strong>。
                 </div>
 
 
-                <textarea id="importInput" spellcheck="false" placeholder="請把外部角色 JSON 貼在這裡..."></textarea>
+                <textarea id="importInput" spellcheck="false" placeholder="請把 JSON 貼在這裡..."></textarea>
 
 
                 <div id="importMessage"></div>
@@ -1611,15 +1611,11 @@
                 <div class="modal-actions">
 
                     <button onclick="importCharacterJSON()">
-                        匯入並填入表單
+                        匯入
                     </button>
 
-                    <button class="secondary" onclick="clearImportInput()">
+                    <button class="danger" onclick="clearImportInput()">
                         清空
-                    </button>
-
-                    <button class="danger" onclick="closeImportModal()">
-                        取消
                     </button>
 
                 </div>
