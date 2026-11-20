@@ -1801,7 +1801,7 @@ function toggleFaceSettings() {
 
       $('hideStatus').value = 'false';
 
-      $('color').value = '#ff0000';
+      $('color').value = '#E0E0E0';
 
 
       $('statusList').innerHTML = '';
