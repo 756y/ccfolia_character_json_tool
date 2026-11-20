@@ -16,10 +16,11 @@
 
 
 
-    function toggleAppSettings() {
-      const panel = $('appSettingsPopover');
+    // 明確掛到 window，確保 HTML inline onclick 可以呼叫
+    window.toggleAppSettings = function toggleAppSettings() {
+      const panel = document.getElementById('appSettingsPopover');
       if (panel) panel.classList.toggle('show');
-    }
+    };
 
     function closeFacePicker() {
       $('facePickerModal').classList.remove('show');
