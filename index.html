@@ -866,6 +866,89 @@
         .theme-toggle:hover {
           background: var(--panel2);
         }
+
+        .top-nav-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          position: relative;
+          flex: 0 0 auto;
+        }
+
+        .top-nav-actions .theme-toggle {
+          position: static;
+          z-index: auto;
+        }
+
+        .settings-toggle {
+          width: 34px;
+          height: 34px;
+          padding: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--panel);
+          color: var(--text);
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          font-size: 17px;
+          line-height: 1;
+          box-shadow: 0 2px 8px #0002;
+        }
+
+        .settings-toggle:hover { background: var(--panel2); }
+
+        .settings-popover {
+          display: none;
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          width: min(290px, calc(100vw - 24px));
+          padding: 14px;
+          background: var(--panel);
+          color: var(--text);
+          border: 1px solid var(--line);
+          border-radius: 10px;
+          box-shadow: 0 8px 28px var(--shadow);
+          z-index: 100;
+        }
+
+        .settings-popover.show { display: block; }
+        .settings-popover .checkbox-title { gap: 12px; }
+        .settings-popover .checkbox-title strong { font-size: 14px; }
+
+        .face-picker-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+        .face-picker-item {
+          min-width: 0;
+          padding: 9px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 7px;
+          background: var(--input-bg);
+          color: var(--text);
+          border: 1px solid var(--line);
+          border-radius: 9px;
+          cursor: pointer;
+        }
+        .face-picker-item img {
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          height: auto;
+          object-fit: contain;
+          border-radius: 5px;
+        }
+        .face-picker-item span {
+          width: 100%;
+          overflow-wrap: anywhere;
+          text-align: center;
+          font-size: 13px;
+        }
+        .face-picker-item:disabled { opacity: .45; cursor: not-allowed; }
         
         
         /* ===== 左側導覽側欄 ===== */
@@ -1081,7 +1164,20 @@
             </button>
             <div class="top-nav-title">CCFOLIA Character JSON 產生器</div>
         </div>
-        <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()">☀️ 亮色</button>
+        <div class="top-nav-actions">
+            <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()">☀️ 亮色</button>
+            <button type="button" id="settingsToggle" class="settings-toggle" aria-label="設定" title="設定" onclick="toggleAppSettings()">⚙</button>
+            <div id="appSettingsPopover" class="settings-popover">
+                <label class="checkbox-title">
+                    <strong>主圖片從差分裡面選</strong>
+                    <input id="mainImageFromFaces" type="checkbox" checked>
+                </label>
+                <label class="checkbox-title" style="margin-top:12px;">
+                    <strong>自動帶入圖片名稱</strong>
+                    <input id="autoFaceLabel" type="checkbox" checked>
+                </label>
+            </div>
+        </div>
     </nav>
 
     <div id="navBackdrop" class="nav-backdrop" onclick="closeGuideSidebar()" aria-hidden="true"></div>
@@ -1215,9 +1311,7 @@
                 <div class="main-image-header">
                     <strong>角色主圖片</strong>
 
-                    <label class="file-select-btn" for="imageFile">
-                        選擇圖片
-                    </label>
+                    <button type="button" class="file-select-btn" onclick="openMainImagePicker()">選擇圖片</button>
 
                     <input id="imageFile" class="file-select-input" type="file" accept="image/png,.png" onchange="handleImageFile(event)">
                 </div>
@@ -1243,13 +1337,6 @@
             <div id="faceSettings" style="display:block;">
 
                 <div id="facesList"></div>
-
-                <div style="padding:12px 12px 0;">
-                    <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
-                        <input id="autoFaceLabel" type="checkbox" checked style="width:auto; margin:0;">
-                        自動帶入圖片名稱
-                    </label>
-                </div>
 
                 <div style="padding:12px; display:flex; gap:8px;">
                     <button onclick="addFace()">＋ 新增差分</button>
@@ -1543,6 +1630,18 @@
 
     </div>
 
+
+    <div class="modal" id="facePickerModal" onclick="closeFacePickerOutside(event)">
+        <div class="modal-box" style="width:min(680px,100%);">
+            <div class="modal-head">
+                <h2>從差分選擇主圖片</h2>
+                <button type="button" class="secondary mini" onclick="closeFacePicker()">✕ 關閉</button>
+            </div>
+            <div class="modal-body">
+                <div id="facePickerGrid" class="face-picker-grid"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="toast" id="toast"></div>
 

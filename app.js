@@ -16,6 +16,65 @@
 
 
 
+    function toggleAppSettings() {
+      const panel = $('appSettingsPopover');
+      if (panel) panel.classList.toggle('show');
+    }
+
+    function closeFacePicker() {
+      $('facePickerModal').classList.remove('show');
+    }
+
+    function closeFacePickerOutside(event) {
+      if (event.target === $('facePickerModal')) closeFacePicker();
+    }
+
+    function openMainImagePicker() {
+      const useFaces = $('mainImageFromFaces') && $('mainImageFromFaces').checked;
+      const rows = [...$('facesList').children];
+      const availableRows = rows.filter(row => {
+        const data = faceImageData.get(row);
+        return data && data.file;
+      });
+      if (!useFaces || availableRows.length === 0) {
+        $('imageFile').click();
+        return;
+      }
+
+      const grid = $('facePickerGrid');
+      grid.innerHTML = '';
+      availableRows.forEach((row) => {
+        const imageData = faceImageData.get(row);
+        const preview = row.querySelector('.face-preview');
+        const label = (row.querySelector('.f-label')?.value || '').trim() || '未命名差分';
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'face-picker-item';
+        item.disabled = !imageData || !imageData.file;
+        if (preview && preview.src) {
+          const img = document.createElement('img');
+          img.src = preview.src;
+          img.alt = label;
+          item.appendChild(img);
+        } else {
+          const placeholder = document.createElement('div');
+          placeholder.style.cssText = 'width:100%;aspect-ratio:1/1;display:grid;place-items:center;color:var(--muted);font-size:12px;';
+          placeholder.textContent = '圖片尚未載入';
+          item.appendChild(placeholder);
+        }
+        const name = document.createElement('span');
+        name.textContent = label;
+        item.appendChild(name);
+        item.addEventListener('click', async () => {
+          if (!imageData || !imageData.file) return;
+          closeFacePicker();
+          await handleImageFile({ target: { files: [imageData.file] } });
+        });
+        grid.appendChild(item);
+      });
+      $('facePickerModal').classList.add('show');
+    }
+
     /*
       選擇主圖片
     */
@@ -2187,7 +2246,9 @@ async function importFaceZIP(event) {
 
         if (event.key === 'Escape') {
           if ($('importModal').classList.contains('show')) closeImportModal();
+          if ($('facePickerModal').classList.contains('show')) closeFacePicker();
           if ($('navSidebar').classList.contains('show')) closeGuideSidebar();
+          if ($('appSettingsPopover')) $('appSettingsPopover').classList.remove('show');
         }
 
       }
