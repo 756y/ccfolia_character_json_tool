@@ -1895,7 +1895,22 @@
                     const input = document.getElementById(id);
                     if (!input) return;
                     input.checked = readBoolean(key, fallback);
-                    input.addEventListener('change', () => saveSetting(key, input.checked));
+                    input.addEventListener('change', () => {
+                        saveSetting(key, input.checked);
+                        if (id === 'autoFixEducationCommand') {
+                            const commandsInput = document.getElementById('commands');
+                            if (commandsInput && typeof window.applyEducationIntelligenceCommandNameSetting === 'function') {
+                                const updatedCommands = window.applyEducationIntelligenceCommandNameSetting(
+                                    commandsInput.value,
+                                    input.checked
+                                );
+                                if (updatedCommands !== commandsInput.value) {
+                                    commandsInput.value = updatedCommands;
+                                    if (typeof window.generate === 'function') window.generate();
+                                }
+                            }
+                        }
+                    });
                 });
 
                 const secondsInput = document.getElementById('googleSheetsPollSeconds');

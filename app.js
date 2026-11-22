@@ -1199,6 +1199,28 @@ function toggleFaceSettings() {
 
 
     /* =========================================================
+       教育／智力指令名稱：依設定即時切換
+    ========================================================= */
+
+    function applyEducationIntelligenceCommandNameSetting(commands, enabled) {
+      if (typeof commands !== 'string') return commands;
+
+      return commands.replace(
+        /^(\s*CC\s*<=\s*[^\r\n]*?)\s+(教育|教育／知識|智力|智力／靈感)\s*$/gm,
+        (_, prefix, label) => {
+          const isEducation = label === '教育' || label === '教育／知識';
+          const outputLabel = enabled
+            ? (isEducation ? '教育／知識' : '智力／靈感')
+            : (isEducation ? '教育' : '智力');
+          return prefix + ' ' + outputLabel;
+        }
+      );
+    }
+
+    // 讓設定選單可以在不重新匯入角色的情況下，直接切換目前指令名稱。
+    window.applyEducationIntelligenceCommandNameSetting = applyEducationIntelligenceCommandNameSetting;
+
+    /* =========================================================
        匯入角色
     ========================================================= */
 
@@ -1388,12 +1410,12 @@ function toggleFaceSettings() {
         指令
       */
 
-      // 只有設定開啟時，匯入 JSON 才將舊版教育／智力指令名稱轉成新版名稱。
+      // JSON 匯入與 Google 試算表連線匯入，都依目前開關狀態統一套用名稱。
       const autoFixCommandNames = $('autoFixEducationCommand');
-      const importedCommands = autoFixCommandNames && autoFixCommandNames.checked && typeof d.commands === 'string'
-        ? d.commands.replace(/^(\s*CC\s*<=\s*[^\r\n]*?)\s+(教育|智力)\s*$/gm,
-            (_, prefix, label) => prefix + (label === '教育' ? ' 教育／知識' : ' 智力／靈感'))
-        : d.commands;
+      const importedCommands = applyEducationIntelligenceCommandNameSetting(
+        d.commands,
+        !!(autoFixCommandNames && autoFixCommandNames.checked)
+      );
 
       setValueIfExists(
         'commands',
