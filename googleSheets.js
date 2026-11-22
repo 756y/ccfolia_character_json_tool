@@ -16,7 +16,6 @@
   'use strict';
 
   const SHEET_NAME = '人物卡';
-  const POLL_INTERVAL_MS = 30 * 1000; // 每 30 秒檢查一次，讓試算表更新更快被發現。
   const REQUEST_TIMEOUT_MS = 15000;
   const INPUT_DEBOUNCE_MS = 900;
 
@@ -276,13 +275,6 @@
   // 基礎數值標籤；幸運更新 Status，智力以試算表「靈感」數值為準。
   const BASE_ATTRIBUTE_LABELS = ['力量', '敏捷', '意志', '體質', '外貌', '教育', '體型', '智力', '幸運', '靈感'];
 
-  // 舊版名稱視為新版名稱的別名；只統一顯示名稱，不改動檢定數值。
-  function normalizeBaseCommandLabels(commands) {
-    if (typeof commands !== 'string') return commands;
-    return commands.replace(/^(\s*CC\s*<=\s*[^\r\n]*?)\s+(教育|智力)\s*$/gm,
-      (_, prefix, label) => prefix + (label === '教育' ? ' 教育／知識' : ' 智力／靈感'));
-  }
-
   function sheetCellValue(cell) {
     if (!cell) return '';
     const value = cell.v !== undefined && cell.v !== null ? cell.v : cell.f;
@@ -354,23 +346,27 @@
 
     const labels = BASE_ATTRIBUTE_LABELS.filter(label => label !== '幸運');
     const fixedValues = response ? readBaseAttributes(response) : {};
-    let targetCommands = normalizeBaseCommandLabels(targetData.commands);
-    sourceData.commands = normalizeBaseCommandLabels(sourceData.commands);
+    const autoFixNames = isAutoFixCommandNamesEnabled();
+    let targetCommands = targetData.commands;
     for (const label of labels) {
-      const displayLabel = label === '教育' ? '教育／知識'
-        : label === '智力' ? '智力／靈感' : label;
-      const acceptedLabel = label === '教育' ? '(?:教育|教育／知識)'
-        : label === '智力' ? '(?:智力|智力／靈感)'
+      const aliases = autoFixNames && label === '教育' ? ['教育／知識', '教育']
+        : autoFixNames && label === '智力' ? ['智力／靈感', '智力']
+        : [label];
+      const escapedAliases = aliases.map(value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      const targetPattern = new RegExp('^CC<=[^\r\n]*\\s+(' + escapedAliases.join('|') + ')\\s*$', 'm');
+
+      if (fixedValues[label] !== undefined && targetPattern.test(targetCommands)) {
+        const outputLabel = autoFixNames && (label === '教育' || label === '智力')
+          ? (label === '教育' ? '教育／知識' : '智力／靈感')
           : label;
-      const linePattern = new RegExp('^CC<=[^\\r\\n]*\\s+' + acceptedLabel + '\\s*$', 'm');
-      if (fixedValues[label] !== undefined && linePattern.test(targetCommands)) {
-        targetCommands = targetCommands.replace(linePattern, 'CC<=' + fixedValues[label] + ' ' + displayLabel);
+        targetCommands = targetCommands.replace(targetPattern, 'CC<=' + fixedValues[label] + ' ' + outputLabel);
         continue;
       }
-      const sourceLine = sourceData.commands.split(/\r?\n/).find(line => linePattern.test(line));
-      if (!sourceLine) continue;
-      if (linePattern.test(targetCommands)) {
-        targetCommands = targetCommands.replace(linePattern, sourceLine);
+
+      const sourcePattern = new RegExp('^CC<=[^\r\n]*\\s+(' + escapedAliases.join('|') + ')\\s*$', 'm');
+      const sourceLine = sourceData.commands.split(/\r?\n/).find(line => sourcePattern.test(line));
+      if (sourceLine && targetPattern.test(targetCommands)) {
+        targetCommands = targetCommands.replace(targetPattern, sourceLine);
       }
     }
     targetData.commands = targetCommands;
@@ -387,14 +383,13 @@
     const inspiration = values['靈感'];
     if (inspiration === undefined) return false;
 
-    const normalizedCommands = normalizeBaseCommandLabels(data.commands);
-    const pattern = /^\s*CC\s*<=\s*[^\r\n]*?\s+智力／靈感\s*$/m;
-    if (!pattern.test(normalizedCommands)) {
-      const changed = normalizedCommands !== data.commands;
-      data.commands = normalizedCommands;
-      return changed;
-    }
-    const updatedCommands = normalizedCommands.replace(pattern, 'CC<=' + inspiration + ' 智力／靈感');
+    const useNewLabel = isAutoFixCommandNamesEnabled();
+    const pattern = useNewLabel
+      ? /^\s*CC\s*<=\s*[^\r\n]*?\s+(?:智力|智力／靈感)\s*$/m
+      : /^\s*CC\s*<=\s*[^\r\n]*?\s+智力\s*$/m;
+    if (!pattern.test(data.commands)) return false;
+    const label = useNewLabel ? '智力／靈感' : '智力';
+    const updatedCommands = data.commands.replace(pattern, 'CC<=' + inspiration + ' ' + label);
     const changed = updatedCommands !== data.commands;
     data.commands = updatedCommands;
     return changed;
@@ -408,16 +403,12 @@
 
     const values = readBaseAttributes(response);
     if (typeof data.commands === 'string') {
-      let commands = normalizeBaseCommandLabels(data.commands);
+      let commands = data.commands;
       for (const label of BASE_ATTRIBUTE_LABELS) {
         if (label === '幸運' || values[label] === undefined) continue;
         const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const displayLabel = label === '教育' ? '教育／知識'
-          : label === '智力' ? '智力／靈感' : label;
-        const acceptedLabels = label === '教育' ? '(?:教育|教育／知識)'
-          : label === '智力' ? '(?:智力|智力／靈感)' : escaped;
-        const pattern = new RegExp('^CC<=.*?\\s+' + acceptedLabels + '\\s*$', 'm');
-        commands = commands.replace(pattern, 'CC<=' + values[label] + ' ' + displayLabel);
+        const pattern = new RegExp('^CC<=.*?\\s+' + escaped + '\\s*$', 'm');
+        commands = commands.replace(pattern, 'CC<=' + values[label] + ' ' + label);
       }
       data.commands = commands;
     }
@@ -471,6 +462,26 @@
     }
 
     return data;
+  }
+
+  // 自動修正開啟時，新舊指令名稱視為同一組名稱；關閉時則完全依原名稱比對。
+  function isAutoFixCommandNamesEnabled() {
+    const checkbox = getElement('autoFixEducationCommand');
+    if (checkbox) return checkbox.checked;
+    try {
+      return localStorage.getItem('ccfolia-setting-auto-fix-education-command') !== 'false';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function normalizeCommandNamesForComparison(data) {
+    if (!data || typeof data.commands !== 'string') return;
+    data.commands = data.commands.replace(
+      /^(\s*CC\s*<=\s*[^\r\n]*?)\s+(教育|教育／知識|智力|智力／靈感)\s*$/gm,
+      (_, prefix, label) => prefix + (label === '教育' || label === '教育／知識'
+        ? ' 教育／知識' : ' 智力／靈感')
+    );
   }
 
   function stableStringify(value) {
@@ -1077,10 +1088,12 @@
   }
 
   function compareCharacters(currentCharacter, remoteCharacter) {
-    const current = unwrapCharacter(currentCharacter);
+    const current = cloneJSON(unwrapCharacter(currentCharacter));
     const remote = cloneJSON(unwrapCharacter(remoteCharacter));
-    current.commands = normalizeBaseCommandLabels(current.commands);
-    remote.commands = normalizeBaseCommandLabels(remote.commands);
+    if (isAutoFixCommandNamesEnabled()) {
+      normalizeCommandNamesForComparison(current);
+      normalizeCommandNamesForComparison(remote);
+    }
     normalizeFaceCommandsForComparison(current, remote);
     // 只比對名稱、變動屬性、固定屬性、常用對話表與行動順序。
     // X/Y、角度、寬高、memo、圖片、顏色、勾選框等一律不列入差異。
@@ -1401,10 +1414,7 @@
       if (!comparison.changes.length) {
         // 若一般差異比較沒有列出智力指令，仍以 Y9「靈感」強制核對並同步智力。
         const currentForIntelligence = cloneJSON(comparison.current);
-        const originalCommands = unwrapCharacter(currentCharacter).commands;
-        const labelsNormalized = currentForIntelligence.commands !== originalCommands;
-        const intelligenceUpdated = syncIntelligenceFromInspiration(currentForIntelligence, lastCharacterSheetResponse);
-        if (labelsNormalized || intelligenceUpdated) {
+        if (syncIntelligenceFromInspiration(currentForIntelligence, lastCharacterSheetResponse)) {
           if (Object.prototype.hasOwnProperty.call(comparison.current, 'externalUrl')) {
             currentForIntelligence.externalUrl = comparison.current.externalUrl;
           }
@@ -1499,6 +1509,15 @@
     }
   }
 
+  function getPollingIntervalMs() {
+    const input = getElement('googleSheetsPollSeconds');
+    const seconds = input ? Number(input.value) : 30;
+    const safeSeconds = Number.isFinite(seconds) && seconds >= 1
+      ? Math.floor(seconds)
+      : 30;
+    return safeSeconds * 1000;
+  }
+
   function startPolling(url) {
     stopPolling();
     if (!extractSpreadsheetInfo(url)) return;
@@ -1510,8 +1529,23 @@
         return;
       }
       checkSheet(url, false);
-    }, POLL_INTERVAL_MS);
+    }, getPollingIntervalMs());
   }
+
+  // 設定中的秒數變更時，立即重新建立輪詢計時器。
+  window.refreshGoogleSheetsPollingInterval = function () {
+    const field = getElement('externalUrl');
+    if (!field) {
+      stopPolling();
+      return;
+    }
+    const url = field.value.trim();
+    if (extractSpreadsheetInfo(url)) {
+      startPolling(url);
+    } else {
+      stopPolling();
+    }
+  };
 
   function scheduleCheck(forceCheck = true) {
     const field = getElement('externalUrl');

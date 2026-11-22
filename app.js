@@ -1388,8 +1388,9 @@ function toggleFaceSettings() {
         指令
       */
 
-      // 匯入 JSON 時自動將舊版基礎檢定名稱轉成統一顯示名稱。
-      const importedCommands = typeof d.commands === 'string'
+      // 只有設定開啟時，匯入 JSON 才將舊版教育／智力指令名稱轉成新版名稱。
+      const autoFixCommandNames = $('autoFixEducationCommand');
+      const importedCommands = autoFixCommandNames && autoFixCommandNames.checked && typeof d.commands === 'string'
         ? d.commands.replace(/^(\s*CC\s*<=\s*[^\r\n]*?)\s+(教育|智力)\s*$/gm,
             (_, prefix, label) => prefix + (label === '教育' ? ' 教育／知識' : ' 智力／靈感'))
         : d.commands;

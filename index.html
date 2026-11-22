@@ -916,10 +916,74 @@
 
         .settings-popover.show { display: block; }
         .settings-popover .checkbox-title {
-          justify-content: center;
-          gap: 8px;
+          justify-content: space-between;
+          gap: 12px;
+          text-align: left;
+        }
+        .settings-popover .checkbox-title strong {
+          text-align: left;
         }
         .settings-popover .checkbox-title strong { font-size: 14px; }
+
+        .settings-popover {
+          width: 260px;
+        }
+
+        .settings-group-title {
+          color: var(--muted);
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: .04em;
+          line-height: 1.4;
+          padding: 1px 2px 7px;
+        }
+
+        .settings-group-separated {
+          border-top: 1px solid var(--line);
+          margin-top: 13px;
+          padding-top: 12px;
+        }
+
+        .settings-frequency-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          color: var(--text);
+          font-size: 13px;
+          padding: 0 2px 2px;
+        }
+
+        .settings-frequency-input {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          flex: 0 0 auto;
+        }
+
+        .settings-frequency-input input {
+          width: 58px;
+          height: 32px;
+          padding: 5px 7px;
+          text-align: center;
+          font-size: 13px;
+          -moz-appearance: textfield;
+          appearance: textfield;
+        }
+        .settings-frequency-input input::-webkit-outer-spin-button,
+        .settings-frequency-input input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+
+        .settings-frequency-input span {
+          color: var(--muted);
+          font-size: 13px;
+        }
+
+        .settings-checkbox-spaced {
+          margin-top: 12px;
+        }
 
         .face-picker-grid {
           display: grid;
@@ -1172,13 +1236,29 @@
             <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()">☀️ 亮色</button>
             <button type="button" id="settingsToggle" class="settings-toggle" aria-label="設定" title="設定" onclick="toggleAppSettings()">⚙</button>
             <div id="appSettingsPopover" class="settings-popover">
+                <div class="settings-group-title">基本資料</div>
+                <div class="settings-frequency-row">
+                    <label for="googleSheetsPollSeconds">更新試算表頻率</label>
+                    <div class="settings-frequency-input">
+                        <input id="googleSheetsPollSeconds" type="number" min="1" step="1" value="30" inputmode="numeric">
+                        <span>s</span>
+                    </div>
+                </div>
+
+                <div class="settings-group-title settings-group-separated">角色圖片與差分</div>
                 <label class="checkbox-title">
                     <strong>從差分選擇主圖片</strong>
                     <input id="mainImageFromFaces" type="checkbox" checked>
                 </label>
-                <label class="checkbox-title" style="margin-top:12px;">
+                <label class="checkbox-title settings-checkbox-spaced">
                     <strong>自動帶入圖片名稱</strong>
                     <input id="autoFaceLabel" type="checkbox" checked>
+                </label>
+
+                <div class="settings-group-title settings-group-separated">常用指令</div>
+                <label class="checkbox-title">
+                    <strong>自動修正教育及智力名稱</strong>
+                    <input id="autoFixEducationCommand" type="checkbox" checked>
                 </label>
             </div>
         </div>
@@ -1767,6 +1847,86 @@
     <script src="app.js"></script>
     <script src="googleSheets.js"></script>
     <script src="faceAdvancedSettings.js"></script>
+
+    <script>
+        /* 設定選單：保留各項設定，重新整理或重開瀏覽器後仍會沿用。 */
+        (function () {
+            const STORAGE_KEYS = {
+                mainImageFromFaces: 'ccfolia-setting-main-image-from-faces',
+                autoFaceLabel: 'ccfolia-setting-auto-face-label',
+                autoFixEducationCommand: 'ccfolia-setting-auto-fix-education-command',
+                pollSeconds: 'ccfolia-setting-google-sheets-poll-seconds'
+            };
+
+            function readBoolean(key, fallback) {
+                try {
+                    const value = localStorage.getItem(key);
+                    return value === null ? fallback : value === 'true';
+                } catch (_) {
+                    return fallback;
+                }
+            }
+
+            function saveSetting(key, value) {
+                try { localStorage.setItem(key, String(value)); } catch (_) {}
+            }
+
+            window.toggleAppSettings = function () {
+                const popover = document.getElementById('appSettingsPopover');
+                if (popover) popover.classList.toggle('show');
+            };
+
+            function initSettings() {
+                const checkboxSettings = [
+                    ['mainImageFromFaces', STORAGE_KEYS.mainImageFromFaces, true],
+                    ['autoFaceLabel', STORAGE_KEYS.autoFaceLabel, true],
+                    ['autoFixEducationCommand', STORAGE_KEYS.autoFixEducationCommand, true]
+                ];
+
+                checkboxSettings.forEach(([id, key, fallback]) => {
+                    const input = document.getElementById(id);
+                    if (!input) return;
+                    input.checked = readBoolean(key, fallback);
+                    input.addEventListener('change', () => saveSetting(key, input.checked));
+                });
+
+                const secondsInput = document.getElementById('googleSheetsPollSeconds');
+                if (secondsInput) {
+                    let savedSeconds = 30;
+                    try {
+                        const stored = Number(localStorage.getItem(STORAGE_KEYS.pollSeconds));
+                        if (Number.isFinite(stored) && stored >= 1) savedSeconds = Math.floor(stored);
+                    } catch (_) {}
+                    secondsInput.value = savedSeconds;
+                    secondsInput.addEventListener('change', () => {
+                        const seconds = Math.max(1, Math.floor(Number(secondsInput.value) || 30));
+                        secondsInput.value = seconds;
+                        saveSetting(STORAGE_KEYS.pollSeconds, seconds);
+                        if (typeof window.refreshGoogleSheetsPollingInterval === 'function') {
+                            window.refreshGoogleSheetsPollingInterval();
+                        }
+                    });
+                }
+
+                document.addEventListener('click', event => {
+                    const popover = document.getElementById('appSettingsPopover');
+                    const toggle = document.getElementById('settingsToggle');
+                    if (popover && popover.classList.contains('show') &&
+                        !popover.contains(event.target) && toggle && !toggle.contains(event.target)) {
+                        popover.classList.remove('show');
+                    }
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initSettings, { once: true });
+            } else {
+                initSettings();
+            }
+
+
+        })();
+    </script>
 
 </body>
 
