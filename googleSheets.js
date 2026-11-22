@@ -276,6 +276,13 @@
   // 基礎數值標籤；幸運更新 Status，智力以試算表「靈感」數值為準。
   const BASE_ATTRIBUTE_LABELS = ['力量', '敏捷', '意志', '體質', '外貌', '教育', '體型', '智力', '幸運', '靈感'];
 
+  // 舊版名稱視為新版名稱的別名；只統一顯示名稱，不改動檢定數值。
+  function normalizeBaseCommandLabels(commands) {
+    if (typeof commands !== 'string') return commands;
+    return commands.replace(/^(\s*CC\s*<=\s*[^\r\n]*?)\s+(教育|智力)\s*$/gm,
+      (_, prefix, label) => prefix + (label === '教育' ? ' 教育／知識' : ' 智力／靈感'));
+  }
+
   function sheetCellValue(cell) {
     if (!cell) return '';
     const value = cell.v !== undefined && cell.v !== null ? cell.v : cell.f;
@@ -347,23 +354,23 @@
 
     const labels = BASE_ATTRIBUTE_LABELS.filter(label => label !== '幸運');
     const fixedValues = response ? readBaseAttributes(response) : {};
-    let targetCommands = targetData.commands;
+    let targetCommands = normalizeBaseCommandLabels(targetData.commands);
+    sourceData.commands = normalizeBaseCommandLabels(sourceData.commands);
     for (const label of labels) {
-      if (fixedValues[label] !== undefined) {
-        const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const fixedPattern = new RegExp('^CC<=[^\r\n]*\\s+' + escapedLabel + '\\s*$', 'm');
-        if (fixedPattern.test(targetCommands)) {
-          targetCommands = targetCommands.replace(fixedPattern, 'CC<=' + fixedValues[label] + ' ' + label);
-          continue;
-        }
+      const displayLabel = label === '教育' ? '教育／知識'
+        : label === '智力' ? '智力／靈感' : label;
+      const acceptedLabel = label === '教育' ? '(?:教育|教育／知識)'
+        : label === '智力' ? '(?:智力|智力／靈感)'
+          : label;
+      const linePattern = new RegExp('^CC<=[^\\r\\n]*\\s+' + acceptedLabel + '\\s*$', 'm');
+      if (fixedValues[label] !== undefined && linePattern.test(targetCommands)) {
+        targetCommands = targetCommands.replace(linePattern, 'CC<=' + fixedValues[label] + ' ' + displayLabel);
+        continue;
       }
-      const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const linePattern = new RegExp('^CC<=[^\r\n]*\\s+' + escaped + '\\s*$', 'm');
       const sourceLine = sourceData.commands.split(/\r?\n/).find(line => linePattern.test(line));
       if (!sourceLine) continue;
-      const targetPattern = new RegExp('^CC<=[^\r\n]*\\s+' + escaped + '\\s*$', 'm');
-      if (targetPattern.test(targetCommands)) {
-        targetCommands = targetCommands.replace(targetPattern, sourceLine);
+      if (linePattern.test(targetCommands)) {
+        targetCommands = targetCommands.replace(linePattern, sourceLine);
       }
     }
     targetData.commands = targetCommands;
@@ -380,9 +387,14 @@
     const inspiration = values['靈感'];
     if (inspiration === undefined) return false;
 
-    const pattern = /^\s*CC\s*<=\s*[^\r\n]*?\s+智力\s*$/m;
-    if (!pattern.test(data.commands)) return false;
-    const updatedCommands = data.commands.replace(pattern, 'CC<=' + inspiration + ' 智力');
+    const normalizedCommands = normalizeBaseCommandLabels(data.commands);
+    const pattern = /^\s*CC\s*<=\s*[^\r\n]*?\s+智力／靈感\s*$/m;
+    if (!pattern.test(normalizedCommands)) {
+      const changed = normalizedCommands !== data.commands;
+      data.commands = normalizedCommands;
+      return changed;
+    }
+    const updatedCommands = normalizedCommands.replace(pattern, 'CC<=' + inspiration + ' 智力／靈感');
     const changed = updatedCommands !== data.commands;
     data.commands = updatedCommands;
     return changed;
@@ -396,12 +408,16 @@
 
     const values = readBaseAttributes(response);
     if (typeof data.commands === 'string') {
-      let commands = data.commands;
+      let commands = normalizeBaseCommandLabels(data.commands);
       for (const label of BASE_ATTRIBUTE_LABELS) {
         if (label === '幸運' || values[label] === undefined) continue;
         const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const pattern = new RegExp('^CC<=.*?\\s+' + escaped + '\\s*$', 'm');
-        commands = commands.replace(pattern, 'CC<=' + values[label] + ' ' + label);
+        const displayLabel = label === '教育' ? '教育／知識'
+          : label === '智力' ? '智力／靈感' : label;
+        const acceptedLabels = label === '教育' ? '(?:教育|教育／知識)'
+          : label === '智力' ? '(?:智力|智力／靈感)' : escaped;
+        const pattern = new RegExp('^CC<=.*?\\s+' + acceptedLabels + '\\s*$', 'm');
+        commands = commands.replace(pattern, 'CC<=' + values[label] + ' ' + displayLabel);
       }
       data.commands = commands;
     }
@@ -1063,6 +1079,8 @@
   function compareCharacters(currentCharacter, remoteCharacter) {
     const current = unwrapCharacter(currentCharacter);
     const remote = cloneJSON(unwrapCharacter(remoteCharacter));
+    current.commands = normalizeBaseCommandLabels(current.commands);
+    remote.commands = normalizeBaseCommandLabels(remote.commands);
     normalizeFaceCommandsForComparison(current, remote);
     // 只比對名稱、變動屬性、固定屬性、常用對話表與行動順序。
     // X/Y、角度、寬高、memo、圖片、顏色、勾選框等一律不列入差異。
@@ -1383,7 +1401,10 @@
       if (!comparison.changes.length) {
         // 若一般差異比較沒有列出智力指令，仍以 Y9「靈感」強制核對並同步智力。
         const currentForIntelligence = cloneJSON(comparison.current);
-        if (syncIntelligenceFromInspiration(currentForIntelligence, lastCharacterSheetResponse)) {
+        const originalCommands = unwrapCharacter(currentCharacter).commands;
+        const labelsNormalized = currentForIntelligence.commands !== originalCommands;
+        const intelligenceUpdated = syncIntelligenceFromInspiration(currentForIntelligence, lastCharacterSheetResponse);
+        if (labelsNormalized || intelligenceUpdated) {
           if (Object.prototype.hasOwnProperty.call(comparison.current, 'externalUrl')) {
             currentForIntelligence.externalUrl = comparison.current.externalUrl;
           }
