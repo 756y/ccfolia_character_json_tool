@@ -397,6 +397,54 @@
        重複欄位
     ========================================================= */
 
+    function isSanMaxModeEnabled() {
+      const setting = $('matchSanMaxToCurrent');
+      if (setting) return setting.checked;
+      try {
+        return localStorage.getItem('ccfolia-setting-match-san-max-to-current') !== 'false';
+      } catch (_) {
+        return true;
+      }
+    }
+
+    function isSanStatusLabel(label) {
+      return String(label || '').trim().toLowerCase() === 'san';
+    }
+
+    // 每列保留來源最大值；啟用模式只改顯示／輸出值，不覆蓋原始最大值。
+    window.setSanMaxMode = function (enabled) {
+      const rows = $('statusList') ? [...$('statusList').children] : [];
+      rows.forEach(row => {
+        const label = row.querySelector('.s-label')?.value;
+        if (!isSanStatusLabel(label)) return;
+        const valueInput = row.querySelector('.s-value');
+        const maxInput = row.querySelector('.s-max');
+        if (!valueInput || !maxInput) return;
+
+        if (enabled) {
+          // 關閉→開啟時，先保存目前表單中的原始最大值。
+          row.dataset.sanOriginalMax = maxInput.value;
+          maxInput.value = valueInput.value;
+        } else {
+          maxInput.value = row.dataset.sanOriginalMax ?? '';
+        }
+      });
+      if (typeof window.generate === 'function') window.generate();
+    };
+
+    // 試算表輪詢時即使 SAN 最大值沒有形成可見差異，也更新「關閉模式時要還原」的來源值。
+    window.updateSanOriginalMaxFromCharacter = function (character) {
+      const data = character && character.kind === 'character' && character.data
+        ? character.data
+        : (character && character.data && typeof character.data === 'object' ? character.data : character);
+      if (!data || !Array.isArray(data.status)) return;
+      const source = data.status.find(item => item && isSanStatusLabel(item.label));
+      if (!source || source.max === undefined) return;
+      const row = $('statusList') && [...$('statusList').children].find(item =>
+        isSanStatusLabel(item.querySelector('.s-label')?.value));
+      if (row) row.dataset.sanOriginalMax = source.max === null ? '' : String(source.max);
+    };
+
     function makeRow(type, index, data = {}) {
 
       const div = document.createElement('div');
@@ -454,6 +502,16 @@
     `;
       }
 
+
+      if (type === 'status') {
+        const label = String(data.label || '').trim();
+        const valueInput = div.querySelector('.s-value');
+        const maxInput = div.querySelector('.s-max');
+        if (isSanStatusLabel(label)) {
+          div.dataset.sanOriginalMax = data.max == null ? '' : String(data.max);
+          if (isSanMaxModeEnabled()) maxInput.value = valueInput.value;
+        }
+      }
 
       if (type === 'param') {
 
@@ -588,6 +646,16 @@
 
       div.querySelectorAll('input')
         .forEach(x => x.addEventListener('input', generate));
+
+      if (type === 'status') {
+        const valueInput = div.querySelector('.s-value');
+        const maxInput = div.querySelector('.s-max');
+        valueInput.addEventListener('input', () => {
+          if (isSanStatusLabel(div.querySelector('.s-label').value) && isSanMaxModeEnabled()) {
+            maxInput.value = valueInput.value;
+          }
+        });
+      }
 
       return div;
     }
@@ -831,11 +899,11 @@ function toggleFaceSettings() {
             ) || 0,
 
           max:
-            r.querySelector('.s-max').value === ''
-              ? null
-              : Number(
-                r.querySelector('.s-max').value
-              )
+            isSanStatusLabel(r.querySelector('.s-label').value) && isSanMaxModeEnabled()
+              ? (Number(r.querySelector('.s-value').value) || 0)
+              : (r.querySelector('.s-max').value === ''
+                  ? null
+                  : Number(r.querySelector('.s-max').value))
 
         }));
 
@@ -1970,11 +2038,11 @@ function toggleFaceSettings() {
           ) || 0,
 
         max:
-          row.querySelector('.s-max').value === ''
-            ? 0
-            : Number(
-              row.querySelector('.s-max').value
-            ) || 0
+          isSanStatusLabel(row.querySelector('.s-label').value) && isSanMaxModeEnabled()
+            ? (Number(row.querySelector('.s-value').value) || 0)
+            : (row.querySelector('.s-max').value === ''
+                ? 0
+                : Number(row.querySelector('.s-max').value) || 0)
 
       }));
     }

@@ -1253,6 +1253,12 @@
                 </div>
                 <div id="googleSheetsLastUpdated" class="settings-last-updated">最近更新时间：尚未更新</div>
 
+                <div class="settings-group-title settings-group-separated">變動屬性</div>
+                <label class="checkbox-title">
+                    <strong>修改 SAN 最大值</strong>
+                    <input id="matchSanMaxToCurrent" type="checkbox" checked>
+                </label>
+
                 <div class="settings-group-title settings-group-separated">角色圖片與差分</div>
                 <label class="checkbox-title">
                     <strong>從差分選擇主圖片</strong>
@@ -1881,7 +1887,8 @@
                 mainImageFromFaces: 'ccfolia-setting-main-image-from-faces',
                 autoFaceLabel: 'ccfolia-setting-auto-face-label',
                 autoFixEducationCommand: 'ccfolia-setting-auto-fix-education-command',
-                pollSeconds: 'ccfolia-setting-google-sheets-poll-seconds'
+                pollSeconds: 'ccfolia-setting-google-sheets-poll-seconds',
+                matchSanMaxToCurrent: 'ccfolia-setting-match-san-max-to-current'
             };
 
             function readBoolean(key, fallback) {
@@ -1906,7 +1913,8 @@
                 const checkboxSettings = [
                     ['mainImageFromFaces', STORAGE_KEYS.mainImageFromFaces, true],
                     ['autoFaceLabel', STORAGE_KEYS.autoFaceLabel, true],
-                    ['autoFixEducationCommand', STORAGE_KEYS.autoFixEducationCommand, true]
+                    ['autoFixEducationCommand', STORAGE_KEYS.autoFixEducationCommand, true],
+                    ['matchSanMaxToCurrent', STORAGE_KEYS.matchSanMaxToCurrent, true]
                 ];
 
                 checkboxSettings.forEach(([id, key, fallback]) => {
@@ -1915,6 +1923,10 @@
                     input.checked = readBoolean(key, fallback);
                     input.addEventListener('change', () => {
                         saveSetting(key, input.checked);
+                        if (id === 'matchSanMaxToCurrent' &&
+                            typeof window.setSanMaxMode === 'function') {
+                            window.setSanMaxMode(input.checked);
+                        }
                         if (id === 'autoFixEducationCommand') {
                             const commandsInput = document.getElementById('commands');
                             if (commandsInput && typeof window.applyEducationIntelligenceCommandNameSetting === 'function') {
@@ -1930,6 +1942,13 @@
                         }
                     });
                 });
+
+                // 若上次保存的是關閉狀態，將頁面初始列從預設勾選狀態還原為原始最大值。
+                const sanMaxSetting = document.getElementById('matchSanMaxToCurrent');
+                if (sanMaxSetting && !sanMaxSetting.checked &&
+                    typeof window.setSanMaxMode === 'function') {
+                    window.setSanMaxMode(false);
+                }
 
                 const secondsInput = document.getElementById('googleSheetsPollSeconds');
                 if (secondsInput) {

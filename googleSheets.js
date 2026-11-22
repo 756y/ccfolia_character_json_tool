@@ -475,6 +475,25 @@
     }
   }
 
+  function isSanMaxModeEnabled() {
+    const checkbox = getElement('matchSanMaxToCurrent');
+    if (checkbox) return checkbox.checked;
+    try {
+      return window.localStorage.getItem('ccfolia-setting-match-san-max-to-current') !== 'false';
+    } catch (_) {
+      return true;
+    }
+  }
+
+  function normalizeSanMaxForComparison(data) {
+    if (!isSanMaxModeEnabled() || !data || !Array.isArray(data.status)) return;
+    data.status.forEach(item => {
+      if (item && String(item.label || '').trim().toLowerCase() === 'san') {
+        item.max = item.value;
+      }
+    });
+  }
+
   function normalizeCommandNamesForComparison(data) {
     if (!data || typeof data.commands !== 'string') return;
     data.commands = data.commands.replace(
@@ -1094,6 +1113,8 @@
       normalizeCommandNamesForComparison(current);
       normalizeCommandNamesForComparison(remote);
     }
+    // SAN 最大值自動匹配模式下，遠端原始 max 不列為差異；原始值另行保留供關閉設定時還原。
+    if (isSanMaxModeEnabled()) normalizeSanMaxForComparison(remote);
     normalizeFaceCommandsForComparison(current, remote);
     // 只比對名稱、變動屬性、固定屬性、常用對話表與行動順序。
     // X/Y、角度、寬高、memo、圖片、顏色、勾選框等一律不列入差異。
@@ -1430,6 +1451,10 @@
       recordLastUpdated();
 
       const remoteData = unwrapCharacter(remoteCharacter);
+      if (isSanMaxModeEnabled() &&
+          typeof window.updateSanOriginalMaxFromCharacter === 'function') {
+        window.updateSanOriginalMaxFromCharacter(remoteCharacter);
+      }
       const remoteFingerprint = fingerprint(remoteCharacter);
 
       let currentCharacter;
@@ -1517,6 +1542,11 @@
       }
 
       applyCharacter({ kind: 'character', data: mergedData }, url);
+      // 匯入重建表單列後，再把試算表原始 SAN 最大值寫回隱藏保存欄位。
+      if (isSanMaxModeEnabled() &&
+          typeof window.updateSanOriginalMaxFromCharacter === 'function') {
+        window.updateSanOriginalMaxFromCharacter(remoteCharacter);
+      }
       lastAppliedFingerprint = remoteFingerprint;
       lastDeclinedFingerprint = '';
       const skipped = comparison.changes.length - selectedIndexes.length;
