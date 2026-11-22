@@ -2147,9 +2147,63 @@ function toggleFaceSettings() {
 
 
     /* =========================================================
-       導覽側欄：每次展開隨機顯示一張導覽人員圖片
+       導覽側欄：圖片預先載入，關閉時先切換下一張。
+       因此開啟側欄時只需顯示已準備好的圖片，不必等待圖片載入。
        圖片放在 HTML 同一層的 guide-images 資料夾中，命名 1.png～5.png。
     ========================================================= */
+    const GUIDE_IMAGE_IDS = [1, 2, 3, 4, 5];
+    const guideImagePreloads = new Map();
+    let currentGuideImageId = null;
+    let pendingGuideImageId = null;
+    let guideCloseTimer = null;
+    let guideCloseToken = 0;
+    let guideCloseTransitionHandler = null;
+
+    function setGuideSidebarImage(imageId) {
+      const image = $('navGuideImage');
+      if (!image) return;
+      image.onerror = function () {
+        this.onerror = null;
+        this.alt = '找不到導覽圖片，請確認 guide-images 資料夾內有 1.png 至 5.png';
+        this.removeAttribute('src');
+      };
+      image.src = './guide-images/' + imageId + '.png';
+      image.alt = '導覽人員 ' + imageId;
+      currentGuideImageId = imageId;
+    }
+
+    function preloadGuideSidebarImages() {
+      GUIDE_IMAGE_IDS.forEach(imageId => {
+        const preload = new Image();
+        guideImagePreloads.set(imageId, preload);
+        preload.onload = () => {
+          // 圖片在側欄關閉期間載入完成，就先更新畫面中的圖片。
+          if (pendingGuideImageId === imageId) {
+            const sidebar = $('navSidebar');
+            if (!sidebar || !sidebar.classList.contains('show')) {
+              setGuideSidebarImage(imageId);
+              pendingGuideImageId = null;
+            }
+          }
+        };
+        preload.src = './guide-images/' + imageId + '.png';
+      });
+    }
+
+    function prepareNextGuideSidebarImage() {
+      const candidates = GUIDE_IMAGE_IDS.filter(id => id !== currentGuideImageId);
+      if (!candidates.length) return;
+      const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+      pendingGuideImageId = chosen;
+      const preloaded = guideImagePreloads.get(chosen);
+
+      // 已經預載完成就立即在側欄關閉時換好；尚未完成則由 onload 接手。
+      if (preloaded && preloaded.complete && preloaded.naturalWidth > 0) {
+        setGuideSidebarImage(chosen);
+        pendingGuideImageId = null;
+      }
+    }
+
     function toggleGuideSidebar() {
       const sidebar = $('navSidebar');
       if (sidebar && sidebar.classList.contains('show')) {
@@ -2166,16 +2220,18 @@ function toggleFaceSettings() {
       const image = $('navGuideImage');
       if (!sidebar || !backdrop || !toggle || !image) return;
 
-      const guideImages = [1, 2, 3, 4, 5];
-      const chosen = guideImages[Math.floor(Math.random() * guideImages.length)];
-      image.onerror = function () {
-        this.onerror = null;
-        this.alt = '找不到導覽圖片，請確認 guide-images 資料夾內有 1.png 至 5.png';
-        this.removeAttribute('src');
-      };
-      image.src = './guide-images/' + chosen + '.png';
-      image.alt = '導覽人員 ' + chosen;
-
+      // 若側欄尚在關閉動畫中就再次開啟，取消尚未執行的換圖。
+      // 這樣連續快速開關時，只有真正完整關閉後才會準備下一張。
+      guideCloseToken++;
+      if (guideCloseTimer) {
+        window.clearTimeout(guideCloseTimer);
+        guideCloseTimer = null;
+      }
+      if (guideCloseTransitionHandler) {
+        sidebar.removeEventListener('transitionend', guideCloseTransitionHandler);
+        guideCloseTransitionHandler = null;
+      }
+      pendingGuideImageId = null;
       sidebar.classList.add('show');
       backdrop.classList.add('show');
       sidebar.setAttribute('aria-hidden', 'false');
@@ -2197,7 +2253,37 @@ function toggleFaceSettings() {
       toggle.setAttribute('aria-expanded', 'false');
       toggle.setAttribute('aria-label', '開啟導覽側欄');
       document.body.style.overflow = '';
+
+      // 等側欄的收合動畫完全結束後才換圖，避免關閉過程中看到下一張。
+      // 若使用者在動畫結束前重新開啟，openGuideSidebar() 會取消這次換圖。
+      const closeToken = ++guideCloseToken;
+      const finishClose = () => {
+        if (closeToken !== guideCloseToken || sidebar.classList.contains('show')) return;
+        if (guideCloseTimer) {
+          window.clearTimeout(guideCloseTimer);
+          guideCloseTimer = null;
+        }
+        if (guideCloseTransitionHandler) {
+          sidebar.removeEventListener('transitionend', guideCloseTransitionHandler);
+          guideCloseTransitionHandler = null;
+        }
+        prepareNextGuideSidebarImage();
+      };
+
+      guideCloseTransitionHandler = event => {
+        if (event.target === sidebar && event.propertyName === 'transform') finishClose();
+      };
+      sidebar.addEventListener('transitionend', guideCloseTransitionHandler);
+      // transitionend 在動畫被中斷或瀏覽器未觸發時，以略長於 CSS 動畫的時間兜底。
+      guideCloseTimer = window.setTimeout(finishClose, 350);
     }
+
+    // 頁面載入時先設定第一張並在背景預載全部導覽圖片。
+    (function initGuideSidebarImages() {
+      const firstImage = GUIDE_IMAGE_IDS[Math.floor(Math.random() * GUIDE_IMAGE_IDS.length)];
+      setGuideSidebarImage(firstImage);
+      preloadGuideSidebarImages();
+    })();
 
 /* =========================================================
    差分 ZIP 匯入（讀取 sprite-namer.json；不依賴 JSZip）
