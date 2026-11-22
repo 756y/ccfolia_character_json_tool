@@ -188,19 +188,66 @@
         }
 
         if (!searchRule) {
-            // 備援：維持原本找所有名稱最長共同開頭的方式。
-            let common = names[0];
-            for (const name of names.slice(1)) {
-                let i = 0;
-                while (i < common.length && i < name.length && common[i] === name[i]) i++;
-                common = common.slice(0, i);
-                if (!common) break;
+            // 多數群組偵測：比較時暫時忽略開頭的 @，並同時搜尋前綴、中間片段與後綴。
+            // 例如「@通常 / asdfgh / sdfgh / dfgh」可找到共同後綴 dfgh；
+            // 「角色A通常表情 / 角色B通常表情」則可找到位於中間的「通常」。
+            const normalizedNames = names.map(name => name.replace(/^@+/, ''));
+            const substringGroups = new Map();
+
+            normalizedNames.forEach((name, index) => {
+                const seenInThisName = new Set();
+                for (let start = 0; start < name.length; start++) {
+                    for (let end = start + 2; end <= name.length; end++) {
+                        const value = name.slice(start, end);
+                        if (seenInThisName.has(value)) continue;
+                        seenInThisName.add(value);
+                        if (!substringGroups.has(value)) substringGroups.set(value, new Set());
+                        substringGroups.get(value).add(index);
+                    }
+                }
+            });
+
+            // 只接受至少出現在兩個名稱中的片段；優先涵蓋最多名稱，再選較長片段。
+            // 相同長度時，依序偏好前綴、後綴，最後才是中間片段，避免改變舊有常見行為。
+            const candidates = [...substringGroups.entries()]
+                .map(([value, indexes]) => {
+                    const positions = [...indexes].map(index => normalizedNames[index].indexOf(value));
+                    const isPrefix = positions.every(position => position === 0);
+                    const isSuffix = [...indexes].every(index => normalizedNames[index].endsWith(value));
+                    const type = isPrefix ? 'prefix' : (isSuffix ? 'suffix' : 'middle');
+                    return { value, indexes, type };
+                })
+                .filter(item => item.indexes.size >= 2 && item.value.length >= 2)
+                .sort((a, b) => b.indexes.size - a.indexes.size ||
+                    b.value.length - a.value.length ||
+                    ({ prefix: 0, suffix: 1, middle: 2 }[a.type] - { prefix: 0, suffix: 1, middle: 2 }[b.type]));
+
+            const bestGroup = candidates[0];
+            if (bestGroup) {
+                const { value, indexes, type } = bestGroup;
+                const groupNames = [...indexes].map(index => normalizedNames[index]);
+                const allHaveAt = [...indexes].every(index => /^@+/.test(names[index]));
+                const hasMixedAt = [...indexes].some(index => /^@+/.test(names[index])) && !allHaveAt;
+                const atPrefix = allHaveAt ? '@' : (hasMixedAt && type === 'prefix' ? '@?' : '');
+
+                if (type === 'prefix') {
+                    // 前綴只在字串開頭比對，避免誤改名稱中間相同的文字。
+                    const numericSuffix = groupNames.every(name => name.startsWith(value) && /^\d+$/.test(name.slice(value.length)))
+                        && new Set(groupNames.map(name => name.slice(value.length))).size > 1;
+                    searchRule = '^' + atPrefix + escape(value) + (numericSuffix ? '{D}' : '');
+                } else if (type === 'suffix') {
+                    // 後綴只在字串結尾比對。
+                    searchRule = escape(value) + '$';
+                } else {
+                    // 中間片段不加首尾錨點，允許它出現在名稱任意位置。
+                    searchRule = escape(value);
+                }
             }
-            if (common.length < 2) {
-                alert('目前找不到足夠明確的共同前綴。請確認差分名稱格式一致，或手動輸入搜尋規則。');
-                return;
-            }
-            searchRule = escape(common);
+        }
+
+        if (!searchRule) {
+            alert('目前找不到足夠明確的共同前綴。請確認差分名稱格式，或手動輸入搜尋規則。');
+            return;
         }
 
         $('faceAdvancedSearch').value = searchRule;

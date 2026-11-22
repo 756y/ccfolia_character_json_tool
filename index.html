@@ -1741,7 +1741,9 @@
                     <div>
                         <label>搜尋內容<input id="faceAdvancedSearch" type="text" placeholder="例如：角色{N}_" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;"></label>
                         <button type="button" id="faceAdvancedAutoDetect" style="margin-top:7px;">✨ 智慧偵測共同前綴</button>
-                        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">自動分析目前所有差分名稱，先把可能重複的角色名稱／編號／底線填進搜尋欄，並將取代欄填成 @；你仍可自行修改，確認後再按「預覽」。</div>
+                        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">
+                            自動從差分名稱的多數群組尋找共同前綴，支援中文、英文字母、數字、標點與混合名稱；少數不同格式不會讓整批辨識失敗。若全部名稱都有開頭 @，會保留 @；若只有部分有 @，會將它設為可有可無。自動填入取代內容 @，請預覽確認後再儲存。
+                        </div>
                     </div>
                     <label>取代為<input id="faceAdvancedReplace" type="text" placeholder="例如：@" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;"></label>
                 </div>
@@ -1792,9 +1794,10 @@
                                     </ul>
                                     <strong>差分名稱常用例子：</strong><br>
                                     <code>角色{N_}</code>：匹配「角色12_」這種前綴；<code>角色 {(N)}</code>：匹配「角色 (12)」。<br>
-                                    <code>角色{N}_</code>：匹配「角色_微笑」「角色2_生氣」等名稱的前段。<br>
-                                    也可以按上方「智慧偵測共同前綴」，讓工具先幫你分析。<br>
-                                    若只是要搜尋字面上的符號（例如 <code>.</code>），請關閉正規表示式；修改前先按「預覽」確認結果。
+                                    <code>ABC{D}_</code>：匹配「ABC01_」「ABC123_」；<code>@藍色-</code>：匹配以「@藍色-」開頭的名稱。<br>
+                                    <code>@?通常</code>：開頭 @ 可有可無，可同時匹配「@通常」與「通常」。<br>
+                                    智慧偵測會優先採用涵蓋名稱較多的共同前綴；相同數量時選擇較長的前綴，並忽略少數異格式名稱。<br>
+                                    若只是要搜尋字面上的符號（例如 <code>.</code>、<code>+</code>），請關閉正規表示式；修改前先按「預覽」確認結果。
                                 </div>
                             </details>
                         </div>
@@ -1811,24 +1814,39 @@
                         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
                             <button type="button" class="face-regex-token" data-target="search" data-token="{a}">{a}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{A}">{A}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{u}">{u}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{U}">{U}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{d}">{d}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{D}">{D}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{N}">{N}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{n}">{n}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{Q}">{Q}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{(N)}">{(N)}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{N_}">{N_}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{w}">{w}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{W}">{W}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{p}">{p}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{P}">{P}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{h}">{h}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{H}">{H}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{s}">{s}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{S}">{S}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{x}">{x}</button>
+                            <button type="button" class="face-regex-token" data-target="search" data-token="{X}">{X}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{.}">{.}</button>
                         </div>
 
                         <div style="font-size:13px;line-height:1.8;">
-                            <div><code>{a}</code> 一個英文字母；<code>{A}</code> 一段英文字母</div>
-                            <div><code>{d}</code> 一個數字；<code>{D}</code> 一串數字；<code>{N}</code> 可有可無的數字</div>
+                            <div><code>{a}</code> 一個英文字母；<code>{A}</code> 一段英文字母（A–Z、a–z）</div>
+                            <div><code>{u}</code> 一個 Unicode 字母；<code>{U}</code> 一段 Unicode 字母（包含中文、日文等文字）</div>
+                            <div><code>{d}</code> 一個 ASCII 數字；<code>{D}</code> 一串 ASCII 數字；<code>{N}</code> 零個或多個 ASCII 數字</div>
+                            <div><code>{n}</code> 一個 Unicode 數字；<code>{Q}</code> 一串 Unicode 數字</div>
                             <div><code>{(N)}</code> 括號中的數字，例如 <code>(12)</code>；<code>{N_}</code> 數字加底線，例如 <code>12_</code></div>
-                            <div><code>{w}</code> 一個英數字或底線；<code>{W}</code> 一段英數字或底線</div>
-                            <div><code>{s}</code> 一個空白；<code>{S}</code> 一段空白；<code>{.}</code> 任意一個字元</div>
+                            <div><code>{w}</code> 一個 Unicode 字母、數字或底線；<code>{W}</code> 一段 Unicode 字母、數字或底線</div>
+                            <div><code>{p}</code> 一個標點符號；<code>{P}</code> 一段標點符號（例如底線以外的標點）</div>
+                            <div><code>{h}</code> 一個十六進位字元（0–9、A–F）；<code>{H}</code> 一段十六進位字元</div>
+                            <div><code>{s}</code> 一個空白；<code>{S}</code> 一段空白；<code>{x}</code> 一個非空白字元；<code>{X}</code> 一段非空白字元</div>
+                            <div><code>{.}</code> 任意一個字元。所有快捷符號只在勾選「正規表示式」時生效。</div>
                             <div style="margin-top:6px;">取代欄也有快捷符號：<code>{0}</code> 代表整段符合的文字，<code>{1}</code>、<code>{2}</code> 代表搜尋規則中第 1、2 個 <code>( )</code> 捕獲的內容。</div>
                             <div style="margin-top:6px;">例：搜尋 <code>角色{D}</code>、取代為 <code>人物{0}</code>，會把「角色123」改成「人物角色123」。若搜尋 <code>角色({D})</code>、取代為 <code>人物{1}</code>，則會改成「人物123」。</div>
                             <div style="margin-top:6px;color:var(--muted);">這些大括號快捷符號只會在勾選「正規表示式」時生效；其他正規表示式語法仍可直接輸入。</div>
