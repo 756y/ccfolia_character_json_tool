@@ -1387,6 +1387,35 @@
   }
 
 
+  const LAST_UPDATED_STORAGE_KEY = 'ccfolia-google-sheets-last-updated';
+
+  function formatLastUpdated(timestamp) {
+    const date = new Date(timestamp);
+    if (!Number.isFinite(date.getTime())) return '尚未更新';
+    const pad = value => String(value).padStart(2, '0');
+    return date.getFullYear() + '/' + pad(date.getMonth() + 1) + '/' +
+      pad(date.getDate()) + ' ' + pad(date.getHours()) + ':' +
+      pad(date.getMinutes()) + ':' + pad(date.getSeconds());
+  }
+
+  function renderLastUpdated(timestamp) {
+    const element = getElement('googleSheetsLastUpdated');
+    if (element) element.textContent = '最近更新时间：' + formatLastUpdated(timestamp);
+  }
+
+  function recordLastUpdated() {
+    const timestamp = Date.now();
+    try { window.localStorage.setItem(LAST_UPDATED_STORAGE_KEY, String(timestamp)); } catch (_) {}
+    renderLastUpdated(timestamp);
+  }
+
+  function restoreLastUpdated() {
+    try {
+      const saved = Number(window.localStorage.getItem(LAST_UPDATED_STORAGE_KEY));
+      if (Number.isFinite(saved) && saved > 0) renderLastUpdated(saved);
+    } catch (_) {}
+  }
+
   async function checkSheet(url, showFailure, forceCheck) {
     const info = extractSpreadsheetInfo(url);
     if (!info || inFlightUrls.has(url)) return;
@@ -1397,6 +1426,8 @@
     try {
       const remoteCharacter = await readCharacterFromSheet(info);
       if (requestId !== currentRequestId) return;
+      // 只在成功讀取到試算表資料後更新時間，並保留到下次開啟。
+      recordLastUpdated();
 
       const remoteData = unwrapCharacter(remoteCharacter);
       const remoteFingerprint = fingerprint(remoteCharacter);
@@ -1623,6 +1654,7 @@
   }
 
   function init() {
+    restoreLastUpdated();
     const field = getElement('externalUrl');
     if (!field) return;
 
