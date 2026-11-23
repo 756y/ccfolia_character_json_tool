@@ -42,6 +42,7 @@
     let selectedImageFile = null;
     let selectedImageBytes = null;
     let selectedImageHash = null;
+    let selectedImageExtension = 'png';
     let selectedImageObjectURL = null;
 
     const faceImageData = new WeakMap();
@@ -108,6 +109,15 @@
       $('facePickerModal').classList.add('show');
     }
 
+    // 僅允許 PNG、JPEG、GIF、WebP；副檔名以實際檔案名稱為準。
+    function getSupportedImageExtension(file) {
+      const ext = String(file?.name || '').toLowerCase().split('.').pop();
+      return ({ png: 'png', jpg: 'jpeg', jpeg: 'jpeg', gif: 'gif', webp: 'webp' })[ext] || null;
+    }
+    function getImageMimeType(extension) {
+      return ({ png: 'image/png', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' })[extension] || 'application/octet-stream';
+    }
+
     /*
       選擇主圖片
     */
@@ -121,7 +131,7 @@
       selectedImageFile = null;
       selectedImageBytes = null;
       selectedImageHash = null;
-
+      selectedImageExtension = 'png';
 
       if (selectedImageObjectURL) {
 
@@ -162,20 +172,13 @@
       }
 
 
-      /*
-        目前只接受 PNG。
-        SHA-256 是對原始 PNG bytes 計算。
-      */
+      // SHA-256 對原始圖片 bytes 計算，副檔名保留在 ZIP 檔名中。
+      const extension = getSupportedImageExtension(file);
 
-      const isPNG =
-        file.type === 'image/png' ||
-        file.name.toLowerCase().endsWith('.png');
-
-
-      if (!isPNG) {
+      if (!extension) {
 
         $('originalImageName').innerHTML =
-          '<span class="warn">❌ 請選擇 PNG 圖片。</span>';
+          '<span class="warn">❌ 僅支援 PNG、JPEG、GIF、WebP 圖片。</span>';
 
         // 第一次選到非 PNG 時，也要立即顯示警告區域。
         $('originalImageName').style.display = 'block';
@@ -206,13 +209,14 @@
 
         selectedImageHash =
           hash;
+        selectedImageExtension = extension;
 
 
         /*
           ZIP 裡的實際檔名
         */
         const imageFilename =
-          hash + '.png';
+          hash + '.' + extension;
 
 
         /*
@@ -303,12 +307,10 @@
         return;
       }
 
-      const isPNG =
-        file.type === 'image/png' ||
-        file.name.toLowerCase().endsWith('.png');
+      const extension = getSupportedImageExtension(file);
 
-      if (!isPNG) {
-        alert('差分圖片只能使用 PNG：' + file.name);
+      if (!extension) {
+        alert('差分圖片僅支援 PNG、JPEG、GIF、WebP：' + file.name);
         return;
       }
 
@@ -317,7 +319,7 @@
         const buffer = await file.arrayBuffer();
         const bytes = new Uint8Array(buffer);
         const hash = await sha256Hex(bytes);
-        const filename = hash + '.png';
+        const filename = hash + '.' + extension;
 
         faceImageData.set(
           row,
@@ -325,7 +327,8 @@
             file,
             bytes,
             hash,
-            filename
+            filename,
+            extension
           }
         );
 
@@ -361,7 +364,7 @@
       } catch (error) {
 
         console.error('差分圖片處理失敗：', error);
-        alert('差分圖片處理失敗，請確認圖片是否為有效 PNG：' + file.name);
+        alert('差分圖片處理失敗，請確認圖片是否有效且格式為 PNG、JPEG、GIF 或 WebP：' + file.name);
 
       }
     }
@@ -600,7 +603,7 @@
   id="faceFile_${index}"
   class="f-file file-select-input"
   type="file"
-  accept="image/png,.png"
+  accept="image/png,.png,image/jpeg,.jpg,.jpeg,image/gif,.gif,image/webp,.webp"
   multiple
 >
 
@@ -1836,6 +1839,7 @@ function toggleFaceSettings() {
       selectedImageFile = null;
       selectedImageBytes = null;
       selectedImageHash = null;
+      selectedImageExtension = 'png';
 
       if (selectedImageObjectURL) {
 
@@ -2435,13 +2439,13 @@ async function importFaceZIP(event) {
         const imageBytes = entries.get(item.path);
         if (!imageBytes) throw new Error('找不到 ZIP 內的圖片：' + item.path);
         const ext = String(item.ext || item.path.split('.').pop()).toLowerCase();
-        if (ext !== 'png') throw new Error('目前差分圖片只支援 PNG：' + item.path);
+        if (!['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) throw new Error('差分圖片僅支援 PNG、JPEG、GIF、WebP：' + item.path);
         const filename = item.path.split('/').pop();
         const variant = String(group.variant || '').trim();
         const desc = String(item.desc == null ? '' : item.desc).trim();
         const faceLabel = (variant ? variant + '-' : '') + desc;
         files.push({
-          file: new File([imageBytes], filename, { type: 'image/png' }),
+          file: new File([imageBytes], filename, { type: getImageMimeType(ext === 'jpg' ? 'jpeg' : ext) }),
           label: makeAutoFaceLabel(faceLabel)
         });
       }

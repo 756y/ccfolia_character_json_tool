@@ -1,3 +1,12 @@
+/* 圖片副檔名與 MIME 對應 */
+function zipImageExtension(filename) {
+  const ext = String(filename || '').toLowerCase().split('.').pop();
+  return ({ png: 'png', jpg: 'jpeg', jpeg: 'jpeg', gif: 'gif', webp: 'webp' })[ext] || null;
+}
+function zipImageMime(extension) {
+  return ({ png: 'image/png', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' })[extension] || 'application/octet-stream';
+}
+
 /* CCFOLIA Room ZIP 功能 */
 
 async function sha256Hex(bytes) {
@@ -424,14 +433,10 @@ async function handleZIPImport(event) {
         /*
           建立新的 File
         */
-        selectedImageFile =
-          new File(
-            [mainBytes],
-            mainFilename,
-            {
-              type: 'image/png'
-            }
-          );
+        const mainExtension = zipImageExtension(mainFilename);
+        if (!mainExtension) throw new Error('主圖片格式不支援，僅支援 PNG、JPEG、GIF、WebP。');
+        selectedImageExtension = mainExtension;
+        selectedImageFile = new File([mainBytes], mainFilename, { type: zipImageMime(mainExtension) });
 
 
         selectedImageBytes =
@@ -457,7 +462,7 @@ async function handleZIPImport(event) {
             new Blob(
               [mainBytes],
               {
-                type: 'image/png'
+                type: zipImageMime(selectedImageExtension)
               }
             )
           );
@@ -552,33 +557,11 @@ async function handleZIPImport(event) {
               entries[filename];
 
 
-            /*
-              檢查 PNG Header
-            */
-            const isPNG =
-              faceBytes.length >= 8 &&
-
-              faceBytes[0] === 0x89 &&
-              faceBytes[1] === 0x50 &&
-              faceBytes[2] === 0x4e &&
-              faceBytes[3] === 0x47 &&
-              faceBytes[4] === 0x0d &&
-              faceBytes[5] === 0x0a &&
-              faceBytes[6] === 0x1a &&
-              faceBytes[7] === 0x0a;
-
-
-            if (!isPNG) {
-
-              console.warn(
-                '差分圖片不是有效 PNG：',
-                filename
-              );
-
+            const faceExtension = zipImageExtension(filename);
+            if (!faceExtension) {
+              console.warn('差分圖片格式不支援：', filename);
               return;
-
             }
-
 
             /*
               儲存差分圖片資料
@@ -591,7 +574,7 @@ async function handleZIPImport(event) {
                     [faceBytes],
                     filename,
                     {
-                      type: 'image/png'
+                      type: zipImageMime(faceExtension)
                     }
                   ),
 
@@ -652,7 +635,7 @@ async function handleZIPImport(event) {
                 new Blob(
                   [faceBytes],
                   {
-                    type: 'image/png'
+                    type: zipImageMime(faceExtension)
                   }
                 )
               );
@@ -736,7 +719,7 @@ async function handleZIPImport(event) {
 function buildRoomData() {
 
       const imageFilename =
-        selectedImageHash + '.png';
+        selectedImageHash + '.' + selectedImageExtension;
 
       const character =
         buildRoomCharacter();
@@ -748,7 +731,7 @@ function buildRoomData() {
 
       // 主圖片
       resources[imageFilename] = {
-        type: 'image/png'
+        type: zipImageMime(selectedImageExtension)
       };
 
       // 所有差分圖片
@@ -765,7 +748,7 @@ function buildRoomData() {
         }
 
         resources[image.filename] = {
-          type: 'image/png'
+          type: zipImageMime(image.extension || zipImageExtension(image.filename))
         };
       }
 
@@ -1068,7 +1051,7 @@ async function downloadRoomZIP() {
           'zip-status error';
 
         status.textContent =
-          '❌ 請先選擇主圖片 PNG。';
+          '❌ 請先選擇主圖片（PNG、JPEG、GIF 或 WebP）。';
 
         return;
 
@@ -1106,8 +1089,7 @@ async function downloadRoomZIP() {
 
 
         const imageFilename =
-          selectedImageHash +
-          '.png';
+          selectedImageHash + '.' + selectedImageExtension;
 
 
         /*
