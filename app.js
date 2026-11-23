@@ -109,6 +109,9 @@
       $('facePickerModal').classList.add('show');
     }
 
+    // 圖片檔案大小上限：5 MB（以 5 × 1024 × 1024 bytes 計算）。
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
     // 僅允許 PNG、JPEG、GIF、WebP；副檔名以實際檔案名稱為準。
     function getSupportedImageExtension(file) {
       const ext = String(file?.name || '').toLowerCase().split('.').pop();
@@ -171,6 +174,14 @@
         return;
       }
 
+
+      // 檢查圖片大小，超過 5 MB 就拒絕載入。
+      if (file.size > MAX_IMAGE_SIZE) {
+        $('originalImageName').innerHTML = '<span class="warn">❌ 圖片不能超過 5 MB（目前 ' + (file.size / 1024 / 1024).toFixed(2) + ' MB）。</span>';
+        $('originalImageName').style.display = 'block';
+        $('imageFile').value = '';
+        return;
+      }
 
       // SHA-256 對原始圖片 bytes 計算，副檔名保留在 ZIP 檔名中。
       const extension = getSupportedImageExtension(file);
@@ -282,6 +293,10 @@
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        if (file.size > MAX_IMAGE_SIZE) {
+          alert('差分圖片不能超過 5 MB：' + file.name + '（' + (file.size / 1024 / 1024).toFixed(2) + ' MB）');
+          continue;
+        }
         let targetRow = row;
         if (i > 0) {
           addFace();
@@ -304,6 +319,11 @@
     async function processFaceImageFile(file, row) {
 
       if (!file) {
+        return;
+      }
+
+      if (file.size > MAX_IMAGE_SIZE) {
+        alert('差分圖片不能超過 5 MB：' + file.name + '（' + (file.size / 1024 / 1024).toFixed(2) + ' MB）');
         return;
       }
 
@@ -2438,6 +2458,7 @@ async function importFaceZIP(event) {
         if (!item || !item.path) continue;
         const imageBytes = entries.get(item.path);
         if (!imageBytes) throw new Error('找不到 ZIP 內的圖片：' + item.path);
+        if (imageBytes.length > MAX_IMAGE_SIZE) throw new Error('差分圖片不能超過 5 MB：' + item.path);
         const ext = String(item.ext || item.path.split('.').pop()).toLowerCase();
         if (!['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) throw new Error('差分圖片僅支援 PNG、JPEG、GIF、WebP：' + item.path);
         const filename = item.path.split('/').pop();

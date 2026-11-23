@@ -403,6 +403,10 @@ async function handleZIPImport(event) {
         const mainBytes =
           entries[mainFilename];
 
+        if (mainBytes.length > 5 * 1024 * 1024) {
+          throw new Error('主圖片不能超過 5 MB：' + mainFilename);
+        }
+
 
         /*
           計算主圖片 SHA-256
