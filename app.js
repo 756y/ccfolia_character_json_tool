@@ -1881,20 +1881,22 @@ function toggleFaceSettings() {
 
       window.roomCharacterId = null;
 
+      // 將一般表單欄位還原成 HTML 預設值，而不是一律清成 0 或空字串。
+      // checkbox / radio 則還原原本的勾選狀態；檔案欄位另外由上方清除。
       document
-        .querySelectorAll('input,textarea')
+        .querySelectorAll('input,textarea,select')
         .forEach(x => {
+          if (x.type === 'file' || x.type === 'button' || x.type === 'submit') return;
 
-          if (x.type === 'number') {
-
-            x.value = 0;
-
+          if (x.type === 'checkbox' || x.type === 'radio') {
+            x.checked = x.defaultChecked;
+          } else if (x.tagName === 'SELECT') {
+            Array.from(x.options).forEach(option => {
+              option.selected = option.defaultSelected;
+            });
           } else {
-
-            x.value = '';
-
+            x.value = x.defaultValue;
           }
-
         });
 
 
@@ -1917,14 +1919,19 @@ function toggleFaceSettings() {
 
       $('facesList').innerHTML = '';
 
+      // 差分也恢復初始預設值，避免清空後整個差分區域變成空白。
+      addFace({
+        iconUrl: '',
+        label: '@通常'
+      });
 
-      defaultStatuses.forEach(
-        s => addStatus({
-          label: s.label,
-          value: 0,
-          max: s.max
-        })
-      );
+
+      // 使用與頁面初次載入完全相同的預設資料（HP／MP／San 數值皆維持空白）。
+      defaultStatuses.forEach(s => addStatus({
+        label: s.label,
+        value: s.value,
+        max: s.max
+      }));
 
 
       addParam({
