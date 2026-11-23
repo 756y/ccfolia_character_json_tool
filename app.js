@@ -177,6 +177,8 @@
         $('originalImageName').innerHTML =
           '<span class="warn">❌ 請選擇 PNG 圖片。</span>';
 
+        // 第一次選到非 PNG 時，也要立即顯示警告區域。
+        $('originalImageName').style.display = 'block';
         $('imageFile').value = '';
 
         return;
@@ -289,6 +291,12 @@
       generate();
     }
 
+    // 自動帶入差分名稱：大成功／大失敗不加 @，其他名稱維持原規則。
+    function makeAutoFaceLabel(name) {
+      const label = String(name || '').trim();
+      return (label === '大成功' || label === '大失敗' ? '' : '@') + label;
+    }
+
     async function processFaceImageFile(file, row) {
 
       if (!file) {
@@ -329,7 +337,7 @@
         const labelInput = row.querySelector('.f-label');
         if (autoLabel && autoLabel.checked && labelInput) {
           const imageName = file.name.replace(/\.[^.]+$/, '');
-          labelInput.value = '@' + imageName;
+          labelInput.value = makeAutoFaceLabel(imageName);
         }
 
         const originalName = row.querySelector('.face-original-name');
@@ -2424,7 +2432,11 @@ async function importFaceZIP(event) {
         const filename = item.path.split('/').pop();
         const variant = String(group.variant || '').trim();
         const desc = String(item.desc == null ? '' : item.desc).trim();
-        files.push({ file: new File([imageBytes], filename, { type: 'image/png' }), label: '@' + (variant ? variant + '-' : '') + desc });
+        const faceLabel = (variant ? variant + '-' : '') + desc;
+        files.push({
+          file: new File([imageBytes], filename, { type: 'image/png' }),
+          label: makeAutoFaceLabel(faceLabel)
+        });
       }
     }
     if (!files.length) throw new Error('ZIP 中沒有可匯入的差分圖片。');
