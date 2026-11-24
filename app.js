@@ -2856,3 +2856,480 @@ async function importFaceZIP(event) {
     if (activePointerId === event.pointerId) clearDrag();
   });
 })();
+
+/* =========================================================
+   下載 Room ZIP 時骰 1d100 的彩蛋
+   - 點擊「Room ZIP」下載按鈕時骰一次 1d100。
+   - 骰到 1   → 大成功：五彩炫彩畫面＋巨大「你是今天的幸運兒」。
+   - 骰到 100 → 大失敗：畫面故障、漸紅漸黑、血從頂端流到底部。
+   - 其他點數：不顯示點數，也沒有任何效果。
+   - 效果約 10 秒後自動消失；樣式全由本段程式動態插入，不需修改 HTML／CSS。
+========================================================= */
+(function initRoomZipDiceEasterEgg() {
+  const EFFECT_MS = 10000;   // 效果總長度
+  const FADE_MS = 700;       // 結束前的淡出時間
+  const Z = 2147483000;      // 疊在所有介面之上
+  let running = false;
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function rollD100() { return Math.floor(Math.random() * 100) + 1; }
+
+  const css = document.createElement('style');
+  css.textContent = `
+    .dice-fx { position: fixed; inset: 0; pointer-events: none; }
+    .dice-fx-blocker { z-index: ${Z + 9}; pointer-events: auto; cursor: progress; }
+    .dice-fx-fade { opacity: 0 !important; transition: opacity ${FADE_MS}ms ease-out; }
+
+    /* ---------- 巨大文字 ---------- */
+    .dice-text { z-index: ${Z + 6}; display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 0 2vw; box-sizing: border-box; }
+    .dice-text-inner { font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif;
+      font-weight: 900; font-size: clamp(44px, 11vw, 260px); line-height: 1.15; letter-spacing: .02em; white-space: nowrap; }
+    .dice-text-inner > span { display: inline-block; }
+    @media (max-width: 760px) {
+      .dice-text-inner { font-size: 17vw; }
+      .dice-text-inner > span { display: block; }
+    }
+
+    /* ---------- 大成功 ---------- */
+    .dice-win-a { z-index: ${Z + 1}; mix-blend-mode: color; overflow: hidden; opacity: .92; }
+    .dice-win-a i { position: absolute; left: 50%; top: 50%; width: 240vmax; height: 240vmax; margin: -120vmax 0 0 -120vmax;
+      background: conic-gradient(#ff0040, #ff8800, #ffee00, #22ff66, #00e5ff, #3a5bff, #c400ff, #ff0040);
+      animation: diceSpin 5s linear infinite; }
+    .dice-win-b { z-index: ${Z + 2}; mix-blend-mode: overlay; opacity: .75;
+      background: linear-gradient(105deg, #ff0080, #ff8c00, #fff200, #00e676, #00b0ff, #7c4dff, #ff0080);
+      background-size: 300% 100%; animation: diceSlide 2.2s linear infinite; }
+    .dice-win-shine { z-index: ${Z + 3};
+      background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.4) 50%, transparent 62%);
+      background-size: 250% 100%; animation: diceShine 1.8s ease-in-out infinite; }
+    .dice-confetti { z-index: ${Z + 4}; }
+    .dice-text-win .dice-text-inner {
+      background: linear-gradient(90deg, #ff1744, #ff9100, #ffea00, #00e676, #00e5ff, #2979ff, #d500f9, #ff1744);
+      background-size: 300% 100%;
+      -webkit-background-clip: text; background-clip: text;
+      color: transparent; -webkit-text-fill-color: transparent;
+      -webkit-text-stroke: .03em #fff;
+      filter: drop-shadow(0 0 .12em rgba(255,255,255,.95)) drop-shadow(0 .05em .08em rgba(0,0,0,.45));
+      animation: dicePop .9s cubic-bezier(.2,1.5,.4,1) both,
+                 diceSlide 2s linear infinite,
+                 diceWobble 1.4s ease-in-out .9s infinite alternate;
+    }
+    @keyframes diceSpin { to { transform: rotate(360deg); } }
+    @keyframes diceSlide { to { background-position: 300% 0; } }
+    @keyframes diceShine { from { background-position: 125% 0; } to { background-position: -125% 0; } }
+    @keyframes dicePop {
+      0% { transform: scale(0) rotate(-12deg); opacity: 0; }
+      60% { transform: scale(1.18) rotate(3deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0); opacity: 1; }
+    }
+    @keyframes diceWobble {
+      from { transform: scale(1) rotate(-1.8deg); }
+      to { transform: scale(1.07) rotate(1.8deg); }
+    }
+
+    /* ---------- 大失敗 ---------- */
+    .dice-lose-dark { z-index: ${Z + 1}; background: rgba(0,0,0,0); animation: diceDarken 8s linear forwards; }
+    .dice-lose-scan { z-index: ${Z + 2};
+      background:
+        repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 1px, transparent 1px 3px),
+        radial-gradient(ellipse at center, transparent 40%, rgba(90,0,0,.55) 100%);
+      animation: diceScan .18s steps(3) infinite; }
+    .dice-fx.dice-bar { z-index: ${Z + 3}; inset: auto; left: 0; right: 0; height: 10px; display: none; }
+    .dice-blood { z-index: ${Z + 4}; }
+    .dice-text-lose { animation: diceCreep 8.4s linear 1.6s both; }
+    .dice-text-lose .dice-text-inner {
+      position: relative; filter: url(#diceDistort);
+      color: #d80c0c;
+      text-shadow: 0 0 .1em rgba(255,0,0,.8), 0 .05em .1em #000;
+      animation: diceLoseIn 1.4s ease-out 1.6s both, diceLoseGlitch .8s steps(1) 1.6s infinite;
+    }
+    @keyframes diceDarken {
+      0%   { background: rgba(60,0,0,0); }
+      25%  { background: rgba(110,0,0,.35); }
+      50%  { background: rgba(70,0,0,.65); }
+      75%  { background: rgba(25,0,0,.9); }
+      100% { background: rgb(0,0,0); }
+    }
+    @keyframes diceScan { to { background-position: 0 3px, 0 0; } }
+    @keyframes diceLoseIn {
+      0% { opacity: 0; } 8% { opacity: .9; } 12% { opacity: 0; } 22% { opacity: .6; } 26% { opacity: 0; }
+      40% { opacity: 1; } 46% { opacity: .15; } 52% { opacity: 1; } 100% { opacity: 1; }
+    }
+    @keyframes diceLoseGlitch {
+      0%   { transform: none; clip-path: none; text-shadow: .03em 0 #ff0033, -.03em 0 #00e5ff, 0 .05em .1em #000; }
+      12%  { transform: translate(-.03em,.01em) skewX(-6deg); clip-path: inset(0 0 55% 0); }
+      14%  { transform: translate(.04em,0) skewX(5deg); clip-path: inset(48% 0 0 0); }
+      16%  { transform: none; clip-path: none; }
+      40%  { transform: translate(.02em,-.01em); text-shadow: -.04em 0 #ff0033, .04em 0 #00e5ff, 0 .05em .1em #000; }
+      42%  { transform: translate(-.05em,0) skewX(8deg); clip-path: inset(20% 0 45% 0); }
+      44%  { transform: none; clip-path: none; }
+      70%  { transform: translate(.03em,.02em); text-shadow: .05em 0 #ff0033, -.05em 0 #00e5ff, 0 .05em .1em #000; }
+      73%  { transform: translate(.06em,-.01em) skewX(-7deg); clip-path: inset(60% 0 0 0); }
+      76%  { transform: none; clip-path: none; }
+    }
+
+    /* 大失敗文字：參考 CSS 文字故障做法（偽元素複製文字＋切片），再加上破形與撕裂 */
+    .dice-text-lose .dc { display: inline-block; font-weight: inherit; transform-origin: 50% 60%; }
+    .dice-text-lose .dice-text-inner > span { position: relative; }
+    .dice-text-lose .dice-text-inner > span::before,
+    .dice-text-lose .dice-text-inner > span::after {
+      content: attr(data-t); position: absolute; inset: 0; text-align: inherit; pointer-events: none;
+      clip-path: inset(0 0 100% 0);
+    }
+    /* 白熱切片：偏移、帶紅邊、高對比 */
+    .dice-text-lose .dice-text-inner > span::before {
+      color: rgba(255,255,255,.92); text-shadow: .03em 0 #ff0000; filter: contrast(200%); z-index: 2;
+      animation: diceSliceA 1.1s steps(1) 1.6s infinite;
+    }
+    /* 黑色缺口：整段切片被挖成黑底，只剩偏移的青邊字形，文字看起來被撕破 */
+    .dice-text-lose .dice-text-inner > span::after {
+      color: rgba(255,255,255,.8); background: rgba(0,0,0,.92); text-shadow: -.03em 0 #00e5ff;
+      filter: contrast(200%); mix-blend-mode: darken; z-index: 3;
+      animation: diceSliceB 1.7s steps(1) 1.8s infinite;
+    }
+    .dice-text-lose .dice-text-inner > span:nth-child(2)::before { animation-duration: 1.3s; animation-delay: 1.9s; }
+    .dice-text-lose .dice-text-inner > span:nth-child(2)::after { animation-duration: 2.1s; animation-delay: 2.2s; }
+    /* 上下游走的黑色撕裂橫條 */
+    .dice-cut { position: absolute; left: -2%; width: 104%; height: .05em; top: -10%; background: #000; z-index: 4; opacity: 0;
+      animation: diceCutA 2.3s ease-out 1.8s infinite; }
+    .dice-cut2 { height: .028em; animation: diceCutB 1.7s ease-out 2.4s infinite; }
+    @keyframes diceSliceA {
+      0%, 100% { clip-path: inset(0 0 100% 0); transform: none; }
+      14% { clip-path: inset(12% 0 62% 0); transform: translateX(-.05em); }
+      18% { clip-path: inset(0 0 100% 0); transform: none; }
+      46% { clip-path: inset(58% 0 18% 0); transform: translateX(.06em); }
+      50% { clip-path: inset(0 0 100% 0); transform: none; }
+      73% { clip-path: inset(30% 0 48% 0); transform: translateX(-.08em); }
+      76% { clip-path: inset(0 0 100% 0); transform: none; }
+      90% { clip-path: inset(70% 0 8% 0); transform: translateX(.04em); }
+      93% { clip-path: inset(0 0 100% 0); transform: none; }
+    }
+    @keyframes diceSliceB {
+      0%, 100% { clip-path: inset(0 0 100% 0); transform: none; }
+      10% { clip-path: inset(0 0 66% 0); transform: translateX(.05em); }
+      13% { clip-path: inset(40% 0 20% 0); transform: translateX(-.07em); }
+      16% { clip-path: inset(0 0 100% 0); transform: none; }
+      52% { clip-path: inset(20% 0 40% 0); transform: translateX(.09em); }
+      55% { clip-path: inset(62% 0 6% 0); transform: translateX(-.05em); }
+      58% { clip-path: inset(0 0 100% 0); transform: none; }
+      81% { clip-path: inset(5% 0 74% 0); transform: translateX(.06em); }
+      84% { clip-path: inset(48% 0 24% 0); transform: translateX(-.1em); }
+      88% { clip-path: inset(0 0 100% 0); transform: none; }
+    }
+    @keyframes diceCutA {
+      0%, 100% { top: -10%; opacity: 0; } 8% { top: 38%; opacity: 1; } 12% { top: 10%; } 18% { top: 72%; }
+      24% { top: 30%; } 30% { opacity: 0; }
+    }
+    @keyframes diceCutB {
+      0%, 100% { top: 110%; opacity: 0; } 10% { top: 62%; opacity: 1; } 16% { top: 24%; } 22% { top: 85%; } 28% { opacity: 0; }
+    }
+    @keyframes diceCreep { from { transform: scale(1); } to { transform: scale(1.07); } }
+
+    /* 大失敗期間：整個頁面（含文字與面板）持續故障抖動、色差 */
+    body.dice-lose-active .wrap { animation: diceShake .26s steps(1) infinite; }
+    body.dice-lose-active .top-nav { animation: diceShadow .2s steps(1) infinite; }
+    @keyframes diceShake {
+      0%   { transform: translate(0,0); filter: none; text-shadow: 2px 0 rgba(255,0,60,.9), -2px 0 rgba(0,229,255,.9); }
+      25%  { transform: translate(-5px,1px) skewX(-.6deg); text-shadow: -3px 0 rgba(255,0,60,.9), 3px 0 rgba(0,229,255,.9); }
+      50%  { transform: translate(4px,-2px); filter: contrast(1.35) saturate(1.6); text-shadow: 4px 1px rgba(255,0,60,.9), -4px -1px rgba(0,229,255,.9); }
+      75%  { transform: translate(-2px,2px) skewX(.8deg); filter: hue-rotate(-25deg) saturate(2); text-shadow: -2px 0 rgba(255,0,60,.9), 2px 0 rgba(0,229,255,.9); }
+    }
+    @keyframes diceShadow {
+      0%   { text-shadow: 2px 0 rgba(255,0,60,.9), -2px 0 rgba(0,229,255,.9); }
+      50%  { text-shadow: -3px 0 rgba(255,0,60,.9), 3px 0 rgba(0,229,255,.9); }
+    }
+  `;
+  document.head.appendChild(css);
+
+  /* ---------- 大成功：彩紙 ---------- */
+  function startConfetti(cv) {
+    const c = cv.getContext('2d');
+    const colors = ['#ff1744', '#ff9100', '#ffea00', '#00e676', '#00e5ff', '#2979ff', '#d500f9', '#ff4081', '#ffffff'];
+    const ps = [];
+    let W = 0, H = 0, raf = 0, alive = true, last = performance.now(), spawn = 0;
+    const t0 = last;
+
+    function fit() {
+      const d = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W * d); cv.height = Math.round(H * d);
+      c.setTransform(d, 0, 0, d, 0, 0);
+    }
+    function piece(x, y, vx, vy) {
+      ps.push({ x, y, vx, vy, rot: rand(0, 6.28), vr: rand(-8, 8), w: rand(6, 14), h: rand(10, 22),
+        col: colors[Math.floor(Math.random() * colors.length)], tilt: rand(0, 6.28), tv: rand(4, 10),
+        round: Math.random() < .25 });
+    }
+    fit();
+    window.addEventListener('resize', fit);
+
+    // 兩側下方各發射一批彩紙
+    const power = Math.max(.6, Math.min(H, 900) / 900);
+    for (let i = 0; i < 110; i++) {
+      const a = rand(.35, 1.3), s = rand(650, 1350) * power;
+      piece(0, H, Math.cos(a) * s, -Math.sin(a) * s);
+      piece(W, H, -Math.cos(a) * s, -Math.sin(a) * s);
+    }
+
+    function frame(now) {
+      if (!alive) return;
+      raf = requestAnimationFrame(frame);
+      const dt = Math.min(.05, (now - last) / 1000); last = now;
+      if (now - t0 < 8500) {
+        spawn += dt * 45;
+        while (spawn >= 1) { spawn--; piece(rand(0, W), -20, rand(-40, 40), rand(40, 140)); }
+      }
+      c.clearRect(0, 0, W, H);
+      for (let i = ps.length - 1; i >= 0; i--) {
+        const p = ps[i];
+        p.vy += 700 * dt;
+        p.vx *= 1 - 2.2 * dt; p.vy *= 1 - 2.2 * dt;
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        p.rot += p.vr * dt; p.tilt += p.tv * dt;
+        if (p.y > H + 30 || p.x < -60 || p.x > W + 60) { ps[i] = ps[ps.length - 1]; ps.pop(); continue; }
+        c.save();
+        c.translate(p.x, p.y); c.rotate(p.rot); c.scale(1, Math.cos(p.tilt));
+        c.fillStyle = p.col;
+        if (p.round) { c.beginPath(); c.arc(0, 0, p.w / 2, 0, 6.2832); c.fill(); }
+        else c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        c.restore();
+      }
+    }
+    raf = requestAnimationFrame(frame);
+    return () => { alive = false; cancelAnimationFrame(raf); window.removeEventListener('resize', fit); };
+  }
+
+  /* ---------- 大失敗：從螢幕頂端流下的血 ---------- */
+  function startBlood(cv) {
+    const c = cv.getContext('2d');
+    let W = 0, H = 0, raf = 0, alive = true;
+    const t0 = performance.now();
+
+    function fit() {
+      const d = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W * d); cv.height = Math.round(H * d);
+      c.setTransform(d, 0, 0, d, 0, 0);
+    }
+    fit();
+    window.addEventListener('resize', fit);
+
+    const count = Math.max(10, Math.round(W / 46));
+    const drips = [];
+    for (let i = 0; i < count; i++) {
+      drips.push({
+        xr: (i + rand(.1, .9)) / count,
+        w: 5 + Math.pow(Math.random(), 2.5) * 22, // 多數偏細，少數較粗
+        delay: rand(0, 2400),
+        dur: rand(3600, 5800),                      // 最晚約 8.2 秒前全部流到底
+        ph: rand(0, 6.28)
+      });
+    }
+
+    function frame(now) {
+      if (!alive) return;
+      raf = requestAnimationFrame(frame);
+      const t = now - t0;
+      c.clearRect(0, 0, W, H);
+
+      const grad = c.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#a30000'); grad.addColorStop(1, '#5c0000');
+
+      // 頂端的血帶：先從螢幕最上方漫開，邊緣呈波浪狀
+      const band = Math.min(1, t / 1800) * Math.max(46, H * .07);
+      const top = new Path2D();
+      top.moveTo(0, 0);
+      for (let x = 0; x <= W + 12; x += 12) {
+        const y = band * (.75 + .25 * Math.sin(x * .018 + t * .0015) + .12 * Math.sin(x * .05 - t * .002));
+        top.lineTo(x, y);
+      }
+      top.lineTo(W, 0); top.closePath();
+
+      // 每一條血流：流速逐漸加快，尖端帶一顆較大的血滴
+      const body = new Path2D(), hl = new Path2D();
+      for (const d of drips) {
+        const p = Math.max(0, Math.min(1, (t - d.delay) / d.dur));
+        if (p <= 0) continue;
+        const grow = 1 + .1 * p;
+        const sw = d.w * .6 * grow, r = d.w * .55 * grow;
+        const x = d.xr * W + Math.sin(t * .002 + d.ph) * .6;
+        const y = (H + r * 2) * (.3 * p + .7 * p * p);
+        body.rect(x - sw / 2, -2, sw, y + 2);
+        body.moveTo(x + r, y); body.arc(x, y, r, 0, Math.PI * 2);
+        hl.rect(x - sw * .28, 0, Math.max(1, sw * .16), Math.max(0, y - r * .5));
+      }
+
+      c.save();
+      c.shadowColor = 'rgba(255,20,20,.55)'; c.shadowBlur = 14;
+      c.fillStyle = grad;
+      c.fill(top); c.fill(body);
+      c.restore();
+      c.fillStyle = 'rgba(255,120,120,.22)';
+      c.fill(hl);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => { alive = false; cancelAnimationFrame(raf); window.removeEventListener('resize', fit); };
+  }
+
+  /* ---------- 執行效果 ---------- */
+  function run(kind) {
+    running = true;
+    const fx = { nodes: [], timers: [], undo: [] };
+    const add = (cls, tag) => {
+      const el = document.createElement(tag || 'div');
+      el.className = 'dice-fx ' + cls;
+      document.body.appendChild(el);
+      fx.nodes.push(el);
+      return el;
+    };
+    const later = (fn, ms) => { fx.timers.push(setTimeout(fn, ms)); };
+    const finish = () => {
+      fx.timers.forEach(clearTimeout);
+      fx.undo.reverse().forEach(fn => { try { fn(); } catch (e) { console.error(e); } });
+      fx.nodes.forEach(n => n.remove());
+      running = false;
+    };
+
+    // 效果期間擋住誤觸；並避免頁面抖動時出現橫向捲軸。
+    add('dice-fx-blocker');
+    const prevOverflowX = document.documentElement.style.overflowX;
+    document.documentElement.style.overflowX = 'hidden';
+    fx.undo.push(() => { document.documentElement.style.overflowX = prevOverflowX; });
+
+    let stopGlitch = () => {};
+
+    if (kind === 'win') {
+      add('dice-win-a').innerHTML = '<i></i>';
+      add('dice-win-b');
+      add('dice-win-shine');
+      fx.undo.push(startConfetti(add('dice-confetti', 'canvas')));
+      add('dice-text dice-text-win').innerHTML =
+        '<div class="dice-text-inner"><span>你是今天的</span><span>幸運兒</span></div>';
+    } else {
+      document.body.classList.add('dice-lose-active');
+      fx.undo.push(() => document.body.classList.remove('dice-lose-active'));
+      add('dice-lose-dark');
+      add('dice-lose-scan');
+      const bars = Array.from({ length: 7 }, () => add('dice-bar'));
+      fx.undo.push(startBlood(add('dice-blood', 'canvas')));
+      const textEl = add('dice-text dice-text-lose');
+      const split = str => Array.from(str).map(ch => '<b class="dc">' + ch + '</b>').join('');
+      textEl.innerHTML =
+        '<svg style="position:absolute;width:0;height:0" aria-hidden="true"><filter id="diceDistort" x="-5%" y="-15%" width="110%" height="130%">' +
+        '<feTurbulence type="fractalNoise" baseFrequency="0.012 0.2" numOctaves="2" seed="3" result="n"/>' +
+        '<feDisplacementMap in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></svg>' +
+        '<div class="dice-text-inner">' +
+        '<span data-t="你是今天的">' + split('你是今天的') + '</span>' +
+        '<span data-t="幸運兒">' + split('幸運兒') + '</span>' +
+        '<i class="dice-cut"></i><i class="dice-cut dice-cut2"></i></div>';
+
+      // 破形：不定時爆發——濾鏡把字形撕裂扭曲，並讓個別字歪斜、拉長、被切掉或閃白，隨時間越來越頻繁
+      let stopText = () => {};
+      {
+        const turb = textEl.querySelector('feTurbulence');
+        const disp = textEl.querySelector('feDisplacementMap');
+        const chars = Array.from(textEl.querySelectorAll('.dc'));
+        const t0 = performance.now();
+        let timer = 0, calm = 0, off = false;
+        const calmDown = () => {
+          disp.setAttribute('scale', '0');
+          chars.forEach(c => { c.style.transform = ''; c.style.clipPath = ''; c.style.opacity = ''; c.style.color = ''; });
+          textEl.style.opacity = '';
+        };
+        const burst = () => {
+          if (off) return;
+          const p = Math.min(1, (performance.now() - t0) / EFFECT_MS);
+          turb.setAttribute('seed', String(Math.floor(rand(1, 999))));
+          disp.setAttribute('scale', String(Math.round(rand(12, 26 + p * 26))));
+          const n = 1 + Math.floor(Math.random() * (2 + p * 2));
+          for (let i = 0; i < n; i++) {
+            const c = chars[Math.floor(Math.random() * chars.length)];
+            c.style.transform = `translate(${rand(-.1, .1)}em, ${rand(-.08, .08)}em) rotate(${rand(-14, 14)}deg) scale(${rand(.85, 1.15)}, ${rand(.7, 1.6)})`;
+            const r = Math.random();
+            if (r < .3) c.style.clipPath = `inset(${rand(0, 50)}% 0 ${rand(0, 40)}% 0)`;
+            else if (r < .45) c.style.opacity = '.15';
+            else if (r < .6) c.style.color = '#fff';
+          }
+          if (Math.random() < .18) textEl.style.opacity = '.35';
+          calm = setTimeout(calmDown, rand(70, 150));
+          timer = setTimeout(burst, rand(200, 650) * (1.15 - p * .5));
+        };
+        timer = setTimeout(burst, 1900);
+        stopText = () => { off = true; clearTimeout(timer); clearTimeout(calm); calmDown(); };
+      }
+
+      // 面板與文字的故障：隨時間越來越頻繁、越來越劇烈
+      const targets = Array.from(document.querySelectorAll('.top-nav, .section, .sub, .actions, .zip-status, .site-footer'));
+      const saved = new Map(targets.map(el => [el, {
+        transform: el.style.transform, filter: el.style.filter, clipPath: el.style.clipPath, opacity: el.style.opacity
+      }]));
+      let touched = [];
+      const restore = () => {
+        touched.forEach(el => Object.assign(el.style, saved.get(el)));
+        touched = [];
+      };
+      const start = performance.now();
+      let timer = 0, stopped = false;
+      const tick = () => {
+        if (stopped) return;
+        const p = Math.min(1, (performance.now() - start) / EFFECT_MS);
+        const inten = Math.min(1, .25 + p * 1.2);
+        restore();
+
+        const n = Math.min(targets.length, Math.round(1 + inten * 6));
+        for (let i = 0; i < n; i++) {
+          const el = targets[Math.floor(Math.random() * targets.length)];
+          const dx = rand(-1, 1) * (6 + inten * 26);
+          el.style.transform = `translate(${dx}px, ${rand(-1, 1) * 4}px) skewX(${rand(-1, 1) * inten * 14}deg)`;
+          const r = Math.random();
+          if (r < .25) el.style.filter = `hue-rotate(${rand(0, 360)}deg) saturate(3) contrast(1.4)`;
+          else if (r < .4) el.style.filter = 'invert(1)';
+          else if (r < .55) el.style.filter = 'blur(1.5px) contrast(2)';
+          if (Math.random() < .3) el.style.clipPath = `inset(${rand(0, 60)}% 0 ${rand(0, 40)}% 0)`;
+          if (Math.random() < .2) el.style.opacity = String(rand(.3, .8));
+          touched.push(el);
+        }
+
+        // 橫向色帶：反相／紅／青，後半段改以紅青為主
+        bars.forEach(bar => {
+          if (Math.random() > inten * .6) { bar.style.display = 'none'; return; }
+          bar.style.display = 'block';
+          bar.style.top = rand(0, 100) + 'vh';
+          bar.style.height = rand(3, 40 + inten * 60) + 'px';
+          bar.style.background = 'none';
+          bar.style.mixBlendMode = 'normal';
+          bar.style.backdropFilter = bar.style.webkitBackdropFilter = 'none';
+          const type = p > .7 ? 1 + Math.floor(Math.random() * 2) : Math.floor(Math.random() * 4);
+          if (type === 0) bar.style.backdropFilter = bar.style.webkitBackdropFilter = 'invert(1)';
+          else if (type === 1) { bar.style.background = 'rgba(255,0,50,.45)'; bar.style.mixBlendMode = 'screen'; }
+          else if (type === 2) { bar.style.background = 'rgba(0,229,255,.35)'; bar.style.mixBlendMode = 'screen'; }
+          else bar.style.backdropFilter = bar.style.webkitBackdropFilter = 'hue-rotate(180deg) saturate(4)';
+        });
+
+        timer = setTimeout(tick, rand(60, 200) * (1.2 - inten * .5));
+      };
+      tick();
+      stopGlitch = () => {
+        stopped = true; clearTimeout(timer); restore(); stopText();
+        bars.forEach(b => { b.style.display = 'none'; });
+        document.body.classList.remove('dice-lose-active');
+      };
+      fx.undo.push(stopGlitch);
+    }
+
+    // 最後 0.7 秒：停止頁面故障並淡出；滿 10 秒後全部移除。
+    later(() => { stopGlitch(); fx.nodes.forEach(n => n.classList.add('dice-fx-fade')); }, EFFECT_MS - FADE_MS);
+    later(finish, EFFECT_MS);
+  }
+
+  // 用事件代理監聽，不改動原本按鈕與 downloadRoomZIP() 的行為。
+  document.addEventListener('click', event => {
+    const button = event.target && event.target.closest &&
+      event.target.closest('button[onclick="downloadRoomZIP()"]');
+    if (!button || running) return;
+    const roll = rollD100();
+    if (roll === 1) run('win');
+    else if (roll === 100) run('lose');
+  });
+})();
+
