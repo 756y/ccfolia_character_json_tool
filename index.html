@@ -2190,7 +2190,8 @@
     max-height: min(62vh, 560px);
     overflow-y: auto;
     overflow-x: hidden;
-    overscroll-behavior-y: contain;
+    /* 捲動到清單頂端／底端時，允許手勢自然傳遞給外層頁面。 */
+    overscroll-behavior-y: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -2289,6 +2290,8 @@
     .workspace-main .main-image-box .image-preview { display: none !important; }
   }
   @media (max-width: 760px) {
+    /* 手機版差分不支援拖曳換主圖，圖片本身也要允許垂直觸控捲動。 */
+    #facesList .face-preview { touch-action: pan-y; }
     #facesList {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       max-height: min(64vh, 560px);
