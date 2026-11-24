@@ -2671,18 +2671,29 @@ async function importFaceZIP(event) {
   const facesList = document.getElementById('facesList');
   if (!facesList) return;
 
-  // 手機版不提供差分拖曳換主圖，必須保留瀏覽器原生觸控捲動。
-  // 用 !important 覆蓋頁面樣式中可能套用在圖片／上傳框上的 touch-action:none。
-  const mobileFaceScrollStyle = document.createElement('style');
-  mobileFaceScrollStyle.textContent = `
-    @media (max-width: 768px) {
+  // 手機瀏覽器有時會把手指落在 img 上的操作當成圖片拖曳，
+  // 即使 draggable=false 仍可能吃掉頁面捲動手勢。
+  // 手機版讓觸控事件穿透圖片交給外層卡片，並明確恢復原生垂直捲動；
+  // 桌面版不套用這些規則，因此差分拖曳換主圖功能不受影響。
+  const mobileFaceTouchStyle = document.createElement('style');
+  mobileFaceTouchStyle.textContent = `
+    @media (max-width: 768px), (pointer: coarse) {
+      #facesList,
+      #facesList .repeat,
       #facesList .face-upload-tile,
       #facesList .face-preview {
         touch-action: pan-y pinch-zoom !important;
       }
+
+      #facesList .face-preview {
+        pointer-events: none !important;
+        -webkit-user-drag: none !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+      }
     }
   `;
-  document.head.appendChild(mobileFaceScrollStyle);
+  document.head.appendChild(mobileFaceTouchStyle);
 
   // 主圖片預覽只能點擊開啟選圖，不提供原生拖曳；差分圖片也關閉瀏覽器原生拖曳，
   // 保留下方自訂的「長按差分 → 拖到 LIVE PREVIEW」手勢。
@@ -2769,7 +2780,7 @@ async function importFaceZIP(event) {
   }
 
   facesList.addEventListener('pointerdown', event => {
-    // 手機版不啟用自訂拖曳事件，圖片區交由瀏覽器處理正常上下捲動；桌面版維持拖曳換主圖。
+    // 手機版差分僅保留點擊選圖，不啟用拖曳換主圖；桌面版維持原本操作。
     if (window.matchMedia('(max-width: 768px)').matches) return;
     // 唯一允許的拖曳來源是差分卡片內已載入的圖片；主圖不是拖曳來源。
     const image = event.target.closest('#facesList .face-preview');
