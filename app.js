@@ -629,33 +629,25 @@
         value="${esc(data.label || '')}"
       >
 
-<label class="file-select-btn" for="faceFile_${index}">
-  選擇圖片
-</label>
-
-<input
-  id="faceFile_${index}"
-  class="f-file file-select-input"
-  type="file"
-  accept="image/png,.png,image/jpeg,.jpg,.jpeg,image/gif,.gif,image/webp,.webp"
-  multiple
->
-
     </div>
 
     <div class="face-image-info">
-
-      <div class="face-original-name">
-      </div>
-
-      <div class="face-hash-name">
-      </div>
-
-      <img
-        class="face-preview"
-        style="display:none"
+      <button type="button" class="face-upload-tile" aria-label="點擊選擇差分圖片">
+        <span class="face-upload-placeholder" aria-hidden="true">
+          <span class="face-upload-plus">＋</span>
+          <span>新增圖片</span>
+        </span>
+        <img class="face-preview" alt="差分圖片預覽" draggable="false" style="display:none">
+      </button>
+      <input
+        id="faceFile_${index}"
+        class="f-file file-select-input"
+        type="file"
+        accept="image/png,.png,image/jpeg,.jpg,.jpeg,image/gif,.gif,image/webp,.webp"
+        multiple
       >
-
+      <div class="face-original-name"></div>
+      <div class="face-hash-name"></div>
     </div>
 
     <input
@@ -670,6 +662,9 @@
 
         const labelInput =
           div.querySelector('.f-label');
+
+        const uploadTile = div.querySelector('.face-upload-tile');
+        uploadTile.addEventListener('click', () => fileInput.click());
 
         fileInput.addEventListener(
           'change',
@@ -2652,3 +2647,174 @@ async function importFaceZIP(event) {
   });
 })();
 
+
+
+/* =========================================================
+   ZIP 匯入檔名隱藏 + 差分長按拖曳設為主圖片
+   - Room ZIP 的圖片檔名通常是 SHA-256；即使 zip.js 寫入原始檔名，
+     仍透過觀察差分列文字隱藏編碼檔名。
+   - 長按差分預覽後拖到側邊 LIVE PREVIEW，即可設為主圖片。
+========================================================= */
+(function initFaceNameAndMainImageDrag() {
+  const facesList = document.getElementById('facesList');
+  if (!facesList) return;
+
+  // 主圖片預覽只能點擊開啟選圖，不提供原生拖曳；差分圖片也關閉瀏覽器原生拖曳，
+  // 保留下方自訂的「長按差分 → 拖到 LIVE PREVIEW」手勢。
+  const disableInternalImageDrag = () => {
+    document.querySelectorAll('#imagePreview, .quick-preview-image, #facesList .face-preview')
+      .forEach(image => image.setAttribute('draggable', 'false'));
+  };
+  disableInternalImageDrag();
+  new MutationObserver(disableInternalImageDrag).observe(document.body, {
+    childList: true, subtree: true
+  });
+  document.addEventListener('dragstart', event => {
+    if (event.target.closest('#imagePreview, .quick-preview-image, #facesList .face-preview')) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
+
+  const encodedHashPattern = /[a-f0-9]{64}\.(?:png|jpe?g|gif|webp)(?:$|[\s"'<>])/i;
+
+  function hideEncodedOriginalNames(root) {
+    const scope = root && root.querySelectorAll ? root : facesList;
+    const selector = '.face-original-name, #originalImageName';
+    const candidates = [];
+    if (scope.matches && scope.matches(selector)) candidates.push(scope);
+    candidates.push(...scope.querySelectorAll(selector));
+    candidates.forEach(element => {
+      const text = element.textContent || '';
+      if (encodedHashPattern.test(text.trim())) {
+        element.textContent = '';
+        element.style.display = 'none';
+      }
+    });
+  }
+
+  hideEncodedOriginalNames(facesList);
+  const nameObserver = new MutationObserver(records => {
+    records.forEach(record => {
+      if (record.type === 'characterData' || record.type === 'childList') {
+        const target = record.target.nodeType === Node.ELEMENT_NODE
+          ? record.target
+          : record.target.parentElement;
+        if (target) hideEncodedOriginalNames(target.closest?.('.face-original-name, #originalImageName') || target.closest?.('.repeat') || target);
+      }
+    });
+  });
+  nameObserver.observe(facesList, { subtree: true, childList: true, characterData: true });
+  const mainOriginalName = document.getElementById('originalImageName');
+  if (mainOriginalName) {
+    hideEncodedOriginalNames(mainOriginalName);
+    nameObserver.observe(mainOriginalName, { subtree: true, childList: true, characterData: true });
+  }
+
+  let activeRow = null;
+  let activePointerId = null;
+  let startX = 0;
+  let startY = 0;
+  let dragging = false;
+  let previewTarget = null;
+  let suppressFaceTileClickUntil = 0;
+  let suppressQuickPreviewClickUntil = 0;
+
+  // 拖曳差分圖片完成後，阻止瀏覽器把放開動作當成點擊，避免誤開圖片選擇器。
+  document.addEventListener('click', event => {
+    if (Date.now() > suppressFaceTileClickUntil && Date.now() > suppressQuickPreviewClickUntil) return;
+    if (event.target.closest('.face-upload-tile, .quick-preview')) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+
+  function clearDrag() {
+    dragging = false;
+    activeRow = null;
+    activePointerId = null;
+    if (previewTarget) previewTarget.classList.remove('face-drop-target');
+    previewTarget = null;
+    document.body.classList.remove('face-image-dragging');
+  }
+
+  function getPreviewTarget() {
+    return document.querySelector('.quick-preview');
+  }
+
+  facesList.addEventListener('pointerdown', event => {
+    // 唯一允許的拖曳來源是差分卡片內已載入的圖片；主圖不是拖曳來源。
+    const image = event.target.closest('#facesList .face-preview');
+    if (!image || !image.getAttribute('src') || !image.closest('.face-upload-tile')) return;
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+
+    clearDrag();
+    activeRow = image.closest('.repeat');
+    activePointerId = event.pointerId;
+    startX = event.clientX;
+    startY = event.clientY;
+  });
+
+  document.addEventListener('pointermove', event => {
+    if (activePointerId !== event.pointerId) return;
+    // 不再等待長按計時：按住差分圖片後，只要開始拖動便立即進入拖曳模式。
+    // 沒有移動的單擊則不介入，保留原本點擊卡片選擇／更換圖片的行為。
+    if (!dragging) {
+      if (Math.hypot(event.clientX - startX, event.clientY - startY) <= 8) return;
+      dragging = true;
+      previewTarget = getPreviewTarget();
+      if (previewTarget) previewTarget.classList.add('face-drop-target');
+      document.body.classList.add('face-image-dragging');
+      if (navigator.vibrate && event.pointerType !== 'mouse') navigator.vibrate(25);
+    }
+    event.preventDefault();
+    // 手機版預覽位於表單下方；拖曳時靠近螢幕邊緣會自動捲動頁面。
+    if (event.clientY > window.innerHeight - 64) window.scrollBy(0, 14);
+    else if (event.clientY < 64) window.scrollBy(0, -14);
+    const target = getPreviewTarget();
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    const over = event.clientX >= rect.left && event.clientX <= rect.right &&
+      event.clientY >= rect.top && event.clientY <= rect.bottom;
+    target.classList.toggle('face-drop-target', over);
+  }, { passive: false });
+
+  document.addEventListener('pointerup', async event => {
+    if (activePointerId !== event.pointerId) return;
+    const shouldApply = dragging && activeRow;
+    const row = activeRow;
+    if (shouldApply) {
+      suppressFaceTileClickUntil = Date.now() + 650;
+      suppressQuickPreviewClickUntil = Date.now() + 650;
+    }
+    const target = getPreviewTarget();
+    const rect = target?.getBoundingClientRect();
+    const droppedOnPreview = !!(shouldApply && rect &&
+      event.clientX >= rect.left && event.clientX <= rect.right &&
+      event.clientY >= rect.top && event.clientY <= rect.bottom);
+    clearDrag();
+    if (!droppedOnPreview) return;
+    const imageData = faceImageData.get(row);
+    let file = imageData && imageData.file;
+    // Room ZIP 匯入的圖片也可能只有預覽 Object URL，必要時從預覽取回 Blob。
+    if (!file) {
+      const preview = row.querySelector('.face-preview');
+      if (!preview || !preview.src) return;
+      try {
+        const response = await fetch(preview.src);
+        const blob = await response.blob();
+        const suggestedName = (row.querySelector('.f-url')?.value || 'face-image.png').split('/').pop();
+        file = new File([blob], suggestedName, { type: blob.type || 'image/png' });
+      } catch (error) {
+        console.error('無法讀取差分預覽圖片：', error);
+        return;
+      }
+    }
+    await handleImageFile({ target: { files: [file] } });
+  });
+
+  document.addEventListener('pointercancel', event => {
+    if (activePointerId === event.pointerId) clearDrag();
+  });
+})();
