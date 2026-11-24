@@ -1253,6 +1253,95 @@
             opacity: .55;
         }
     </style>
+
+    <style id="modern-layout-theme">
+      /* Modern, calm palette: light mode is the default; dark mode changes only colors. */
+      :root {
+        --bg:#f5f6f3; --panel:#ffffff; --panel2:#f7f8f5; --line:#e7e9e3;
+        --text:#30362f; --muted:#7c857b; --accent:#64866d; --accent2:#4f7259;
+        --danger:#bd6861; --ok:#568467; --warn:#a98245; --input-bg:#fbfcfa;
+        --file-bg:#f4f6f1; --file-text:#39443a; --file-border:#e0e6dc;
+        --file-hover:#eaf0e8; --file-hover-border:#cbd8c8; --button-text:#fff;
+        --secondary-bg:#edf1eb; --danger-bg:#b96a63; --success-bg:#64866d;
+        --preview-bg:#f1f4ef; --toast-bg:#fff; --checkbox-bg:#cbd5c8;
+        --checkbox-knob:#fff; --modal-overlay:rgba(30,38,30,.42);
+        --shadow:rgba(43,55,42,.07); --modal-shadow:rgba(0,0,0,.18);
+      }
+      body.light { --bg:#f5f6f3; --panel:#fff; --panel2:#f7f8f5; --line:#e7e9e3; --text:#30362f; --muted:#7c857b; --accent:#64866d; --accent2:#4f7259; --danger:#bd6861; --ok:#568467; --warn:#a98245; --input-bg:#fbfcfa; --file-bg:#f4f6f1; --file-text:#39443a; --file-border:#e0e6dc; --file-hover:#eaf0e8; --file-hover-border:#cbd8c8; --button-text:#fff; --secondary-bg:#edf1eb; --danger-bg:#b96a63; --success-bg:#64866d; --preview-bg:#f1f4ef; --toast-bg:#fff; --checkbox-bg:#cbd5c8; --checkbox-knob:#fff; --modal-overlay:rgba(30,38,30,.42); --shadow:rgba(43,55,42,.07); --modal-shadow:rgba(0,0,0,.18); }
+      body:not(.light):not(.expert) { --bg:#202522; --panel:#292f2b; --panel2:#303833; --line:#3c4740; --text:#edf1eb; --muted:#a8b3a8; --accent:#91b99a; --accent2:#a8c9ad; --danger:#e18a82; --ok:#8fc5a0; --warn:#d8b475; --input-bg:#222925; --file-bg:#303833; --file-text:#edf1eb; --file-border:#465249; --file-hover:#39443c; --file-hover-border:#617365; --button-text:#202820; --secondary-bg:#3a443d; --danger-bg:#98534d; --success-bg:#668d70; --preview-bg:#222925; --toast-bg:#303833; --checkbox-bg:#566358; --checkbox-knob:#fff; --modal-overlay:rgba(0,0,0,.68); --shadow:rgba(0,0,0,.18); --modal-shadow:rgba(0,0,0,.48); }
+      body { background:var(--bg); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Noto Sans TC",sans-serif; letter-spacing:.01em; }
+      .top-nav { background:var(--panel); border:0; box-shadow:0 1px 0 var(--line); padding:14px clamp(16px,3vw,36px); }
+      .top-nav-title { font-size:17px; letter-spacing:.02em; }
+      .wrap { max-width:1460px; padding:30px clamp(14px,2.5vw,34px) 54px; }
+      .workspace-layout { display:grid; grid-template-columns:minmax(0,1fr) 330px; gap:28px; align-items:start; }
+      .workspace-main { min-width:0; }
+      .workspace-aside { min-width:0; position:sticky; top:22px; display:flex; flex-direction:column; gap:14px; }
+      .sub { margin:0 0 22px; font-size:14px; color:var(--muted); }
+      .section { background:var(--panel); border:1px solid var(--line); border-radius:16px; margin:0 0 16px; overflow:hidden; box-shadow:0 4px 18px var(--shadow); }
+      .section h2 { background:transparent; border:0; padding:20px 22px 12px; font-size:16px; font-weight:700; letter-spacing:.025em; }
+      .grid { border:0; display:grid; grid-template-columns:minmax(145px,.7fr) minmax(0,1.8fr); gap:18px; padding:10px 22px; align-items:center; }
+      .grid:last-child { border:0; }
+      .label { border:0; padding:4px 0; text-align:left; }
+      .label strong { text-align:left; font-size:14px; }
+      .label span { display:block; text-align:left; font-size:11px; color:var(--muted); opacity:.8; }
+      .field { padding:4px 0; }
+      input:not([type=checkbox]):not([type=color]), textarea, select { border:1px solid var(--line)!important; border-radius:10px!important; background:var(--input-bg)!important; color:var(--text)!important; box-shadow:none!important; }
+      input:not([type=checkbox]):not([type=color]):focus, textarea:focus, select:focus { outline:2px solid color-mix(in srgb,var(--accent) 28%,transparent); border-color:var(--accent)!important; }
+      textarea { min-height:90px; }
+      button { border-radius:10px!important; border:1px solid transparent; box-shadow:none!important; transition:background .16s ease,border-color .16s ease,transform .16s ease; }
+      button:hover { filter:brightness(.98); transform:translateY(-1px); }
+      button.secondary { background:var(--secondary-bg)!important; color:var(--text)!important; border-color:var(--line)!important; }
+      button.success { background:var(--success-bg)!important; color:#fff!important; }
+      button.danger { background:var(--danger-bg)!important; color:#fff!important; }
+      .actions { display:flex; flex-wrap:wrap; gap:9px; padding:4px 0 18px; }
+      .workspace-main > .actions:first-of-type { padding:0 0 18px; }
+      .position-header { background:transparent; border:0; padding-right:18px; }
+      .position-header h2 { padding:20px 22px 12px; }
+      .position-toggle { border-color:var(--line); border-radius:9px; background:var(--panel); color:var(--muted); }
+      .main-image-box { margin:8px 22px 16px; border:1px solid var(--line); border-radius:13px; background:var(--panel2); padding:14px; }
+      .main-image-header { margin-bottom:10px; }
+      .image-preview,.face-preview { border:0; border-radius:12px; background:var(--preview-bg); }
+      .zip-status { border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:12px; height:auto; min-height:58px; }
+      .jsonbox { margin-top:0; }
+      .jsonbox textarea { min-height:260px; }
+      .workspace-aside .section { margin:0; }
+      .quick-preview { padding:18px; text-align:center; }
+      .quick-preview-clickable { cursor:pointer; transition:border-color .16s ease,background .16s ease; }
+      .quick-preview-clickable:hover { border-color:var(--accent); }
+      .quick-preview-clickable:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+      .quick-preview .quick-kicker { text-align:left; font-size:11px; color:var(--muted); letter-spacing:.12em; font-weight:700; margin-bottom:12px; }
+      .quick-preview-image { width:100%; height:240px; object-fit:contain; border-radius:12px; background:var(--preview-bg); display:block; }
+      .quick-preview-name { margin:14px 0 2px; font-size:17px; font-weight:700; overflow-wrap:anywhere; }
+      .quick-preview-caption { color:var(--muted); font-size:12px; }
+      .workspace-aside .actions { display:grid; grid-template-columns:1fr; padding:14px; gap:8px; }
+      .workspace-aside .actions button { width:100%; min-height:42px; }
+      .workspace-aside .jsonbox textarea { min-height:220px; }
+      .workspace-aside .jsonbox > div { padding:0 14px 14px!important; }
+      .workspace-aside .jsonbox h2 { padding:16px 16px 10px; }
+      .workspace-aside .note { font-size:11px; }
+      .workspace-main > .section:has(#commands) textarea { min-height:170px; }
+      .site-footer { max-width:1460px; }
+      @media(max-width:980px) { .workspace-layout { grid-template-columns:minmax(0,1fr) 280px; gap:16px; } .quick-preview-image { height:200px; } }
+      @media(max-width:760px) {
+        .wrap { padding:18px 12px 36px; }
+        .workspace-layout { display:flex; flex-direction:column; gap:14px; }
+        .workspace-main,.workspace-aside { width:100%; }
+        .workspace-aside { position:static; order:2; }
+        .workspace-main .grid { grid-template-columns:1fr; gap:5px; padding:10px 16px; }
+        .workspace-main .label { padding:0; }
+        .workspace-main .field { padding:0; }
+        .section { border-radius:13px; margin-bottom:12px; }
+        .section h2,.position-header h2 { padding:17px 17px 10px; }
+        .main-image-box { margin:8px 16px 14px; }
+        .workspace-main > .actions { display:flex; }
+        .workspace-aside { display:flex; }
+        .quick-preview-image { height:190px; }
+        .workspace-aside .actions { grid-template-columns:1fr 1fr; }
+        .workspace-aside .actions button:last-child { grid-column:1/-1; }
+        .workspace-aside .jsonbox textarea { min-height:180px; }
+      }
+    </style>
+
 </head>
 
 <body>
@@ -2014,12 +2103,193 @@
     </script>
 
 
+
+    <script>
+    (function buildResponsiveWorkspace() {
+      function init() {
+        const wrap = document.querySelector('.wrap');
+        if (!wrap || wrap.querySelector('.workspace-layout')) return;
+        const children = Array.from(wrap.children);
+        const exportActions = children.filter(el => el.classList && el.classList.contains('actions')).slice(-1)[0];
+        const zipStatus = document.getElementById('zipStatus');
+        const jsonBox = wrap.querySelector('.jsonbox');
+        const layout = document.createElement('div'); layout.className = 'workspace-layout';
+        const main = document.createElement('main'); main.className = 'workspace-main';
+        const aside = document.createElement('aside'); aside.className = 'workspace-aside';
+        const preview = document.createElement('section'); preview.className = 'section quick-preview';
+        preview.innerHTML = '<div class="quick-kicker">LIVE PREVIEW</div><img class="quick-preview-image" alt="角色圖片預覽"><div class="quick-preview-name">尚未命名</div><div class="quick-preview-caption">CCFOLIA CHARACTER</div>';
+        preview.classList.add('quick-preview-clickable');
+        preview.setAttribute('role', 'button');
+        preview.setAttribute('tabindex', '0');
+        preview.setAttribute('aria-label', '選擇角色主圖片');
+        const openMainImagePickerFromPreview = () => {
+          if (typeof window.openMainImagePicker === 'function') window.openMainImagePicker();
+        };
+        preview.addEventListener('click', openMainImagePickerFromPreview);
+        preview.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openMainImagePickerFromPreview();
+          }
+        });
+        aside.appendChild(preview);
+        children.forEach(el => {
+          if (el === exportActions || el === zipStatus || el === jsonBox) return;
+          main.appendChild(el);
+        });
+        if (exportActions) aside.appendChild(exportActions);
+        if (zipStatus) aside.appendChild(zipStatus);
+        if (jsonBox) aside.appendChild(jsonBox);
+        layout.append(main, aside); wrap.appendChild(layout);
+
+        const sourceImage = document.getElementById('imagePreview');
+        const targetImage = preview.querySelector('.quick-preview-image');
+        const syncImage = () => {
+          if (!sourceImage) return;
+          targetImage.src = sourceImage.src || '';
+          targetImage.style.display = sourceImage.classList.contains('show') && sourceImage.src ? 'block' : 'none';
+        };
+        if (sourceImage) {
+          new MutationObserver(syncImage).observe(sourceImage, {attributes:true, attributeFilter:['src','class','style']});
+          syncImage();
+        } else targetImage.style.display = 'none';
+        const nameInput = document.getElementById('name');
+        const nameOutput = preview.querySelector('.quick-preview-name');
+        // 統一提供同步函式，讓手動輸入、匯入 JSON／ZIP、清空資料都能更新預覽名稱。
+        window.syncCharacterPreviewName = () => {
+          const characterName = (nameInput?.value || '').trim();
+          nameOutput.textContent = characterName || '尚未命名';
+        };
+        if (nameInput) {
+          nameInput.addEventListener('input', window.syncCharacterPreviewName);
+          nameInput.addEventListener('change', window.syncCharacterPreviewName);
+          nameInput.addEventListener('keyup', window.syncCharacterPreviewName);
+        }
+        document.addEventListener('input', event => {
+          if (event.target === nameInput) window.syncCharacterPreviewName();
+        }, true);
+        window.syncCharacterPreviewName();
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
+      else init();
+    })();
+    </script>
+
     <footer class="site-footer" aria-label="相關連結">
         <a href="https://ccfolia.com/" target="_blank" rel="noopener noreferrer">CCFOLIA 官方網站</a>
         <span class="footer-separator">·</span>
         <a href="https://github.com/756y/ccfolia_character_json_tool" target="_blank" rel="noopener noreferrer">GitHub 專案頁面</a>
     </footer>
 
+
+<style id="redesign-followup-fixes">
+  /* 差分清單獨立捲動；隱藏捲軸但保留觸控／滑鼠滾輪操作。 */
+  #facesList {
+    max-height: min(62vh, 560px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  #facesList::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+  @media (max-width: 760px) {
+    /* 四個匯出操作按鈕以 2×2 排列，全部清空不再獨占一整列。 */
+    .workspace-aside .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .workspace-aside .actions button {
+      grid-column: auto !important;
+      width: 100%;
+      min-width: 0;
+    }
+    #facesList { max-height: min(52vh, 440px); min-height: 120px; }
+  }
+</style>
+
 </body>
 
 </html>
+<style id="final-layout-polish">
+  /* Room ZIP 狀態只在成功或錯誤訊息時出現，並縮短與下載按鈕的距離。 */
+  .workspace-aside { gap: 8px; }
+  .workspace-aside .actions { margin: 0; padding-bottom: 0; }
+  .workspace-aside #zipStatus { margin: 0; }
+  #zipStatus.zip-status-initial:not(.success):not(.error) { display: none !important; }
+  #zipStatus.success,
+  #zipStatus.error { display: grid; }
+
+  /* 差分採雙欄卡片排列，清單稍微加高；保留內部獨立捲動與隱藏捲軸。 */
+  #facesList {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-content: start;
+    align-items: start;
+    gap: 10px;
+    max-height: min(72vh, 660px);
+    min-height: 150px;
+    padding: 0 12px 12px;
+    box-sizing: border-box;
+  }
+  #facesList > .repeat {
+    min-width: 0;
+    padding: 11px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--panel2);
+    box-sizing: border-box;
+  }
+  #facesList > .repeat .repeat-head { align-items: center; }
+  #facesList > .repeat .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+    align-items: center;
+  }
+  #facesList > .repeat .f-label { min-width: 0; width: 100%; }
+  #facesList > .repeat .file-select-btn {
+    padding: 7px 9px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  #facesList > .repeat .face-preview {
+    max-width: 100%;
+    max-height: 220px;
+    width: 100%;
+    object-fit: contain;
+  }
+  #facesList > .repeat .face-image-info { min-width: 0; }
+  /* 原始檔名僅作為輔助提醒，縮小並淡化顯示。 */
+  #facesList > .repeat .face-original-name {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.35;
+    opacity: .72;
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+
+  /* 桌面已有大型 LIVE PREVIEW，隱藏編輯區重複的小主圖；手機仍保留主圖方便往下操作。 */
+  @media (min-width: 761px) {
+    .workspace-main .main-image-box .image-preview { display: none !important; }
+  }
+  @media (max-width: 760px) {
+    #facesList {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      max-height: min(64vh, 560px);
+      min-height: 150px;
+      padding: 0 10px 10px;
+      gap: 8px;
+    }
+    #facesList > .repeat { padding: 9px; }
+    #facesList > .repeat .row { grid-template-columns: minmax(0, 1fr); }
+    #facesList > .repeat .file-select-btn { width: 100%; box-sizing: border-box; }
+    .workspace-main .main-image-box .image-preview.show { display: block !important; }
+  }
+</style>

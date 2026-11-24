@@ -117,6 +117,11 @@
       const ext = String(file?.name || '').toLowerCase().split('.').pop();
       return ({ png: 'png', jpg: 'jpeg', jpeg: 'jpeg', gif: 'gif', webp: 'webp' })[ext] || null;
     }
+
+    // CCFOLIA 匯入檔常以 SHA-256 作為檔名；這類編碼檔名不顯示「原始檔名」。
+    function isEncodedImageFilename(filename) {
+      return /^[a-f0-9]{64}\.(?:png|jpe?g|gif|webp)$/i.test(String(filename || '').trim());
+    }
     function getImageMimeType(extension) {
       return ({ png: 'image/png', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' })[extension] || 'application/octet-stream';
     }
@@ -240,12 +245,15 @@
         /*
           顯示本機原始檔名
         */
-        $('originalImageName').innerHTML =
-          '<strong>原始檔名：</strong> ' +
-          escapeHTML(file.name);
-
-        $('originalImageName').style.display =
-          'block';
+        if (isEncodedImageFilename(file.name)) {
+          $('originalImageName').textContent = '';
+          $('originalImageName').style.display = 'none';
+        } else {
+          $('originalImageName').innerHTML =
+            '<strong>原始檔名：</strong> ' +
+            escapeHTML(file.name);
+          $('originalImageName').style.display = 'block';
+        }
 
 
         /*
@@ -364,7 +372,13 @@
         }
 
         const originalName = row.querySelector('.face-original-name');
-        originalName.textContent = '原始檔名：' + file.name;
+        if (isEncodedImageFilename(file.name)) {
+          originalName.textContent = '';
+          originalName.style.display = 'none';
+        } else {
+          originalName.textContent = '原始檔名：' + file.name;
+          originalName.style.display = '';
+        }
 
         const hashName = row.querySelector('.face-hash-name');
         hashName.textContent = 'ZIP 檔名：' + filename;
@@ -862,7 +876,7 @@
 
       const savedTheme =
         localStorage.getItem('ccfolia-theme') ||
-        'dark';
+        'light';
 
       applyTheme(savedTheme);
 
@@ -1034,6 +1048,10 @@ function toggleFaceSettings() {
           null,
           2
         );
+
+      if (typeof window.syncCharacterPreviewName === 'function') {
+        window.syncCharacterPreviewName();
+      }
     }
 
 
@@ -2535,6 +2553,18 @@ async function importFaceZIP(event) {
   async function importDroppedImages(files) {
     const validFiles = files.filter(isSupportedDroppedImage);
     if (!validFiles.length) return false;
+
+    // 拖入圖片時，移除最初預設的空白差分列，避免它被留在匯入圖片前面。
+    // 只移除第一列且尚未載入圖片的空列；其他既有差分資料不受影響。
+    const firstRow = $('facesList').firstElementChild;
+    if (firstRow) {
+      const firstRowImage = faceImageData.get(firstRow);
+      const firstRowUrl = firstRow.querySelector('.f-url')?.value || '';
+      const firstRowPreview = firstRow.querySelector('.face-preview');
+      if (!firstRowImage && !firstRowUrl && !(firstRowPreview && firstRowPreview.getAttribute('src'))) {
+        firstRow.remove();
+      }
+    }
 
     for (const file of validFiles) {
       if (file.size > MAX_IMAGE_SIZE) {
