@@ -2541,12 +2541,24 @@ async function importFaceZIP(event) {
   }
 
   function showDropImportError(message) {
-    if (typeof toast === 'function') toast(message);
-    else alert(message);
+    // 拖曳匯入錯誤使用與選擇圖片時相同的阻斷式錯誤視窗，
+    // 避免提示被成功匯入的 Toast 覆蓋或一閃而過。
+    alert(message);
   }
 
   async function importDroppedImages(files) {
-    const validFiles = files.filter(isSupportedDroppedImage);
+    const supportedFiles = files.filter(isSupportedDroppedImage);
+    if (!supportedFiles.length) return false;
+
+    // 拖放匯入時先檢查大小，超過 5 MB 的檔案不列入匯入數量，
+    // 也不建立差分列，避免最後仍顯示「已匯入」但實際沒有匯入的誤導訊息。
+    const oversizedFiles = supportedFiles.filter(file => file.size > MAX_IMAGE_SIZE);
+    const validFiles = supportedFiles.filter(file => file.size <= MAX_IMAGE_SIZE);
+
+    if (oversizedFiles.length) {
+      const names = oversizedFiles.map(file => file.name).join('、');
+      showDropImportError('拖曳匯入失敗：圖片不能超過 5 MB。\n' + names);
+    }
     if (!validFiles.length) return false;
 
     // 拖入圖片時，移除最初預設的空白差分列，避免它被留在匯入圖片前面。
@@ -2561,19 +2573,19 @@ async function importFaceZIP(event) {
       }
     }
 
+    let importedCount = 0;
     for (const file of validFiles) {
-      if (file.size > MAX_IMAGE_SIZE) {
-        showDropImportError('圖片不能超過 5 MB：' + file.name);
-        continue;
-      }
       addFace({ label: '', iconUrl: '' });
       const row = $('facesList').lastElementChild;
       await processFaceImageFile(file, row);
+      importedCount++;
     }
     renumber('face');
     generate();
-    toast('已自動匯入 ' + validFiles.length + ' 張差分圖片。');
-    return true;
+    if (importedCount > 0) {
+      toast('已自動匯入 ' + importedCount + ' 張差分圖片。');
+    }
+    return importedCount > 0;
   }
 
   async function importDroppedZip(file) {
@@ -2744,6 +2756,8 @@ async function importFaceZIP(event) {
   }
 
   facesList.addEventListener('pointerdown', event => {
+    // 手機版差分僅保留點擊選圖，不啟用拖曳換主圖；桌面版維持原本操作。
+    if (window.matchMedia('(max-width: 768px)').matches) return;
     // 唯一允許的拖曳來源是差分卡片內已載入的圖片；主圖不是拖曳來源。
     const image = event.target.closest('#facesList .face-preview');
     if (!image || !image.getAttribute('src') || !image.closest('.face-upload-tile')) return;
