@@ -16,7 +16,6 @@
     <link rel="stylesheet" href="googleSheets.css">
 
     <style>
-/* ===== 亮色模式 ===== */
 
 /* ===== 我已經完全學會設計模式 ===== */
 
@@ -990,6 +989,7 @@ input:focus,
   --modal-shadow:rgba(0,0,0,.18);
 }
 
+/* ===== 亮色模式 ===== */
 body.light {
   --bg:#f5f6f3;
   --panel:#fff;
@@ -1021,6 +1021,7 @@ body.light {
   --modal-shadow:rgba(0,0,0,.18);
 }
 
+/* ===== 深色模式 ===== */
 body:not(.light):not(.expert) { --bg:#202522; --panel:#292f2b; --panel2:#303833; --line:#3c4740; --text:#edf1eb; --muted:#a8b3a8; --accent:#91b99a; --accent2:#a8c9ad; --danger:#e18a82; --ok:#8fc5a0; --warn:#d8b475; --input-bg:#222925; --file-bg:#303833; --file-text:#edf1eb; --file-border:#465249; --file-hover:#39443c; --file-hover-border:#617365; --button-text:#202820; --secondary-bg:#3a443d; --danger-bg:#98534d; --success-bg:#668d70; --preview-bg:#222925; --toast-bg:#303833; --checkbox-bg:#566358; --checkbox-knob:#fff; --modal-overlay:rgba(0,0,0,.68); --shadow:rgba(0,0,0,.18); --modal-shadow:rgba(0,0,0,.48); }
 
 body {
@@ -1560,6 +1561,55 @@ button.danger { background:var(--danger-bg)!important; color:#fff!important; }
   flex: 0 0 auto;
   gap: 6px;
 }
+
+
+/* ===== 按鈕視覺：降低實心色塊的視覺負擔 ===== */
+button {
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel)) !important;
+  color: var(--accent2) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--line)) !important;
+}
+button:hover {
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel)) !important;
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--line)) !important;
+  filter: none;
+}
+button.secondary {
+  background: color-mix(in srgb, var(--muted) 7%, var(--panel)) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+}
+button.success {
+  background: color-mix(in srgb, var(--success-bg) 14%, var(--panel)) !important;
+  color: var(--ok) !important;
+  border-color: color-mix(in srgb, var(--success-bg) 42%, var(--line)) !important;
+}
+button.danger {
+  background: color-mix(in srgb, var(--danger-bg) 12%, var(--panel)) !important;
+  color: var(--danger) !important;
+  border-color: color-mix(in srgb, var(--danger-bg) 42%, var(--line)) !important;
+}
+
+/* 手機版四個主要操作按鈕固定在同一橫列；桌面版維持原樣。 */
+@media (max-width: 760px) {
+  .workspace-aside .actions {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 6px;
+    padding: 12px 10px 0;
+  }
+  .workspace-aside .actions button {
+    grid-column: auto !important;
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 7px 2px;
+    font-size: 11px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+}
+
 </style>
 
     
@@ -1953,15 +2003,15 @@ button.danger { background:var(--danger-bg)!important; color:#fff!important; }
         <div class="actions">
 
             <button onclick="copyJSON()">
-                複製 CCFOLIA JSON
+                複製 JSON
+            </button>
+
+            <button class="success" onclick="downloadRoomZIP()">
+                📦 Room ZIP
             </button>
 
             <button class="secondary" onclick="downloadJSON()">
                 下載 JSON
-            </button>
-
-            <button class="success" onclick="downloadRoomZIP()">
-                📦 下載 CCFOLIA Room ZIP
             </button>
 
             <button class="danger" onclick="resetAll()">
