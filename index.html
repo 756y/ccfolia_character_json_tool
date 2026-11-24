@@ -1644,6 +1644,13 @@ body { background-image: var(--glow, none); background-attachment: fixed; }
 }
 #themeAlphaVal { min-width: 2.2em; text-align: right; }
 
+/* 隱藏「複製 JSON」「下載 JSON」（按鈕與功能都還在，只是不顯示）。
+   手機版四顆按鈕同一列：Room ZIP 補足被隱藏的兩顆（共 3 格），全部清空維持 1 格。電腦版不動。 */
+.hidden-json-action { display: none !important; }
+@media (max-width: 760px) {
+  .workspace-aside .actions button.room-zip-btn { grid-column: span 3 !important; }
+}
+
 </style>
 
     
@@ -2058,15 +2065,15 @@ body { background-image: var(--glow, none); background-attachment: fixed; }
 
         <div class="actions">
 
-            <button onclick="copyJSON()">
+            <button class="hidden-json-action" onclick="copyJSON()">
                 複製 JSON
             </button>
 
-            <button class="success" onclick="downloadRoomZIP()">
+            <button class="success room-zip-btn" onclick="downloadRoomZIP()">
                 📦 Room ZIP
             </button>
 
-            <button class="secondary" onclick="downloadJSON()">
+            <button class="secondary hidden-json-action" onclick="downloadJSON()">
                 下載 JSON
             </button>
 
