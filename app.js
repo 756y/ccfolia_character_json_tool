@@ -2515,3 +2515,110 @@ async function importFaceZIP(event) {
 
       }
     );
+
+/* =========================================================
+   全頁面拖放匯入：自動辨識 Room ZIP／差分 ZIP／圖片
+   不變更原有兩個匯入按鈕與其匯入流程。
+========================================================= */
+(function initGlobalFileDropImport() {
+  let dropImportBusy = false;
+
+  function isSupportedDroppedImage(file) {
+    return !!(file && getSupportedImageExtension(file));
+  }
+
+  function showDropImportError(message) {
+    if (typeof toast === 'function') toast(message);
+    else alert(message);
+  }
+
+  async function importDroppedImages(files) {
+    const validFiles = files.filter(isSupportedDroppedImage);
+    if (!validFiles.length) return false;
+
+    for (const file of validFiles) {
+      if (file.size > MAX_IMAGE_SIZE) {
+        showDropImportError('圖片不能超過 5 MB：' + file.name);
+        continue;
+      }
+      addFace({ label: '', iconUrl: '' });
+      const row = $('facesList').lastElementChild;
+      await processFaceImageFile(file, row);
+    }
+    renumber('face');
+    generate();
+    toast('已自動匯入 ' + validFiles.length + ' 張差分圖片。');
+    return true;
+  }
+
+  async function importDroppedZip(file) {
+    // 先讀取 ZIP 目錄判斷種類，避免把差分 ZIP 交給 Room ZIP 匯入器。
+    const entries = await readZipEntries(file);
+    if (entries.has('sprite-namer.json')) {
+      await importFaceZIP({ target: { files: [file], value: '' } });
+      return;
+    }
+
+    // CCFOLIA Room ZIP 必須包含 __data.json；沿用原本 Room ZIP 匯入函式。
+    if (entries.has('__data.json')) {
+      if (typeof window.handleZIPImport !== 'function') {
+        throw new Error('找不到原本的 Room ZIP 匯入功能，請確認 zip.js 已正常載入。');
+      }
+      await window.handleZIPImport({ target: { files: [file], value: '' } });
+      return;
+    }
+
+    throw new Error('無法辨識這個 ZIP。請拖入 CCFOLIA Room ZIP，或包含 sprite-namer.json 的差分 ZIP。');
+  }
+
+  async function handleDroppedFiles(fileList) {
+    const files = Array.from(fileList || []);
+    if (!files.length || dropImportBusy) return;
+
+    const zipFiles = files.filter(file => /\.zip$/i.test(file.name || ''));
+    const imageFiles = files.filter(isSupportedDroppedImage);
+    const unsupported = files.filter(file => !zipFiles.includes(file) && !imageFiles.includes(file));
+
+    if (zipFiles.length && imageFiles.length) {
+      showDropImportError('請一次拖入 ZIP 壓縮檔或圖片，不要混合拖入。');
+      return;
+    }
+    if (zipFiles.length > 1) {
+      showDropImportError('一次請拖入一個 ZIP 壓縮檔。');
+      return;
+    }
+    if (unsupported.length || (!zipFiles.length && !imageFiles.length)) {
+      showDropImportError('目前僅支援 CCFOLIA Room ZIP、差分 ZIP，以及 PNG／JPEG／GIF／WebP 圖片。');
+      return;
+    }
+
+    dropImportBusy = true;
+    document.body.classList.add('file-drop-importing');
+    try {
+      if (zipFiles.length) await importDroppedZip(zipFiles[0]);
+      else await importDroppedImages(imageFiles);
+    } catch (error) {
+      console.error('拖放匯入失敗：', error);
+      showDropImportError('拖放匯入失敗：' + (error && error.message ? error.message : String(error)));
+    } finally {
+      dropImportBusy = false;
+      document.body.classList.remove('file-drop-importing');
+    }
+  }
+
+  // 拖曳經過網頁任意位置時，阻止瀏覽器直接開啟檔案。
+  window.addEventListener('dragover', event => {
+    if (event.dataTransfer && Array.from(event.dataTransfer.types || []).includes('Files')) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  });
+
+  window.addEventListener('drop', event => {
+    if (!event.dataTransfer || !event.dataTransfer.files || !event.dataTransfer.files.length) return;
+    event.preventDefault();
+    event.stopPropagation();
+    handleDroppedFiles(event.dataTransfer.files);
+  });
+})();
+
