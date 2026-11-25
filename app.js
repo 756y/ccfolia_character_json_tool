@@ -10,38 +10,6 @@
     }
 
     /* =========================================================
-       右上角設定：使用 localStorage 記住勾選狀態
-    ========================================================= */
-    (function initPersistentAppSettings() {
-      const settings = [
-        ['mainImageFromFaces', 'ccfolia-main-image-from-faces'],
-        ['autoFaceLabel', 'ccfolia-auto-face-label']
-      ];
-
-      settings.forEach(([elementId, storageKey]) => {
-        const checkbox = $(elementId);
-        if (!checkbox) return;
-
-        try {
-          const savedValue = localStorage.getItem(storageKey);
-          if (savedValue !== null) {
-            checkbox.checked = savedValue === 'true';
-          }
-        } catch (error) {
-          console.warn('讀取設定失敗：', storageKey, error);
-        }
-
-        checkbox.addEventListener('change', () => {
-          try {
-            localStorage.setItem(storageKey, String(checkbox.checked));
-          } catch (error) {
-            console.warn('儲存設定失敗：', storageKey, error);
-          }
-        });
-      });
-    })();
-
-    /* =========================================================
        主圖片：本機 PNG
     ========================================================= */
 
@@ -53,12 +21,6 @@
 
     const faceImageData = new WeakMap();
 
-
-    // 明確掛到 window，確保 HTML inline onclick 可以呼叫
-    window.toggleAppSettings = function toggleAppSettings() {
-      const panel = document.getElementById('appSettingsPopover');
-      if (panel) panel.classList.toggle('show');
-    };
 
 
 
@@ -3234,3 +3196,220 @@ async function importFaceZIP(event) {
     else if (roll === 100) run('lose');
   });
 })();
+
+/* =========================================================
+   頁面互動功能（由 index.html 移入 app.js 統一管理）
+   index.html 僅保留對應的 HTML 結構與控制項。
+========================================================= */
+
+/* ④ 角色圖片與差分：差分數量顯示 + 手機版分頁切換 + 手機版主圖片框點擊選圖 */
+        (function () {
+            var sec = document.getElementById('faceSection');
+            var list = document.getElementById('facesList');
+            var tabs = document.getElementById('faceTabs');
+            if (!sec || !list) return;
+            function updateFaceCount() {
+                var n = 0;
+                for (var i = 0; i < list.children.length; i++) {
+                    if (list.children[i].classList.contains('repeat')) n++;
+                }
+                ['faceCountBadge', 'faceTabCount'].forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (el) el.textContent = n;
+                });
+            }
+            new MutationObserver(updateFaceCount).observe(list, { childList: true });
+            updateFaceCount();
+            if (tabs) tabs.addEventListener('click', function (e) {
+                var b = e.target.closest('[data-face-tab]');
+                if (!b) return;
+                var isMain = b.getAttribute('data-face-tab') === 'main';
+                sec.classList.toggle('tab-main', isMain);
+                sec.classList.toggle('tab-diff', !isMain);
+                tabs.querySelectorAll('[data-face-tab]').forEach(function (x) {
+                    x.classList.toggle('on', x === b);
+                });
+            });
+            var box = sec.querySelector('.main-image-box');
+            if (box) box.addEventListener('click', function (e) {
+                if (!window.matchMedia('(max-width: 760px)').matches) return;
+                if (e.target.closest('input, button, a')) return;
+                if (typeof openMainImagePicker === 'function') openMainImagePicker();
+            });
+        })();
+
+/* 設定選單：保留各項設定，重新整理或重開瀏覽器後仍會沿用。 */
+        (function () {
+            const STORAGE_KEYS = {
+                mainImageFromFaces: 'ccfolia-setting-main-image-from-faces',
+                autoFaceLabel: 'ccfolia-setting-auto-face-label',
+                autoFixEducationCommand: 'ccfolia-setting-auto-fix-education-command',
+                pollSeconds: 'ccfolia-setting-google-sheets-poll-seconds',
+                matchSanMaxToCurrent: 'ccfolia-setting-match-san-max-to-current'
+            };
+
+            function readBoolean(key, fallback) {
+                try {
+                    const value = localStorage.getItem(key);
+                    return value === null ? fallback : value === 'true';
+                } catch (_) {
+                    return fallback;
+                }
+            }
+
+            function saveSetting(key, value) {
+                try { localStorage.setItem(key, String(value)); } catch (_) {}
+            }
+
+            window.toggleAppSettings = function () {
+                const popover = document.getElementById('appSettingsPopover');
+                if (popover) popover.classList.toggle('show');
+            };
+
+            function initSettings() {
+                const checkboxSettings = [
+                    ['mainImageFromFaces', STORAGE_KEYS.mainImageFromFaces, true],
+                    ['autoFaceLabel', STORAGE_KEYS.autoFaceLabel, true],
+                    ['autoFixEducationCommand', STORAGE_KEYS.autoFixEducationCommand, true],
+                    ['matchSanMaxToCurrent', STORAGE_KEYS.matchSanMaxToCurrent, true]
+                ];
+
+                checkboxSettings.forEach(([id, key, fallback]) => {
+                    const input = document.getElementById(id);
+                    if (!input) return;
+                    input.checked = readBoolean(key, fallback);
+                    input.addEventListener('change', () => {
+                        saveSetting(key, input.checked);
+                        if (id === 'matchSanMaxToCurrent' &&
+                            typeof window.setSanMaxMode === 'function') {
+                            window.setSanMaxMode(input.checked);
+                        }
+                        if (id === 'autoFixEducationCommand') {
+                            const commandsInput = document.getElementById('commands');
+                            if (commandsInput && typeof window.applyEducationIntelligenceCommandNameSetting === 'function') {
+                                const updatedCommands = window.applyEducationIntelligenceCommandNameSetting(
+                                    commandsInput.value,
+                                    input.checked
+                                );
+                                if (updatedCommands !== commandsInput.value) {
+                                    commandsInput.value = updatedCommands;
+                                    if (typeof window.generate === 'function') window.generate();
+                                }
+                            }
+                        }
+                    });
+                });
+
+                // 若上次保存的是關閉狀態，將頁面初始列從預設勾選狀態還原為原始最大值。
+                const sanMaxSetting = document.getElementById('matchSanMaxToCurrent');
+                if (sanMaxSetting && !sanMaxSetting.checked &&
+                    typeof window.setSanMaxMode === 'function') {
+                    window.setSanMaxMode(false);
+                }
+
+                const secondsInput = document.getElementById('googleSheetsPollSeconds');
+                if (secondsInput) {
+                    let savedSeconds = 30;
+                    try {
+                        const stored = Number(localStorage.getItem(STORAGE_KEYS.pollSeconds));
+                        if (Number.isFinite(stored) && stored >= 1) savedSeconds = Math.floor(stored);
+                    } catch (_) {}
+                    secondsInput.value = savedSeconds;
+                    secondsInput.addEventListener('change', () => {
+                        const seconds = Math.max(1, Math.floor(Number(secondsInput.value) || 30));
+                        secondsInput.value = seconds;
+                        saveSetting(STORAGE_KEYS.pollSeconds, seconds);
+                        if (typeof window.refreshGoogleSheetsPollingInterval === 'function') {
+                            window.refreshGoogleSheetsPollingInterval();
+                        }
+                    });
+                }
+
+                document.addEventListener('click', event => {
+                    const popover = document.getElementById('appSettingsPopover');
+                    const toggle = document.getElementById('settingsToggle');
+                    if (popover && popover.classList.contains('show') &&
+                        !popover.contains(event.target) && toggle && !toggle.contains(event.target)) {
+                        popover.classList.remove('show');
+                    }
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initSettings, { once: true });
+            } else {
+                initSettings();
+            }
+
+
+        })();
+
+(function buildResponsiveWorkspace() {
+      function init() {
+        const wrap = document.querySelector('.wrap');
+        if (!wrap || wrap.querySelector('.workspace-layout')) return;
+        const children = Array.from(wrap.children);
+        const exportActions = children.filter(el => el.classList && el.classList.contains('actions')).slice(-1)[0];
+        const zipStatus = document.getElementById('zipStatus');
+        const jsonBox = wrap.querySelector('.jsonbox');
+        const layout = document.createElement('div'); layout.className = 'workspace-layout';
+        const main = document.createElement('main'); main.className = 'workspace-main';
+        const aside = document.createElement('aside'); aside.className = 'workspace-aside';
+        const preview = document.createElement('section'); preview.className = 'section quick-preview';
+        preview.innerHTML = '<div class="quick-kicker">LIVE PREVIEW</div><img class="quick-preview-image" alt="角色圖片預覽"><div class="quick-preview-name">尚未命名</div><div class="quick-preview-caption">CCFOLIA CHARACTER</div>';
+        preview.classList.add('quick-preview-clickable');
+        preview.setAttribute('role', 'button');
+        preview.setAttribute('tabindex', '0');
+        preview.setAttribute('aria-label', '選擇角色主圖片');
+        const openMainImagePickerFromPreview = () => {
+          if (typeof window.openMainImagePicker === 'function') window.openMainImagePicker();
+        };
+        preview.addEventListener('click', openMainImagePickerFromPreview);
+        preview.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openMainImagePickerFromPreview();
+          }
+        });
+        aside.appendChild(preview);
+        children.forEach(el => {
+          if (el === exportActions || el === zipStatus || el === jsonBox) return;
+          main.appendChild(el);
+        });
+        if (exportActions) aside.appendChild(exportActions);
+        if (zipStatus) aside.appendChild(zipStatus);
+        if (jsonBox) aside.appendChild(jsonBox);
+        layout.append(main, aside); wrap.appendChild(layout);
+
+        const sourceImage = document.getElementById('imagePreview');
+        const targetImage = preview.querySelector('.quick-preview-image');
+        const syncImage = () => {
+          if (!sourceImage) return;
+          targetImage.src = sourceImage.src || '';
+          targetImage.style.display = sourceImage.classList.contains('show') && sourceImage.src ? 'block' : 'none';
+        };
+        if (sourceImage) {
+          new MutationObserver(syncImage).observe(sourceImage, {attributes:true, attributeFilter:['src','class','style']});
+          syncImage();
+        } else targetImage.style.display = 'none';
+        const nameInput = document.getElementById('name');
+        const nameOutput = preview.querySelector('.quick-preview-name');
+        // 統一提供同步函式，讓手動輸入、匯入 JSON／ZIP、清空資料都能更新預覽名稱。
+        window.syncCharacterPreviewName = () => {
+          const characterName = (nameInput?.value || '').trim();
+          nameOutput.textContent = characterName || '尚未命名';
+        };
+        if (nameInput) {
+          nameInput.addEventListener('input', window.syncCharacterPreviewName);
+          nameInput.addEventListener('change', window.syncCharacterPreviewName);
+          nameInput.addEventListener('keyup', window.syncCharacterPreviewName);
+        }
+        document.addEventListener('input', event => {
+          if (event.target === nameInput) window.syncCharacterPreviewName();
+        }, true);
+        window.syncCharacterPreviewName();
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
+      else init();
+    })();
+
