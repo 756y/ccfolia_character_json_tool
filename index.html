@@ -1651,6 +1651,165 @@ body { background-image: var(--glow, none); background-attachment: fixed; }
   .workspace-aside .actions button.room-zip-btn { grid-column: span 3 !important; }
 }
 
+
+/* ===== ④ 角色圖片與差分：純文字名稱、手機分頁、電腦數量標示 ===== */
+
+.face-count-badge {
+  display: none;
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  padding: 0 9px;
+  border-radius: 99px;
+  vertical-align: middle;
+  color: var(--accent2);
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--line));
+}
+
+.face-tabs { display: none; }
+
+@media (min-width: 761px) {
+  #faceSection .face-count-badge { display: inline-block; }
+}
+
+@media (max-width: 760px) {
+  #faceSection .face-tabs { display: flex; gap: 6px; padding: 0 12px; margin: 2px 0 10px; }
+  #faceSection .face-tab-btn { flex: 1; display: flex; justify-content: center; align-items: center; gap: 6px; padding: 8px; font-weight: 600; }
+  #faceSection .face-tab-btn.on { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
+  #faceSection .face-tab-count { font-size: 11px; line-height: 18px; padding: 0 7px; border-radius: 99px; background: var(--accent); color: #fff; }
+  #faceSection .face-tab-btn.on .face-tab-count { background: #fff; color: var(--accent); }
+  #faceSection.tab-main #faceSettings { display: none !important; }
+  #faceSection.tab-diff .main-image-box { display: none !important; }
+}
+
+/* 差分卡片：拿掉外框，圖片在上、純文字名稱在下，刪除鈕疊在圖片右上角 */
+#facesList { row-gap: 14px; }
+
+#facesList > .repeat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+#facesList > .repeat .repeat-head {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  margin: 0;
+  display: block;
+}
+
+#facesList > .repeat .repeat-title { display: none; }
+
+#facesList > .repeat .repeat-head button {
+  padding: 0 9px;
+  font-size: 11px;
+  line-height: 22px;
+  background: rgba(0, 0, 0, .55) !important;
+  color: #fff !important;
+  border: 0 !important;
+  border-radius: 99px !important;
+}
+
+#facesList > .repeat .face-image-info { order: 1; }
+
+#facesList > .repeat .row {
+  order: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+#facesList > .repeat .f-label {
+  order: 2;
+  width: 100%;
+  margin-top: 4px;
+  padding: 5px 2px !important;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  border: 0 !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  outline: none !important;
+  transition: background .18s ease;
+}
+
+#facesList > .repeat .f-label::placeholder { font-weight: 400; opacity: .65; color: var(--muted); }
+
+#facesList > .repeat .f-label:focus {
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel)) !important;
+  outline: none !important;
+}
+
+/* ===== 手機版：角色主圖片框整塊可點擊，文字置中；選了圖片就以圖片取代文字 ===== */
+@media (max-width: 760px) {
+  #faceSection .main-image-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #faceSection .main-image-header {
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 0;
+  }
+  #faceSection .main-image-header .file-select-btn { display: none !important; }
+  #faceSection .main-image-box:has(.image-preview.show) .main-image-header { display: none; }
+  #faceSection .main-image-box .image-preview { order: 1; }
+  #faceSection .main-image-box .image-preview.show { display: block !important; margin: 0 auto; }
+  #faceSection .main-image-box .image-file-info { order: 2; align-self: stretch; }
+}
+
+/* ===== 角色圖片區調整 ===== */
+@media (min-width: 761px) {
+  /* 電腦版：不顯示角色主圖片與「選擇圖片」按鈕，只保留差分；也不顯示原始檔名 */
+  #faceSection .main-image-box { display: none !important; }
+}
+@media (max-width: 760px) {
+  /* 手機版：主圖片盡量滿版 */
+  #faceSection .main-image-box { padding: 10px; }
+  #faceSection .main-image-box .image-preview,
+  #faceSection .main-image-box .image-preview.show {
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    margin-top: 0;
+    object-fit: contain;
+  }
+  /* 手機版：中間「角色主圖片」文字顏色調淡 */
+  #faceSection .main-image-header strong { color: var(--muted); opacity: .75; font-weight: 500; }
+  /* 手機版：選完圖片後，圖片外面的框框消失 */
+  #faceSection .main-image-box:has(.image-preview.show) {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0;
+  }
+  #faceSection .main-image-box .image-preview.show {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 12px;
+  }
+  /* 手機版：選完圖片後下方的檔名不要有框 */
+  #faceSection .main-image-box .image-file-info {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 4px 0;
+    text-align: center;
+  }
+}
 </style>
 
     
@@ -1839,10 +1998,10 @@ body { background-image: var(--glow, none); background-attachment: fixed; }
 
         <!-- ==================== ④ 圖片 ==================== -->
 
-        <div class="section">
+        <div class="section tab-diff" id="faceSection">
 
             <div class="position-header">
-                <h2>④ 角色圖片與差分</h2>
+                <h2>④ 角色圖片與差分<span class="face-count-badge" id="faceCountBadge">0</span></h2>
 
                 <div style="display:flex; gap:8px; align-items:center;">
                     <button type="button" id="faceAdvancedSettingsButton">修改名稱</button>
@@ -1850,6 +2009,12 @@ body { background-image: var(--glow, none); background-attachment: fixed; }
                 </div>
             </div>
 
+
+            <!-- 手機版分頁：主圖片 / 差分（電腦版隱藏） -->
+            <div class="face-tabs" id="faceTabs">
+                <button type="button" class="face-tab-btn" data-face-tab="main">主圖片</button>
+                <button type="button" class="face-tab-btn on" data-face-tab="diff">差分 <span class="face-tab-count" id="faceTabCount">0</span></button>
+            </div>
 
             <!-- 第一行：名稱 + 選擇圖片按鈕 -->
             <div class="main-image-box">
@@ -2324,6 +2489,43 @@ body { background-image: var(--glow, none); background-attachment: fixed; }
         </div>
     </div>
 
+    <script>
+        /* ④ 角色圖片與差分：差分數量顯示 + 手機版分頁切換 + 手機版主圖片框點擊選圖 */
+        (function () {
+            var sec = document.getElementById('faceSection');
+            var list = document.getElementById('facesList');
+            var tabs = document.getElementById('faceTabs');
+            if (!sec || !list) return;
+            function updateFaceCount() {
+                var n = 0;
+                for (var i = 0; i < list.children.length; i++) {
+                    if (list.children[i].classList.contains('repeat')) n++;
+                }
+                ['faceCountBadge', 'faceTabCount'].forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (el) el.textContent = n;
+                });
+            }
+            new MutationObserver(updateFaceCount).observe(list, { childList: true });
+            updateFaceCount();
+            if (tabs) tabs.addEventListener('click', function (e) {
+                var b = e.target.closest('[data-face-tab]');
+                if (!b) return;
+                var isMain = b.getAttribute('data-face-tab') === 'main';
+                sec.classList.toggle('tab-main', isMain);
+                sec.classList.toggle('tab-diff', !isMain);
+                tabs.querySelectorAll('[data-face-tab]').forEach(function (x) {
+                    x.classList.toggle('on', x === b);
+                });
+            });
+            var box = sec.querySelector('.main-image-box');
+            if (box) box.addEventListener('click', function (e) {
+                if (!window.matchMedia('(max-width: 760px)').matches) return;
+                if (e.target.closest('input, button, a')) return;
+                if (typeof openMainImagePicker === 'function') openMainImagePicker();
+            });
+        })();
+    </script>
     <script src="zip.js"></script>
     <script src="app.js"></script>
     <script src="googleSheets.js"></script>
@@ -2849,6 +3051,40 @@ body { background-image: var(--glow, none); background-attachment: fixed; }
     </footer>
 
 
+
+    <script>
+        /* 移除檔名前面的「原始檔名：」字樣（文字由 app.js 動態產生，這裡在畫面更新後清掉） */
+        (function () {
+            var re = /原始檔名\s*[:：]\s*/g;
+            function clean(root) {
+                var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n, list = [];
+                while ((n = w.nextNode())) list.push(n);
+                list.forEach(function (t) {
+                    var v = t.nodeValue;
+                    if (re.test(v)) { re.lastIndex = 0; t.nodeValue = v.replace(re, ''); return; }
+                    re.lastIndex = 0;
+                    // 結構為 <strong>原始檔名</strong>：檔名 的情況
+                    var prev = t.previousSibling;
+                    if (prev && prev.nodeType === 1 && /^\s*原始檔名\s*[:：]?\s*$/.test(prev.textContent)) {
+                        prev.parentNode.removeChild(prev);
+                        t.nodeValue = t.nodeValue.replace(/^\s*[:：]\s*/, '');
+                    }
+                });
+            }
+            function run() {
+                var roots = [document.getElementById('faceSection')];
+                roots.forEach(function (r) { if (r) clean(r); });
+            }
+            function start() {
+                var sec = document.getElementById('faceSection');
+                if (!sec) return;
+                new MutationObserver(run).observe(sec, { childList: true, subtree: true, characterData: true });
+                run();
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+            else start();
+        })();
+    </script>
 </body>
 
 </html>
