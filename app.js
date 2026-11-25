@@ -4,6 +4,11 @@
 
     const $ = id => document.getElementById(id);
 
+    // SHA-256 格式的檔名不顯示；一般原始檔名照常顯示。
+    function isEncodedImageFilename(filename) {
+      return /^[a-f0-9]{64}\.(?:png|jpe?g|gif|webp)$/i.test(String(filename || '').trim());
+    }
+
     /* =========================================================
        右上角設定：使用 localStorage 記住勾選狀態
     ========================================================= */
@@ -35,6 +40,7 @@
         });
       });
     })();
+
     /* =========================================================
        主圖片：本機 PNG
     ========================================================= */
@@ -48,12 +54,13 @@
     const faceImageData = new WeakMap();
 
 
-
     // 明確掛到 window，確保 HTML inline onclick 可以呼叫
     window.toggleAppSettings = function toggleAppSettings() {
       const panel = document.getElementById('appSettingsPopover');
       if (panel) panel.classList.toggle('show');
     };
+
+
 
     function closeFacePicker() {
       $('facePickerModal').classList.remove('show');
@@ -118,10 +125,6 @@
       return ({ png: 'png', jpg: 'jpeg', jpeg: 'jpeg', gif: 'gif', webp: 'webp' })[ext] || null;
     }
 
-    // CCFOLIA 匯入檔常以 SHA-256 作為檔名；這類編碼檔名不顯示「原始檔名」。
-    function isEncodedImageFilename(filename) {
-      return /^[a-f0-9]{64}\.(?:png|jpe?g|gif|webp)$/i.test(String(filename || '').trim());
-    }
     function getImageMimeType(extension) {
       return ({ png: 'image/png', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' })[extension] || 'application/octet-stream';
     }
@@ -242,19 +245,14 @@
           imageFilename;
 
 
-        /*
-          顯示本機原始檔名
-        */
+        // 不顯示 SHA-256 格式檔名；一般檔名直接顯示，不加「原始檔名：」標籤。
         if (isEncodedImageFilename(file.name)) {
           $('originalImageName').textContent = '';
           $('originalImageName').style.display = 'none';
         } else {
-          $('originalImageName').innerHTML =
-            '<strong>原始檔名：</strong> ' +
-            escapeHTML(file.name);
+          $('originalImageName').textContent = file.name;
           $('originalImageName').style.display = 'block';
         }
-
 
         /*
           圖片預覽
@@ -363,7 +361,7 @@
         const urlInput = row.querySelector('.f-url');
         urlInput.value = filename;
 
-        // 自動帶入圖片名稱時，使用原始檔名並移除副檔名。
+        // 自動帶入圖片名稱時，使用所選圖片的檔名並移除副檔名。
         const autoLabel = $('autoFaceLabel');
         const labelInput = row.querySelector('.f-label');
         if (autoLabel && autoLabel.checked && labelInput) {
@@ -372,12 +370,14 @@
         }
 
         const originalName = row.querySelector('.face-original-name');
-        if (isEncodedImageFilename(file.name)) {
-          originalName.textContent = '';
-          originalName.style.display = 'none';
-        } else {
-          originalName.textContent = '原始檔名：' + file.name;
-          originalName.style.display = '';
+        if (originalName) {
+          if (isEncodedImageFilename(file.name)) {
+            originalName.textContent = '';
+            originalName.style.display = 'none';
+          } else {
+            originalName.textContent = file.name;
+            originalName.style.display = '';
+          }
         }
 
         const hashName = row.querySelector('.face-hash-name');
@@ -779,103 +779,6 @@
       });
 
     }
-
-    /* =========================================================
-       深色 / 亮色 / 我已經完全學會設計模式
-    ========================================================= */
-
-    let themeSwitchCount = 0;
-
-    function applyTheme(theme) {
-
-      document.body.classList.remove(
-        'light',
-        'expert'
-      );
-
-      if (theme === 'light') {
-
-        document.body.classList.add('light');
-
-        $('themeToggle').textContent =
-          '🌙 深色';
-
-      } else if (theme === 'expert') {
-
-        document.body.classList.add('expert');
-
-        // 彩虹模式啟用時，按鈕顯示模式名稱；點擊後仍可返回深色模式。
-        $('themeToggle').textContent =
-          '🌈 我已經完全學會設計了';
-
-      } else {
-
-        $('themeToggle').textContent =
-          '☀️ 亮色';
-
-      }
-
-      localStorage.setItem(
-        'ccfolia-theme',
-        theme
-      );
-
-    }
-
-
-    /* 主題按鈕 */
-
-    function toggleTheme() {
-
-      /* 如果已經進入彩虹地獄 */
-
-      if (document.body.classList.contains('expert')) {
-
-        themeSwitchCount = 0;
-
-        applyTheme('dark');
-
-        return;
-      }
-
-
-      themeSwitchCount++;
-
-
-      /* 連續切換 5 次 */
-
-      if (themeSwitchCount >= 5) {
-
-        applyTheme('expert');
-
-        return;
-      }
-
-
-      const isLight =
-        document.body.classList.contains('light');
-
-
-      applyTheme(
-        isLight
-          ? 'dark'
-          : 'light'
-      );
-
-    }
-
-
-    /* 載入時讀取上次設定 */
-
-    (function () {
-
-      const savedTheme =
-        localStorage.getItem('ccfolia-theme') ||
-        'light';
-
-      applyTheme(savedTheme);
-
-    })();
 
     /* =========================================================
        位置與外觀的展開按鈕
@@ -2662,9 +2565,7 @@ async function importFaceZIP(event) {
 
 
 /* =========================================================
-   ZIP 匯入檔名隱藏 + 差分長按拖曳設為主圖片
-   - Room ZIP 的圖片檔名通常是 SHA-256；即使 zip.js 寫入原始檔名，
-     仍透過觀察差分列文字隱藏編碼檔名。
+   差分長按拖曳設為主圖片
    - 長按差分預覽後拖到側邊 LIVE PREVIEW，即可設為主圖片。
 ========================================================= */
 (function initFaceNameAndMainImageDrag() {
@@ -2746,6 +2647,7 @@ async function importFaceZIP(event) {
     hideEncodedOriginalNames(mainOriginalName);
     nameObserver.observe(mainOriginalName, { subtree: true, childList: true, characterData: true });
   }
+
 
   let activeRow = null;
   let activePointerId = null;
@@ -3332,4 +3234,3 @@ async function importFaceZIP(event) {
     else if (roll === 100) run('lose');
   });
 })();
-
