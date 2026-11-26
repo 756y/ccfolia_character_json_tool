@@ -201,7 +201,7 @@ input:focus,
           padding: 10px 14px;
           border-radius: 8px;
           display: none;
-          box-shadow: 0 8px 30px var(--shadow)
+          box-shadow: 0 4px 14px color-mix(in srgb, var(--shadow) 40%, transparent)
         }
 
 .toast.show {
@@ -535,7 +535,7 @@ input:focus,
   color: var(--text);
   border: 1px solid var(--line);
   border-radius: 10px;
-  box-shadow: 0 8px 28px var(--shadow);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--shadow) 40%, transparent);
   z-index: 100;
   width: 260px;
 }
@@ -699,7 +699,7 @@ input:focus,
           width: min(320px, 82vw);
           background: var(--panel);
           border-right: 1px solid var(--line);
-          box-shadow: 8px 0 28px var(--shadow);
+          box-shadow: 4px 0 12px color-mix(in srgb, var(--shadow) 40%, transparent);
           transform: translateX(-102%);
           transition: transform .28s ease;
           overflow: hidden;
@@ -889,7 +889,7 @@ body {
   border-radius:16px;
   margin:0 0 16px;
   overflow:hidden;
-  box-shadow:0 4px 18px var(--shadow);
+  box-shadow:0 2px 8px color-mix(in srgb, var(--shadow) 45%, transparent);
 }
 
 .section h2 {
@@ -1375,7 +1375,7 @@ button.danger { background:var(--danger-bg)!important; color:#fff!important; }
   border-bottom: 1px solid var(--line);
   background:var(--panel);
   border:0;
-  box-shadow:0 1px 0 var(--line);
+  box-shadow:0 1px 0 color-mix(in srgb, var(--line) 70%, transparent);
   padding: 9px clamp(12px, 2.5vw, 28px);
   gap: 10px;
 }
@@ -1969,12 +1969,12 @@ button.danger {
 
     <div class="wrap">
 
-        <div class="sub">
-            填寫角色資料 → 上傳圖片 → 導入到 CCFOLIA。
+        <div class="sub" style="margin-bottom:8px;">
+            填寫橘色欄位 → 匯入 CCFOLIA。
         </div>
 
         <!-- 匯入工具 -->
-        <div class="actions">
+        <div class="actions" style="margin:6px 0 8px;padding:0 0 4px;">
 
             <button class="success" onclick="openImportModal()">
                 ＋ 匯入 JSON
@@ -1994,7 +1994,7 @@ button.danger {
 
         <!-- ==================== ① 基本資料 ==================== -->
 
-        <div class="section">
+        <div class="section" style="margin-top:0;">
             <h2>① 基本資料</h2>
 
             <div class="grid">
