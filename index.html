@@ -1005,7 +1005,7 @@ button.danger { background:var(--danger-bg)!important; color:#fff!important; }
   border-bottom: 1px solid var(--line);
   background:transparent;
   border:0;
-  padding-right:18px;
+  padding-right:10px;
 }
 
 .position-header h2 {
@@ -1015,7 +1015,7 @@ button.danger { background:var(--danger-bg)!important; color:#fff!important; }
 }
 
 .position-toggle {
-  margin-right: 12px;
+  margin-right: 4px;
   padding: 6px 10px;
   border: 1px solid var(--line);
   cursor: pointer;
@@ -1731,7 +1731,6 @@ button.danger {
             <div class="grid">
                 <div class="label">
                     <strong>角色名稱</strong>
-                    <span>name｜角色顯示名稱</span>
                 </div>
                 <div class="field">
                     <input id="name" value="" placeholder="古閣雲" oninput="generate()">
@@ -1741,7 +1740,6 @@ button.danger {
             <div class="grid">
                 <div class="label">
                     <strong>備註</strong>
-                    <span>memo｜角色的備註文字</span>
                 </div>
                 <div class="field">
                     <textarea id="memo" placeholder="可留空" oninput="generate()"></textarea>
@@ -1751,7 +1749,6 @@ button.danger {
             <div class="grid">
                 <div class="label">
                     <strong>行動值</strong>
-                    <span>initiative｜行動值</span>
                 </div>
                 <div class="field">
                     <input id="initiative" type="number" value="0" oninput="generate()">
@@ -1761,7 +1758,6 @@ button.danger {
             <div class="grid">
                 <div class="label">
                     <strong>外部連結</strong>
-                    <span>externalUrl｜網址</span>
                 </div>
                 <div class="field">
                     <input id="externalUrl" placeholder="https://..." oninput="generate()">
@@ -1805,7 +1801,6 @@ button.danger {
 
                 <div style="display:flex; gap:8px; align-items:center;">
                     <button type="button" id="faceAdvancedSettingsButton">修改名稱</button>
-                    <button type="button" class="position-toggle" onclick="toggleFaceSettings()">收起</button>
                 </div>
             </div>
 
@@ -1881,7 +1876,6 @@ button.danger {
                 <div class="grid">
                     <div class="label">
                         <strong>X 座標</strong>
-                        <span>x｜官方註記：預設值優先</span>
                     </div>
 
                     <div class="field">
@@ -1892,7 +1886,6 @@ button.danger {
                 <div class="grid">
                     <div class="label">
                         <strong>Y 座標</strong>
-                        <span>y｜官方註記：預設值優先</span>
                     </div>
 
                     <div class="field">
@@ -1903,7 +1896,6 @@ button.danger {
                 <div class="grid">
                     <div class="label">
                         <strong>旋轉角度</strong>
-                        <span>angle｜number</span>
                     </div>
 
                     <div class="field">
@@ -1914,7 +1906,6 @@ button.danger {
                 <div class="grid">
                     <div class="label">
                         <strong>寬度</strong>
-                        <span>width｜number</span>
                     </div>
 
                     <div class="field">
@@ -1925,7 +1916,6 @@ button.danger {
                 <div class="grid">
                     <div class="label">
                         <strong>高度</strong>
-                        <span>height｜number</span>
                     </div>
 
                     <div class="field">
@@ -1938,7 +1928,6 @@ button.danger {
             <div class="grid">
                 <div class="label">
                     <strong>顏色</strong>
-                    <span>color｜例如 #E0E0E0</span>
                 </div>
 
                 <div class="field">
@@ -2016,7 +2005,6 @@ button.danger {
             <div class="grid" style="display:none">
                 <div class="label">
                     <strong>Owner</strong>
-                    <span>owner｜擁有者；可留空</span>
                 </div>
 
                 <div class="field">

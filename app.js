@@ -765,32 +765,7 @@
     /* =========================================================
    角色圖片與差分的展開按鈕
 ========================================================= */
-function toggleFaceSettings() {
-  const settings = document.getElementById('faceSettings');
-
-  const button = document.querySelector(
-    '.position-header button[onclick="toggleFaceSettings()"]'
-  );
-
-  if (!settings || !button) return;
-
-  if (
-    settings.style.display === 'none' ||
-    settings.style.display === ''
-  ) {
-    settings.style.display = 'block';
-    button.textContent = '收起';
-  } else {
-    settings.style.display = 'none';
-    button.textContent = '展開';
-  }
-}
-
-    /* =========================================================
-       產生 JSON
-    ========================================================= */
-
-    function generate() {
+function generate() {
 
       const status =
         [...$('statusList').children].map(r => ({
