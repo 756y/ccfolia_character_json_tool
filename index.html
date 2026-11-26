@@ -1609,6 +1609,66 @@ button.danger {
     text-align: center;
   }
 }
+
+
+/* ===== 細部間距與按鈕尺寸微調 ===== */
+/* 保留 faceAdvancedSettings.js 使用的舊元素 ID；快捷鍵由 details 自行展開，不受正規表示式勾選狀態影響 */
+#faceAdvancedRegexTools { display: block !important; }
+
+/*「修改名稱」按鈕高度與「位置與外觀」收合按鈕一致 */
+#faceAdvancedSettingsButton {
+  padding: 6px 10px;
+  font-size: 14px;
+  line-height: normal;
+  min-height: 0;
+}
+
+/* 差分圖片與名稱輸入框靠近一些，保留適度呼吸空間 */
+#facesList > .repeat .face-image-info { gap: 3px; }
+#facesList > .repeat .face-upload-tile { margin-top: 0; }
+#facesList > .repeat .row { margin-top: 0; }
+#facesList > .repeat .f-label {
+  margin-top: 1px;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+
+/* 顯示設定四個選項：縮小開關並收緊選項間距 */
+.workspace-main .section:has(#active) .grid {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+.checkbox-title input[type="checkbox"] {
+  width: 44px;
+  height: 24px;
+}
+.checkbox-title input[type="checkbox"]::before {
+  width: 18px;
+  height: 18px;
+  top: 2px;
+  left: 2px;
+}
+.checkbox-title input[type="checkbox"]:checked::before {
+  transform: translateX(20px);
+}
+
+/* 設定面板中的更新頻率／時間資訊與選項間距適度縮小 */
+.settings-frequency-row { padding-top: 0; padding-bottom: 1px; }
+.settings-group-separated {
+  margin-top: 10px;
+  padding-top: 9px;
+}
+.settings-checkbox-spaced { margin-top: 8px; }
+.settings-last-updated { margin-top: 4px; }
+
+/* 常用指令標題與輸入框之間不要留太大空白 */
+.workspace-main > .section:has(#commands) h2 {
+  padding-bottom: 5px;
+}
+.workspace-main > .section:has(#commands) > .grid:first-of-type {
+  padding-top: 4px;
+}
+
 </style>
     <link rel="stylesheet" href="theme.css">
 
@@ -2150,18 +2210,18 @@ button.danger {
                         <label>搜尋內容<input id="faceAdvancedSearch" type="text" placeholder="例如：角色{N}_" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;"></label>
                         <button type="button" id="faceAdvancedAutoDetect" style="margin-top:7px;">✨ 智慧偵測共同前綴</button>
                         <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">
-                            自動從差分名稱的多數群組尋找共同前綴，支援中文、英文字母、數字、標點與混合名稱。自動填入取代內容 @，請預覽確認後再儲存。
+                            支援中文、英文字母、數字、標點與混合名稱。自動填入取代內容 @，請預覽確認後再儲存。
                         </div>
                     </div>
                     <label>取代為<input id="faceAdvancedReplace" type="text" placeholder="例如：@" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;"></label>
                 </div>
                 <div style="margin-top:14px;display:grid;gap:12px;">
                     <div>
-                        <div style="display:block;">
+                        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
                             <label style="display:inline-flex;align-items:center;gap:8px;margin:0;"><input type="checkbox" id="faceAdvancedCaseSensitive" style="width:auto;"> 區分大小寫</label>
-                            <details style="display:block;font-size:13px;margin-top:6px;width:100%;">
+                            <details style="display:contents;font-size:13px;margin:0;">
                                 <summary style="color:var(--accent);cursor:pointer;display:list-item;">查看更多</summary>
-                                <div style="margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
+                                <div style="flex:0 0 100%;margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
                                     <strong>區分大小寫是什麼？</strong><br>
                                     開啟後，英文字母的大小寫必須完全相同才會符合。<br>
                                     例如搜尋 <code>Face</code>：會找到 <code>Face</code>，不會找到 <code>face</code> 或 <code>FACE</code>。<br>
@@ -2171,11 +2231,11 @@ button.danger {
                         </div>
                     </div>
                     <div>
-                        <div style="display:block;">
+                        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
                             <label style="display:inline-flex;align-items:center;gap:8px;margin:0;"><input type="checkbox" id="faceAdvancedWholeWord" style="width:auto;"> 全字匹配</label>
-                            <details style="display:block;font-size:13px;margin-top:6px;width:100%;">
+                            <details style="display:contents;font-size:13px;margin:0;">
                                 <summary style="color:var(--accent);cursor:pointer;display:list-item;">查看更多</summary>
-                                <div style="margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
+                                <div style="flex:0 0 100%;margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
                                     <strong>全字匹配是什麼？</strong><br>
                                     開啟後，搜尋文字左右不能緊貼英文字母、數字或底線的一部分，避免只改到較長英文／數字名稱中的片段。<br>
                                     例如搜尋 <code>cat</code>：會匹配 <code>cat</code>，但不會匹配 <code>cats</code> 或 <code>bobcat</code>。<br>
@@ -2185,11 +2245,11 @@ button.danger {
                         </div>
                     </div>
                     <div>
-                        <div style="display:block;">
+                        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
                             <label style="display:inline-flex;align-items:center;gap:8px;margin:0;"><input type="checkbox" id="faceAdvancedRegex" style="width:auto;"> 正規表示式</label>
-                            <details style="display:block;font-size:13px;margin-top:6px;width:100%;">
+                            <details style="display:contents;font-size:13px;margin:0;">
                                 <summary style="color:var(--accent);cursor:pointer;display:list-item;">查看更多</summary>
-                                <div style="margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
+                                <div style="flex:0 0 100%;margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
                                     <strong>正規表示式是什麼？</strong><br>
                                     開啟後，搜尋內容會被當成規則，而不是一般文字。常用符號如下：
                                     <ul style="margin:6px 0;padding-left:22px;">
@@ -2208,9 +2268,9 @@ button.danger {
                                     若只是要搜尋字面上的符號（例如 <code>.</code>、<code>+</code>），請關閉正規表示式；修改前先按「預覽」確認結果。
                                 </div>
                             </details>
-                        </div>
-                    </div>
-                    <div id="faceAdvancedRegexTools" style="display:none;margin-top:4px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);">
+                    <details id="faceAdvancedRegexShortcuts" style="display:contents;margin:0;font-size:13px;">
+                        <summary style="color:var(--accent);cursor:pointer;display:list-item;">快捷鍵</summary>
+                        <div id="faceAdvancedRegexTools" style="display:block;flex:0 0 100%;margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);">
                         <strong style="display:block;margin-bottom:8px;">常用範例（點一下，自動填入搜尋與取代）</strong>
                         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
                             <button type="button" class="face-regex-example" data-search="名稱_" data-replace="@">名稱_差分 → @差分</button>
@@ -2258,6 +2318,9 @@ button.danger {
                             <div style="margin-top:6px;">取代欄也有快捷符號：<code>{0}</code> 代表整段符合的文字，<code>{1}</code>、<code>{2}</code> 代表搜尋規則中第 1、2 個 <code>( )</code> 捕獲的內容。</div>
                             <div style="margin-top:6px;">例：搜尋 <code>角色{D}</code>、取代為 <code>人物{0}</code>，會把「角色123」改成「人物角色123」。若搜尋 <code>角色({D})</code>、取代為 <code>人物{1}</code>，則會改成「人物123」。</div>
                             <div style="margin-top:6px;color:var(--muted);">這些大括號快捷符號只會在勾選「正規表示式」時生效；其他正規表示式語法仍可直接輸入。</div>
+                        </div>
+                        </div>
+                    </details>
                         </div>
                     </div>
                 </div>
