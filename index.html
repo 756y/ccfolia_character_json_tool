@@ -1364,9 +1364,11 @@ button.danger { background:var(--danger-bg)!important; color:#fff!important; }
   -webkit-user-drag: none;
 }
 
-/* 導覽列：桌面與手機都縮小文字，並降低整體高度。 */
+/* 導覽列：桌面與手機共用固定高度，側欄標題列也以此高度對齊。 */
 
 .top-nav {
+  height: 52px;
+  min-height: 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1507,15 +1509,6 @@ button.danger {
 
 #facesList > .repeat .repeat-title { display: none; }
 
-#facesList > .repeat .repeat-head button {
-  padding: 0 9px;
-  font-size: 11px;
-  line-height: 22px;
-  background: rgba(0, 0, 0, .55) !important;
-  color: #fff !important;
-  border: 0 !important;
-  border-radius: 99px !important;
-}
 
 #facesList > .repeat .face-image-info { order: 1; }
 
@@ -1681,6 +1674,210 @@ button.danger {
   align-self: center;
 }
 
+
+/* =========================================================
+   角色屬性欄位：參考 CCFOLIA Piece Maker 的精簡表單排列
+   僅調整外觀，不變更 JSON 資料與操作邏輯
+========================================================= */
+
+/* 備註縮成單行輸入高度，右側加上愛心 */
+.memo-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+.memo-input-wrap #memo {
+  width: 100%;
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
+  padding: 8px 10px;
+  resize: none;
+  overflow: hidden;
+  line-height: 20px;
+}
+
+
+/* 變動／固定屬性：移除 Parent/Status 編號列，只保留最右側叉叉 */
+#statusList,
+#paramsList {
+  padding: 0 22px;
+}
+#statusList > .repeat,
+#paramsList > .repeat {
+  position: relative;
+  padding: 7px 30px 7px 0;
+  border: 0 !important;
+  border-bottom: 0 !important;
+  background: transparent;
+}
+#statusList > .repeat .repeat-head,
+#paramsList > .repeat .repeat-head {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  display: block;
+  margin: 0;
+  padding: 0;
+  z-index: 1;
+}
+#statusList > .repeat .repeat-title,
+#paramsList > .repeat .repeat-title {
+  display: none !important;
+}
+#statusList > .repeat .repeat-head button,
+#paramsList > .repeat .repeat-head button {
+  width: 24px;
+  height: 28px;
+  min-width: 24px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-size: 0 !important;
+  line-height: 1;
+  box-shadow: none !important;
+}
+#statusList > .repeat .repeat-head button::before,
+#paramsList > .repeat .repeat-head button::before {
+  content: "×";
+  font-size: 21px;
+  font-weight: 400;
+}
+#statusList > .repeat .repeat-head button:hover,
+#paramsList > .repeat .repeat-head button:hover {
+  color: var(--danger) !important;
+  background: color-mix(in srgb, var(--danger) 9%, transparent) !important;
+}
+/* 差分圖片刪除：與變動組件／固定屬性的叉叉一致，不顯示按鈕框或背景 */
+#facesList > .repeat .repeat-head button {
+  width: 24px !important;
+  height: 28px !important;
+  min-width: 24px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-size: 0 !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+}
+#facesList > .repeat .repeat-head button::before {
+  content: "×";
+  font-size: 21px;
+  font-weight: 400;
+}
+#facesList > .repeat .repeat-head button:hover {
+  color: var(--danger) !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+#statusList > .repeat .row,
+#paramsList > .repeat .row {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 14px;
+  align-items: center;
+}
+#statusList > .repeat .row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+#paramsList > .repeat .row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+#statusList > .repeat .row > *,
+#paramsList > .repeat .row > * {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 7px 2px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none;
+}
+#statusList > .repeat .row > *:focus,
+#paramsList > .repeat .row > *:focus {
+  border-bottom-color: var(--accent) !important;
+  outline: none !important;
+}
+#statusList > .repeat .row > *::placeholder,
+#paramsList > .repeat .row > *::placeholder {
+  color: var(--muted);
+  opacity: .78;
+}
+#statusList + div,
+#paramsList + div {
+  padding: 10px 22px 14px !important;
+}
+
+/* 手機版：顏色 HEX 輸入與預覽色塊同列，HEX 欄位吃滿剩餘寬度 */
+.workspace-main .field:has(#color) > div {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.workspace-main .field #color {
+  flex: 1 1 0 !important;
+  width: 0 !important;
+  min-width: 0;
+}
+.workspace-main .field #colorPreview {
+  flex: 0 0 42px !important;
+  width: 42px !important;
+  min-width: 42px;
+}
+
+@media (max-width: 760px) {
+  #statusList,
+  #paramsList {
+    padding: 0 16px;
+  }
+  #statusList > .repeat,
+  #paramsList > .repeat {
+    padding: 6px 28px 6px 0;
+  }
+  #statusList > .repeat .row,
+  #paramsList > .repeat .row {
+    gap: 10px;
+  }
+  #statusList > .repeat .row > *,
+  #paramsList > .repeat .row > * {
+    height: 36px;
+    font-size: 13px;
+  }
+  #statusList + div,
+  #paramsList + div {
+    padding: 8px 16px 12px !important;
+  }
+  .memo-input-wrap #memo {
+    height: 38px;
+    min-height: 38px;
+  }
+}
+
+/* 側欄標題列與頁面頂部導覽列共用 52px 高度，避免標題列看起來較窄。 */
+.nav-sidebar-head {
+  box-sizing: border-box;
+  height: 52px;
+  min-height: 52px;
+  padding: 9px 16px;
+  line-height: 24px;
+  display: flex;
+  align-items: center;
+}
+
 </style>
     <link rel="stylesheet" href="theme.css">
 
@@ -1814,7 +2011,9 @@ button.danger {
                     <strong>備註</strong>
                 </div>
                 <div class="field">
-                    <textarea id="memo" placeholder="可留空" oninput="generate()"></textarea>
+                    <div class="memo-input-wrap">
+                        <textarea id="memo" rows="1" placeholder="想跟我一起去私奔嗎？♡" oninput="generate()"></textarea>
+                    </div>
                 </div>
             </div>
 

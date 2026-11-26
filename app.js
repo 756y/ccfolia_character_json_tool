@@ -571,14 +571,17 @@
       </span>
 
       <button
+        type="button"
         class="danger mini"
+        aria-label="刪除差分圖片"
+        title="刪除差分圖片"
         onclick="
           this.closest('.repeat').remove();
           renumber('face');
           generate()
         "
       >
-        刪除
+        ×
       </button>
 
     </div>
