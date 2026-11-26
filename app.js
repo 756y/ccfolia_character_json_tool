@@ -1618,7 +1618,6 @@ function generate() {
         'externalUrl',
         'iconUrl',
         'color',
-        'commands',
         'owner'
       ].forEach(k => {
 
@@ -1630,6 +1629,16 @@ function generate() {
         }
 
       });
+
+      // Room ZIP 匯入也必須依「自動修正教育及智力名稱」勾選狀態處理，
+      // 不可直接沿用 ZIP 內的原始指令名稱。
+      if ($( 'commands' ) && d.commands != null) {
+        const autoFixCommandNames = $('autoFixEducationCommand');
+        $('commands').value = applyEducationIntelligenceCommandNameSetting(
+          String(d.commands),
+          !!(autoFixCommandNames && autoFixCommandNames.checked)
+        );
+      }
 
       // ZIP 匯入會經過 loadJSON；顏色文字欄位更新後立即同步色彩預覽。
       updateColorPreview();

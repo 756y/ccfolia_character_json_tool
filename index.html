@@ -1669,6 +1669,18 @@ button.danger {
   padding-top: 4px;
 }
 
+ 
+/* Parent／Status 欄位內容垂直置中，避免文字與控制項視覺上偏上。 */
+.workspace-main .grid,
+.workspace-main .field,
+.workspace-main .label {
+  align-items: center;
+}
+.workspace-main .field > *,
+.workspace-main .label > * {
+  align-self: center;
+}
+
 </style>
     <link rel="stylesheet" href="theme.css">
 
