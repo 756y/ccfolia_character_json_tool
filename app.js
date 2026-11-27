@@ -1815,7 +1815,7 @@ function generate() {
       });
 
 
-      // 使用與頁面初次載入完全相同的預設資料（HP／MP／San 數值皆維持空白）。
+      // 使用與頁面初次載入完全相同的預設資料（HP／MP／SAN 數值皆維持空白）。
       defaultStatuses.forEach(s => addStatus({
         label: s.label,
         value: s.value,
@@ -1878,7 +1878,7 @@ function generate() {
       },
 
       {
-        label: 'San',
+        label: 'SAN',
         value: '',
         max: ''
       }
@@ -3399,4 +3399,3 @@ async function importFaceZIP(event) {
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
       else init();
     })();
-
