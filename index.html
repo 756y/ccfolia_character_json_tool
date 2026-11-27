@@ -2315,7 +2315,7 @@
                     <strong>行動值</strong>
                 </div>
                 <div class="field">
-                    <input id="initiative" type="number" value="0" oninput="generate()">
+                    <input id="initiative" type="number" value="" placeholder="99" oninput="generate()">
                 </div>
             </div>
 
@@ -2324,7 +2324,7 @@
                     <strong>外部連結</strong>
                 </div>
                 <div class="field">
-                    <input id="externalUrl" placeholder="https://..." oninput="generate()">
+                    <input id="externalUrl" placeholder="https://...貼上試算表連結自動讀取內容" oninput="generate()">
                 </div>
             </div>
         </div>
@@ -2587,7 +2587,7 @@
             </button>
 
             <button class="solid-accent room-zip-btn" onclick="downloadRoomZIP()">
-                📦 Room ZIP
+                📦 下載 Room ZIP
             </button>
 
             <button class="secondary hidden-json-action" onclick="downloadJSON()">
