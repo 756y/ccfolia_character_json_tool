@@ -1282,6 +1282,18 @@
       border-color: color-mix(in srgb, var(--danger-bg) 42%, var(--line)) !important;
     }
 
+    /* 實心主題色按鈕：匯入 ZIP、Room ZIP，跟隨主題主色 */
+    button.solid-accent {
+      background: var(--accent) !important;
+      color: var(--accent-on, var(--button-text, #fff)) !important;
+      border-color: var(--accent) !important;
+    }
+
+    button.solid-accent:hover {
+      background: color-mix(in srgb, var(--accent) 86%, #000) !important;
+      border-color: color-mix(in srgb, var(--accent) 86%, #000) !important;
+    }
+
     /* 手機版四個主要操作按鈕固定在同一橫列；桌面版維持原樣。 */
 
     @media (max-width: 760px) {
@@ -1651,12 +1663,18 @@
 
     .memo-input-wrap #memo {
       width: 100%;
-      height: 40px;
-      min-height: 40px;
+      height: 42px;
+      min-height: 42px;
       padding: 9px 10px;
       resize: vertical;
       overflow: auto;
-      line-height: 20px;
+      line-height: 22px;
+    }
+
+    /* 角色名稱、行動值固定與備註同高，確保三者一樣高 */
+    #name,
+    #initiative {
+      height: 42px;
     }
 
     /* 變動／固定屬性：移除 Parent/Status 編號列，只保留最右側叉叉 */
@@ -1839,8 +1857,8 @@
         padding: 8px 16px 12px !important;
       }
       .memo-input-wrap #memo {
-        height: 40px;
-        min-height: 40px;
+        height: 42px;
+        min-height: 42px;
       }
     }
 
@@ -2246,12 +2264,12 @@
         <!-- 匯入工具 -->
         <div class="actions" style="margin:6px 0 8px;padding:0 0 4px;">
 
-            <button class="success" onclick="openImportModal()">
+            <button class="secondary" onclick="openImportModal()">
                 ＋ 匯入 JSON
             </button>
 
             <!-- ZIP 匯入 -->
-            <button class="secondary" onclick="$('zipFile').click()">
+            <button class="solid-accent" onclick="$('zipFile').click()">
                 ＋ 匯入 ZIP
             </button>
 
@@ -2563,7 +2581,7 @@
                 複製 JSON
             </button>
 
-            <button class="success room-zip-btn" onclick="downloadRoomZIP()">
+            <button class="solid-accent room-zip-btn" onclick="downloadRoomZIP()">
                 📦 Room ZIP
             </button>
 
@@ -3152,6 +3170,7 @@
                 '--file-bg': rgba(panel2, A), '--file-text': text, '--file-border': line,
                 '--file-hover': rgba(mix(panel2, text, .07), Math.min(1, A + .15)), '--file-hover-border': mix(line, text, .3),
                 '--button-text': onColor(ac2),
+                '--accent-on': onColor(ac),
                 '--secondary-bg': d ? mix(panel2, text, .14) : line,
                 '--danger-bg': mix(c[9], '#000000', d ? .45 : .3),
                 '--success-bg': mix(c[10], '#000000', d ? .45 : .3),
