@@ -3372,13 +3372,18 @@ async function importFaceZIP(event) {
         const targetImage = preview.querySelector('.quick-preview-image');
         const syncImage = () => {
           if (!sourceImage) return;
-          targetImage.src = sourceImage.src || '';
-          targetImage.style.display = sourceImage.classList.contains('show') && sourceImage.src ? 'block' : 'none';
+          // 尚未選擇主圖片時，預覽窗顯示預設圖 guide-images/someone.png
+          const hasMainImage = sourceImage.classList.contains('show') && sourceImage.src;
+          targetImage.src = hasMainImage ? sourceImage.src : './guide-images/someone.png';
+          targetImage.style.display = 'block';
         };
         if (sourceImage) {
           new MutationObserver(syncImage).observe(sourceImage, {attributes:true, attributeFilter:['src','class','style']});
           syncImage();
-        } else targetImage.style.display = 'none';
+        } else {
+          targetImage.src = './guide-images/someone.png';
+          targetImage.style.display = 'block';
+        }
         const nameInput = document.getElementById('name');
         const nameOutput = preview.querySelector('.quick-preview-name');
         // 統一提供同步函式，讓手動輸入、匯入 JSON／ZIP、清空資料都能更新預覽名稱。
