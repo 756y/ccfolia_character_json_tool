@@ -1421,7 +1421,7 @@
 
   function renderLastUpdated(timestamp) {
     const element = getElement('googleSheetsLastUpdated');
-    if (element) element.textContent = '最近更新时间：' + formatLastUpdated(timestamp);
+    if (element) element.textContent = '最近更新時間：' + formatLastUpdated(timestamp);
   }
 
   function recordLastUpdated() {
