@@ -17,7 +17,7 @@
 
   const SHEET_NAME = '人物卡';
   const REQUEST_TIMEOUT_MS = 15000;
-  const INPUT_DEBOUNCE_MS = 900;
+  const INPUT_DEBOUNCE_MS = 500; // 手動輸入時的等待時間（貼上連結時不等待）
 
   let debounceTimer = null;
   let pollTimer = null;
@@ -73,17 +73,13 @@
     };
   }
 
+  let jsonpSeq = 0;
+
+  // 使用各自獨立的回呼函式名稱（gviz 的 responseHandler 參數），
+  // 這樣可以同時送出多個請求，不會互相搶用同一個全域 setResponse。
   function jsonpGoogleSheet(url) {
     return new Promise((resolve, reject) => {
-      const oldGoogle = window.google;
-      const createdGoogle = !oldGoogle;
-
-      if (!window.google) window.google = {};
-      if (!window.google.visualization) window.google.visualization = {};
-      if (!window.google.visualization.Query) window.google.visualization.Query = {};
-
-      const queryObject = window.google.visualization.Query;
-      const oldHandler = queryObject.setResponse;
+      const handlerName = '__gsSyncCb_' + Date.now().toString(36) + '_' + (++jsonpSeq);
       let finished = false;
       let script = null;
       let timeoutId = null;
@@ -94,29 +90,14 @@
 
         if (timeoutId) window.clearTimeout(timeoutId);
         if (script && script.parentNode) script.parentNode.removeChild(script);
-
-        if (oldHandler === undefined) {
-          try {
-            delete queryObject.setResponse;
-          } catch (_) {
-            queryObject.setResponse = undefined;
-          }
-        } else {
-          queryObject.setResponse = oldHandler;
-        }
-
-        if (createdGoogle && window.google &&
-            window.google.visualization &&
-            Object.keys(window.google.visualization).length === 0) {
-          delete window.google.visualization;
-        }
-        if (createdGoogle && window.google &&
-            Object.keys(window.google).length === 0) {
-          delete window.google;
+        try {
+          delete window[handlerName];
+        } catch (_) {
+          window[handlerName] = undefined;
         }
       }
 
-      queryObject.setResponse = function (response) {
+      window[handlerName] = function (response) {
         cleanup();
 
         if (!response || response.status === 'error') {
@@ -139,7 +120,7 @@
 
       script = document.createElement('script');
       script.async = true;
-      script.src = url;
+      script.src = url.replace('tqx=out:json', 'tqx=out:json;responseHandler:' + handlerName);
       script.onerror = function () {
         cleanup();
         reject(new Error('無法載入 Google 試算表。請確認共用權限與網路連線。'));
@@ -427,9 +408,17 @@
   async function readCharacterFromSheet(info) {
     let lastError = null;
 
-    for (const queryUrl of makeQueryUrls(info)) {
+    // 先同時送出所有請求（gid 與分頁名稱），再依原本順序採用；
+    // 第一個失敗時不必再重新等待第二次連線。
+    const pending = makeQueryUrls(info).map(queryUrl => {
+      const request = jsonpGoogleSheet(queryUrl);
+      request.catch(() => {}); // 避免尚未輪到的請求失敗時出現未處理錯誤
+      return request;
+    });
+
+    for (const request of pending) {
       try {
-        const response = await jsonpGoogleSheet(queryUrl);
+        const response = await request;
         const character = findCharacterJSON(response);
         if (character) {
           lastCharacterSheetResponse = response;
@@ -1608,7 +1597,7 @@
     }
   };
 
-  function scheduleCheck(forceCheck = true) {
+  function scheduleCheck(forceCheck = true, delayMs = INPUT_DEBOUNCE_MS) {
     const field = getElement('externalUrl');
     if (!field) return;
 
@@ -1624,7 +1613,7 @@
     debounceTimer = window.setTimeout(async () => {
       await checkSheet(url, true, forceCheck);
       startPolling(url);
-    }, INPUT_DEBOUNCE_MS);
+    }, delayMs);
   }
 
   function markImportPending() {
@@ -1683,16 +1672,41 @@
     }
   }
 
+  // 先與 docs.google.com 建立連線（DNS／TLS），省下實際讀取時的握手時間。
+  let warmUpLink = null;
+  let warmUpTimer = null;
+  function warmUpConnection() {
+    if (warmUpLink && warmUpLink.parentNode) {
+      window.clearTimeout(warmUpTimer);
+    } else {
+      warmUpLink = document.createElement('link');
+      warmUpLink.rel = 'preconnect';
+      warmUpLink.href = 'https://docs.google.com';
+      document.head.appendChild(warmUpLink);
+    }
+    warmUpTimer = window.setTimeout(() => {
+      if (warmUpLink && warmUpLink.parentNode) warmUpLink.parentNode.removeChild(warmUpLink);
+      warmUpLink = null;
+    }, 20000);
+  }
+
   function init() {
     restoreLastUpdated();
     const field = getElement('externalUrl');
     if (!field) return;
 
     watchImportedData();
+    warmUpConnection();
+    field.addEventListener('focus', warmUpConnection);
 
     // 貼上或輸入試算表連結後，立即排程檢查；同一連結再次貼上也會強制比對。
     // 只監聽 input，避免 change 事件在失焦時重複開啟比對視窗。
-    field.addEventListener('input', () => scheduleCheck(true));
+    // 貼上／拖曳連結時不需要等待輸入結束，立即開始讀取；手動打字才維持短暫等待。
+    field.addEventListener('input', event => {
+      const type = event && event.inputType ? event.inputType : '';
+      const pasted = type === 'insertFromPaste' || type === 'insertFromDrop';
+      scheduleCheck(true, pasted ? 0 : INPUT_DEBOUNCE_MS);
+    });
 
     // 若表單原本已保存試算表連結，開啟時也嘗試讀取一次。
     if (extractSpreadsheetInfo(field.value)) {
