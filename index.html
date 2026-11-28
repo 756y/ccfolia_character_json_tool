@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CCFOLIA Character JSON 產生器</title>
+    <title>CCFOLIA Character Maker</title>
 
     <!-- Discord / Facebook / LINE 連結預覽 -->
     <meta property="og:type" content="website">
@@ -14,6 +14,10 @@
     <meta property="og:url" content="https://756y.github.io/ccfolia_character_json_tool/">
 
     <link rel="stylesheet" href="googleSheets.css">
+    <!-- 繁體中文楷體（Google Fonts：LXGW WenKai TC） -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap">
 
     <style>
     * {
@@ -1320,10 +1324,7 @@
       }
     }
 
-    /* 隱藏「複製 JSON」「下載 JSON」（按鈕與功能都還在，只是不顯示）。 手機版四顆按鈕同一列：Room ZIP 補足被隱藏的兩顆（共 3 格），全部清空維持 1 格。電腦版不動。 */
-    .hidden-json-action {
-      display: none !important;
-    }
+    /* 手機版四欄網格：Room ZIP 佔 3 格，全部清空 1 格。電腦版不動。 */
 
     @media (max-width: 760px) {
       .workspace-aside .actions button.room-zip-btn {
@@ -1855,7 +1856,6 @@
       #statusList > .repeat .row > *,
       #paramsList > .repeat .row > * {
         height: 36px;
-        font-size: 13px;
       }
       #statusList + div,
       #paramsList + div {
@@ -2164,13 +2164,75 @@
     body {
       margin: 0;
       line-height: 1.5;
-      font-family: Inter,ui-sans-serif,system-ui,-apple-system,"Noto Sans TC",sans-serif;
+      font-family: "LXGW WenKai TC","Kaiti TC","BiauKai","標楷體","DFKai-SB","KaiTi","STKaiti","PingFang TC","Microsoft JhengHei",serif;
       letter-spacing: .01em;
       background: var(--bg);
       /* 選了主題時的背景光暈（需寫在 background 之後，否則會被蓋掉） */
       background-image: var(--glow, none);
       background-attachment: fixed;
       color: var(--text);
+    }
+
+    /* ===== 由行內 style 抽出的 class（改版時只需改這裡） ===== */
+    #themeFx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+    .settings-frequency-row.theme-alpha-row { margin-top: 12px; }
+    .sub.sub-tight { margin-bottom: 8px; }
+    /* !important：沿用原行內樣式的優先權，避免被 .workspace-main > .actions:first-of-type 蓋掉 */
+    .actions.import-actions { margin: 6px 0 8px !important; padding: 0 0 4px !important; }
+    .section.section-first { margin-top: 0; }
+    .pad-12 { padding: 12px; }
+    .head-actions { display: flex; gap: 8px; align-items: center; }
+    .face-actions { padding: 12px; display: flex; gap: 8px; }
+    .color-field { display: flex; align-items: center; gap: 8px; }
+    .color-text { flex: 1; }
+    .color-picker { width: 42px; height: 42px; padding: 2px; cursor: pointer; }
+    .modal-box.modal-wide { width: min(1000px, 100%); max-height: 90vh; box-sizing: border-box; }
+    /* 標籤綁定輸入欄：點標籤即聚焦 */
+    .label > label:not(.checkbox-title) { display: block; cursor: pointer; }
+    label.checkbox-title { cursor: pointer; }
+    /* ① ⑤ 欄位標籤與 ⑥ 顯示設定文字：取消粗體 */
+    .label > label > strong,
+    .checkbox-label .checkbox-title strong { font-weight: 400; }
+
+    /* 差分名稱批次修改視窗 */
+    #faceAdvancedModal { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,.72); align-items: center; justify-content: center; padding: 16px; }
+    #faceAdvancedModal .fa-panel { width: min(680px, 100%); max-height: 90vh; overflow: auto; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 12px; padding: 18px; box-shadow: 0 12px 40px var(--shadow); }
+    #faceAdvancedModal .fa-title { margin: 0 0 16px; }
+    #faceAdvancedModal .fa-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 14px; }
+    #faceAdvancedModal .fa-input { display: block; width: 100%; box-sizing: border-box; margin-top: 5px; }
+    #faceAdvancedModal .fa-detect { margin-top: 7px; }
+    #faceAdvancedModal .fa-note { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.6; }
+    #faceAdvancedModal .fa-options { margin-top: 14px; display: grid; gap: 12px; }
+    #faceAdvancedModal .fa-opt-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    #faceAdvancedModal .fa-check { display: inline-flex; align-items: center; gap: 8px; margin: 0; }
+    #faceAdvancedModal .fa-check-input { width: auto; }
+    #faceAdvancedModal .fa-details { display: contents; font-size: 13px; margin: 0; }
+    #faceAdvancedModal .fa-summary { color: var(--accent); cursor: pointer; display: list-item; }
+    #faceAdvancedModal .fa-more { flex: 0 0 100%; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--input-bg); line-height: 1.7; box-sizing: border-box; width: 100%; }
+    #faceAdvancedModal .fa-ul { margin: 6px 0; padding-left: 22px; }
+    #faceAdvancedModal .fa-tools { display: block; flex: 0 0 100%; margin-top: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--input-bg); }
+    #faceAdvancedModal .fa-sub { display: block; margin-bottom: 8px; }
+    #faceAdvancedModal .fa-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    #faceAdvancedModal .fa-chips.fa-chips-tight { margin-bottom: 8px; }
+    #faceAdvancedModal .fa-help { font-size: 13px; line-height: 1.8; }
+    #faceAdvancedModal .fa-mt6 { margin-top: 6px; }
+    #faceAdvancedModal .fa-muted { color: var(--muted); }
+    #faceAdvancedModal .fa-h4 { margin: 0 0 8px; }
+    #faceAdvancedModal .fa-preview-box { margin-top: 14px; }
+    #faceAdvancedModal .fa-preview-list { max-height: 42vh; overflow: auto; border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+    #faceAdvancedModal .fa-hint { color: var(--muted); font-size: 13px; }
+    #faceAdvancedModal .fa-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+    /* 標楷體：按鈕與表單欄位沿用 body 字型（JSON 輸出框仍維持等寬字型） */
+    button, input, textarea, select { font-family: inherit; }
+
+    /* 變動／固定屬性：名稱欄置中（電腦與手機） */
+    #statusList > .repeat .row > :first-child,
+    #paramsList > .repeat .row > :first-child { text-align: center; }
+
+    /* 手機版：變動屬性的目前值、上限也置中 */
+    @media (max-width: 760px) {
+      #statusList > .repeat .row > * { text-align: center; }
     }
     </style>
 
@@ -2179,14 +2241,14 @@
 </head>
 
 <body>
-    <canvas id="themeFx" aria-hidden="true" style="display:none; position:fixed; inset:0; width:100%; height:100%; z-index:-1; pointer-events:none;"></canvas>
+    <canvas id="themeFx" aria-hidden="true" style="display:none"></canvas>
 
     <nav class="top-nav">
         <div class="nav-title-group">
             <button type="button" id="navMenuToggle" class="nav-menu-toggle" aria-label="開啟導覽側欄" aria-expanded="false" onclick="toggleGuideSidebar()">
                 <span></span><span></span><span></span>
             </button>
-            <div class="top-nav-title">CCFOLIA Character JSON 產生器</div>
+            <div class="top-nav-title">CCFOLIA Character Maker</div>
         </div>
         <div class="top-nav-actions">
             <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()">☀️ 亮色</button>
@@ -2200,7 +2262,7 @@
                         <span>s</span>
                     </div>
                 </div>
-                <div id="googleSheetsLastUpdated" class="settings-last-updated">最近更新时间：尚未更新</div>
+                <div id="googleSheetsLastUpdated" class="settings-last-updated">最近更新時間：尚未更新</div>
 
                 <div class="settings-group-title settings-group-separated">變動屬性</div>
                 <label class="checkbox-title">
@@ -2233,7 +2295,7 @@
                     <div class="theme-sub">亮色模式主題</div>
                     <div class="theme-grid" id="themeGridLight"></div>
                 </div>
-                <div class="settings-frequency-row" style="margin-top:12px">
+                <div class="settings-frequency-row theme-alpha-row">
                     <label for="themeAlpha">透明度</label>
                     <div class="settings-frequency-input">
                         <input id="themeAlpha" type="range" min="0" max="100" step="1" value="70">
@@ -2262,12 +2324,12 @@
 
     <div class="wrap">
 
-        <div class="sub" style="margin-bottom:8px;">
+        <div class="sub sub-tight">
             填寫角色資料 → 上傳圖片 → 導入到 CCFOLIA。
         </div>
 
         <!-- 匯入工具 -->
-        <div class="actions" style="margin:6px 0 8px;padding:0 0 4px;">
+        <div class="actions import-actions">
 
             <button class="secondary" onclick="openImportModal()">
                 ＋ 匯入 JSON
@@ -2287,44 +2349,44 @@
 
         <!-- ==================== ① 基本資料 ==================== -->
 
-        <div class="section" style="margin-top:0;">
+        <div class="section section-first">
             <h2>① 基本資料</h2>
 
             <div class="grid">
                 <div class="label">
-                    <strong>角色名稱</strong>
+                    <label for="name"><strong>角色名稱</strong></label>
                 </div>
                 <div class="field">
-                    <input id="name" value="" placeholder="古閣雲" oninput="generate()">
+                    <input id="name" value="" placeholder="古閣雲" oninput="generateDebounced()">
                 </div>
             </div>
 
             <div class="grid">
                 <div class="label">
-                    <strong>備註</strong>
+                    <label for="memo"><strong>備註</strong></label>
                 </div>
                 <div class="field">
                     <div class="memo-input-wrap">
-                        <textarea id="memo" rows="1" placeholder="想跟我一起去私奔嗎？♡" oninput="generate()"></textarea>
+                        <textarea id="memo" rows="1" placeholder="想跟我一起去私奔嗎？♡" oninput="generateDebounced()"></textarea>
                     </div>
                 </div>
             </div>
 
             <div class="grid">
                 <div class="label">
-                    <strong>行動值</strong>
+                    <label for="initiative"><strong>行動值</strong></label>
                 </div>
                 <div class="field">
-                    <input id="initiative" type="number" value="" placeholder="99" oninput="generate()">
+                    <input id="initiative" type="number" value="" placeholder="99" oninput="generateDebounced()">
                 </div>
             </div>
 
             <div class="grid">
                 <div class="label">
-                    <strong>外部連結</strong>
+                    <label for="externalUrl"><strong>外部連結</strong></label>
                 </div>
                 <div class="field">
-                    <input id="externalUrl" placeholder="https://...貼上試算表連結自動讀取內容" oninput="generate()">
+                    <input id="externalUrl" placeholder="https://...貼上試算表連結自動讀取內容" oninput="generateDebounced()">
                 </div>
             </div>
         </div>
@@ -2337,7 +2399,7 @@
 
             <div id="statusList"></div>
 
-            <div style="padding:12px">
+            <div class="pad-12">
                 <button onclick="addStatus()">＋ 新增變動屬性</button>
             </div>
         </div>
@@ -2350,7 +2412,7 @@
 
             <div id="paramsList"></div>
 
-            <div style="padding:12px">
+            <div class="pad-12">
                 <button onclick="addParam()">＋ 新增固定屬性</button>
             </div>
         </div>
@@ -2363,7 +2425,7 @@
             <div class="position-header">
                 <h2>④ 角色圖片與差分<span class="face-count-badge" id="faceCountBadge">0</span></h2>
 
-                <div style="display:flex; gap:8px; align-items:center;">
+                <div class="head-actions">
                     <button type="button" id="faceAdvancedSettingsButton">修改名稱</button>
                 </div>
             </div>
@@ -2399,17 +2461,12 @@
                 <input id="iconUrl" type="hidden" value="">
 
             </div>
-            <!--
-<div class="note" style="padding:0 12px 10px">
-  ※ Clipboard API 文件標示 iconUrl / faces[].iconUrl 不可設定外部資料，因此這裡保留欄位但不會強制把外部 URL 當成可用圖片。
-</div>
--->
 
             <div id="faceSettings" style="display:block;">
 
                 <div id="facesList"></div>
 
-                <div style="padding:12px; display:flex; gap:8px;">
+                <div class="face-actions">
                     <button onclick="addFace()">＋ 新增差分</button>
 
                     <button type="button" onclick="copyAllFaceLabels()">
@@ -2439,51 +2496,51 @@
 
                 <div class="grid">
                     <div class="label">
-                        <strong>X 座標</strong>
+                        <label for="x"><strong>X 座標</strong></label>
                     </div>
 
                     <div class="field">
-                        <input id="x" type="number" value="0" oninput="generate()">
+                        <input id="x" type="number" value="0" oninput="generateDebounced()">
                     </div>
                 </div>
 
                 <div class="grid">
                     <div class="label">
-                        <strong>Y 座標</strong>
+                        <label for="y"><strong>Y 座標</strong></label>
                     </div>
 
                     <div class="field">
-                        <input id="y" type="number" value="0" oninput="generate()">
+                        <input id="y" type="number" value="0" oninput="generateDebounced()">
                     </div>
                 </div>
 
                 <div class="grid">
                     <div class="label">
-                        <strong>旋轉角度</strong>
+                        <label for="angle"><strong>旋轉角度</strong></label>
                     </div>
 
                     <div class="field">
-                        <input id="angle" type="number" value="0" oninput="generate()">
+                        <input id="angle" type="number" value="0" oninput="generateDebounced()">
                     </div>
                 </div>
 
                 <div class="grid">
                     <div class="label">
-                        <strong>寬度</strong>
+                        <label for="width"><strong>寬度</strong></label>
                     </div>
 
                     <div class="field">
-                        <input id="width" type="number" value="10" oninput="generate()">
+                        <input id="width" type="number" value="10" oninput="generateDebounced()">
                     </div>
                 </div>
 
                 <div class="grid">
                     <div class="label">
-                        <strong>高度</strong>
+                        <label for="height"><strong>高度</strong></label>
                     </div>
 
                     <div class="field">
-                        <input id="height" type="number" value="10" oninput="generate()">
+                        <input id="height" type="number" value="10" oninput="generateDebounced()">
                     </div>
                 </div>
 
@@ -2491,19 +2548,14 @@
 
             <div class="grid">
                 <div class="label">
-                    <strong>顏色</strong>
+                    <label for="color"><strong>顏色</strong></label>
                 </div>
 
                 <div class="field">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <input id="color" type="text" value="#E0E0E0" oninput="updateColorPreview()" style="flex:1;">
+                    <div class="color-field">
+                        <input class="color-text" id="color" type="text" value="#E0E0E0" oninput="updateColorPreview()">
 
-                        <input id="colorPreview" type="color" value="#E0E0E0" oninput="updateColorFromPicker()" style="
-            width:42px;
-            height:42px;
-            padding:2px;
-            cursor:pointer;
-          " title="選擇顏色">
+                        <input class="color-picker" id="colorPreview" type="color" value="#E0E0E0" oninput="updateColorFromPicker()"  title="選擇顏色">
                     </div>
                 </div>
             </div>
@@ -2517,41 +2569,41 @@
 
             <div class="grid">
                 <div class="label checkbox-label">
-                    <div class="checkbox-title">
+                    <label class="checkbox-title">
                         <strong>啟用</strong>
 
                         <input id="active" type="checkbox" checked onchange="generate()">
-                    </div>
+                    </label>
                 </div>
             </div>
 
             <div class="grid">
                 <div class="label checkbox-label">
-                    <div class="checkbox-title">
+                    <label class="checkbox-title">
                         <strong>不公開角色狀態</strong>
 
                         <input id="secret" type="checkbox" onchange="generate()">
-                    </div>
+                    </label>
                 </div>
             </div>
 
             <div class="grid">
                 <div class="label checkbox-label">
-                    <div class="checkbox-title">
+                    <label class="checkbox-title">
                         <strong>發言時不顯示角色立繪</strong>
 
                         <input id="invisible" type="checkbox" onchange="generate()">
-                    </div>
+                    </label>
                 </div>
             </div>
 
             <div class="grid">
                 <div class="label checkbox-label">
-                    <div class="checkbox-title">
+                    <label class="checkbox-title">
                         <strong>不要在盤面的角色清單中顯示</strong>
 
                         <input id="hideStatus" type="checkbox" onchange="generate()">
-                    </div>
+                    </label>
                 </div>
             </div>
         </div>
@@ -2562,17 +2614,17 @@
 
             <div class="grid">
                 <div class="field">
-                    <textarea id="commands" placeholder="cc<=99 鬥毆" oninput="generate()"></textarea>
+                    <textarea id="commands" placeholder="cc<=99 鬥毆" oninput="generateDebounced()"></textarea>
                 </div>
             </div>
 
             <div class="grid" style="display:none">
                 <div class="label">
-                    <strong>Owner</strong>
+                    <label for="owner"><strong>Owner</strong></label>
                 </div>
 
                 <div class="field">
-                    <input id="owner" value="" placeholder="通常為空" oninput="generate()">
+                    <input id="owner" value="" placeholder="通常為空" oninput="generateDebounced()">
                 </div>
             </div>
         </div>
@@ -2582,17 +2634,11 @@
 
         <div class="actions">
 
-            <button class="hidden-json-action" onclick="copyJSON()">
-                複製 JSON
-            </button>
 
             <button class="solid-accent room-zip-btn" onclick="downloadRoomZIP()">
                 📦 下載 Room ZIP
             </button>
 
-            <button class="secondary hidden-json-action" onclick="downloadJSON()">
-                下載 JSON
-            </button>
 
             <button class="danger" onclick="resetAll()">
                 全部清空
@@ -2609,7 +2655,7 @@
 
             <h2>⑧ 最終 JSON</h2>
 
-            <div style="padding:12px">
+            <div class="pad-12">
 
                 <textarea id="output" spellcheck="false" readonly></textarea>
 
@@ -2692,7 +2738,7 @@
 
 
     <div class="modal" id="facePickerModal" onclick="closeFacePickerOutside(event)">
-        <div class="modal-box" style="width:min(1000px,100%); max-height:90vh; box-sizing:border-box;">
+        <div class="modal-box modal-wide">
             <div class="modal-head">
                 <h2>從差分選擇主圖片</h2>
                 <button type="button" class="secondary mini" onclick="closeFacePicker()">✕ 關閉</button>
@@ -2705,27 +2751,27 @@
 
     <div class="toast" id="toast"></div>
 
-    <div id="faceAdvancedModal" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.72); align-items:center; justify-content:center; padding:16px;">
-        <div style="width:min(680px,100%); max-height:90vh; overflow:auto; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:12px; padding:18px; box-shadow:0 12px 40px var(--shadow);">
-            <h3 style="margin:0 0 16px;">差分名稱批次修改</h3>
+    <div id="faceAdvancedModal" style="display:none">
+        <div class="fa-panel">
+            <h3 class="fa-title">差分名稱批次修改</h3>
             <div id="faceAdvancedEditor">
-                <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px;">
+                <div class="fa-grid">
                     <div>
-                        <label>搜尋內容<input id="faceAdvancedSearch" type="text" placeholder="例如：角色{N}_" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;"></label>
-                        <button type="button" id="faceAdvancedAutoDetect" style="margin-top:7px;">✨ 智慧偵測共同前綴</button>
-                        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">
+                        <label>搜尋內容<input class="fa-input" id="faceAdvancedSearch" type="text" placeholder="例如：角色{N}_"></label>
+                        <button class="fa-detect" type="button" id="faceAdvancedAutoDetect">✨ 智慧偵測共同前綴</button>
+                        <div class="fa-note">
                             支援中文、英文字母、數字、標點與混合名稱。自動填入取代內容 @，請預覽確認後再儲存。
                         </div>
                     </div>
-                    <label>取代為<input id="faceAdvancedReplace" type="text" placeholder="例如：@" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;"></label>
+                    <label>取代為<input class="fa-input" id="faceAdvancedReplace" type="text" placeholder="例如：@"></label>
                 </div>
-                <div style="margin-top:14px;display:grid;gap:12px;">
+                <div class="fa-options">
                     <div>
-                        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
-                            <label style="display:inline-flex;align-items:center;gap:8px;margin:0;"><input type="checkbox" id="faceAdvancedCaseSensitive" style="width:auto;"> 區分大小寫</label>
-                            <details style="display:contents;font-size:13px;margin:0;">
-                                <summary style="color:var(--accent);cursor:pointer;display:list-item;">查看更多</summary>
-                                <div style="flex:0 0 100%;margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
+                        <div class="fa-opt-row">
+                            <label class="fa-check"><input class="fa-check-input" type="checkbox" id="faceAdvancedCaseSensitive"> 區分大小寫</label>
+                            <details class="fa-details">
+                                <summary class="fa-summary">查看更多</summary>
+                                <div class="fa-more">
                                     <strong>區分大小寫是什麼？</strong><br>
                                     開啟後，英文字母的大小寫必須完全相同才會符合。<br>
                                     例如搜尋 <code>Face</code>：會找到 <code>Face</code>，不會找到 <code>face</code> 或 <code>FACE</code>。<br>
@@ -2735,11 +2781,11 @@
                         </div>
                     </div>
                     <div>
-                        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
-                            <label style="display:inline-flex;align-items:center;gap:8px;margin:0;"><input type="checkbox" id="faceAdvancedWholeWord" style="width:auto;"> 全字匹配</label>
-                            <details style="display:contents;font-size:13px;margin:0;">
-                                <summary style="color:var(--accent);cursor:pointer;display:list-item;">查看更多</summary>
-                                <div style="flex:0 0 100%;margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
+                        <div class="fa-opt-row">
+                            <label class="fa-check"><input class="fa-check-input" type="checkbox" id="faceAdvancedWholeWord"> 全字匹配</label>
+                            <details class="fa-details">
+                                <summary class="fa-summary">查看更多</summary>
+                                <div class="fa-more">
                                     <strong>全字匹配是什麼？</strong><br>
                                     開啟後，搜尋文字左右不能緊貼英文字母、數字或底線的一部分，避免只改到較長英文／數字名稱中的片段。<br>
                                     例如搜尋 <code>cat</code>：會匹配 <code>cat</code>，但不會匹配 <code>cats</code> 或 <code>bobcat</code>。<br>
@@ -2749,14 +2795,14 @@
                         </div>
                     </div>
                     <div>
-                        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
-                            <label style="display:inline-flex;align-items:center;gap:8px;margin:0;"><input type="checkbox" id="faceAdvancedRegex" style="width:auto;"> 正規表示式</label>
-                            <details style="display:contents;font-size:13px;margin:0;">
-                                <summary style="color:var(--accent);cursor:pointer;display:list-item;">查看更多</summary>
-                                <div style="flex:0 0 100%;margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);line-height:1.7;box-sizing:border-box;width:100%;">
+                        <div class="fa-opt-row">
+                            <label class="fa-check"><input class="fa-check-input" type="checkbox" id="faceAdvancedRegex"> 正規表示式</label>
+                            <details class="fa-details">
+                                <summary class="fa-summary">查看更多</summary>
+                                <div class="fa-more">
                                     <strong>正規表示式是什麼？</strong><br>
                                     開啟後，搜尋內容會被當成規則，而不是一般文字。常用符號如下：
-                                    <ul style="margin:6px 0;padding-left:22px;">
+                                    <ul class="fa-ul">
                                         <li><code>.</code>：任意單一字元，例如 <code>面.</code> 可匹配「面A」「面1」。</li>
                                         <li><code>*</code>：前一個項目重複 0 次以上，例如 <code>ab*</code> 可匹配「a」「ab」「abb」。</li>
                                         <li><code>+</code>：前一個項目重複 1 次以上，例如 <code>ab+</code> 可匹配「ab」「abb」。</li>
@@ -2772,18 +2818,18 @@
                                     若只是要搜尋字面上的符號（例如 <code>.</code>、<code>+</code>），請關閉正規表示式；修改前先按「預覽」確認結果。
                                 </div>
                             </details>
-                    <details id="faceAdvancedRegexShortcuts" style="display:contents;margin:0;font-size:13px;">
-                        <summary style="color:var(--accent);cursor:pointer;display:list-item;">快捷鍵</summary>
-                        <div id="faceAdvancedRegexTools" style="display:block;flex:0 0 100%;margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);">
-                        <strong style="display:block;margin-bottom:8px;">常用範例（點一下，自動填入搜尋與取代）</strong>
-                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+                    <details class="fa-details" id="faceAdvancedRegexShortcuts">
+                        <summary class="fa-summary">快捷鍵</summary>
+                        <div class="fa-tools" id="faceAdvancedRegexTools">
+                        <strong class="fa-sub">常用範例（點一下，自動填入搜尋與取代）</strong>
+                        <div class="fa-chips">
                             <button type="button" class="face-regex-example" data-search="名稱_" data-replace="@">名稱_差分 → @差分</button>
                             <button type="button" class="face-regex-example" data-search="名稱{N_}" data-replace="@">名稱＋數字＋底線 → @</button>
                             <button type="button" class="face-regex-example" data-search="角色 {(N)}" data-replace="@">角色（數字）→ @</button>
                             <button type="button" class="face-regex-example" data-search="角色{N}_" data-replace="@">角色／角色2_ → @</button>
                         </div>
-                        <strong style="display:block;margin-bottom:8px;">快速插入規則（點一下就能使用）</strong>
-                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+                        <strong class="fa-sub">快速插入規則（點一下就能使用）</strong>
+                        <div class="fa-chips fa-chips-tight">
                             <button type="button" class="face-regex-token" data-target="search" data-token="{a}">{a}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{A}">{A}</button>
                             <button type="button" class="face-regex-token" data-target="search" data-token="{u}">{u}</button>
@@ -2808,7 +2854,7 @@
                             <button type="button" class="face-regex-token" data-target="search" data-token="{.}">{.}</button>
                         </div>
 
-                        <div style="font-size:13px;line-height:1.8;">
+                        <div class="fa-help">
                             <div><code>{a}</code> 一個英文字母；<code>{A}</code> 一段英文字母（A–Z、a–z）</div>
                             <div><code>{u}</code> 一個 Unicode 字母；<code>{U}</code> 一段 Unicode 字母（包含中文、日文等文字）</div>
                             <div><code>{d}</code> 一個 ASCII 數字；<code>{D}</code> 一串 ASCII 數字；<code>{N}</code> 零個或多個 ASCII 數字</div>
@@ -2819,9 +2865,9 @@
                             <div><code>{h}</code> 一個十六進位字元（0–9、A–F）；<code>{H}</code> 一段十六進位字元</div>
                             <div><code>{s}</code> 一個空白；<code>{S}</code> 一段空白；<code>{x}</code> 一個非空白字元；<code>{X}</code> 一段非空白字元</div>
                             <div><code>{.}</code> 任意一個字元。所有快捷符號只在勾選「正規表示式」時生效。</div>
-                            <div style="margin-top:6px;">取代欄也有快捷符號：<code>{0}</code> 代表整段符合的文字，<code>{1}</code>、<code>{2}</code> 代表搜尋規則中第 1、2 個 <code>( )</code> 捕獲的內容。</div>
-                            <div style="margin-top:6px;">例：搜尋 <code>角色{D}</code>、取代為 <code>人物{0}</code>，會把「角色123」改成「人物角色123」。若搜尋 <code>角色({D})</code>、取代為 <code>人物{1}</code>，則會改成「人物123」。</div>
-                            <div style="margin-top:6px;color:var(--muted);">這些大括號快捷符號只會在勾選「正規表示式」時生效；其他正規表示式語法仍可直接輸入。</div>
+                            <div class="fa-mt6">取代欄也有快捷符號：<code>{0}</code> 代表整段符合的文字，<code>{1}</code>、<code>{2}</code> 代表搜尋規則中第 1、2 個 <code>( )</code> 捕獲的內容。</div>
+                            <div class="fa-mt6">例：搜尋 <code>角色{D}</code>、取代為 <code>人物{0}</code>，會把「角色123」改成「人物角色123」。若搜尋 <code>角色({D})</code>、取代為 <code>人物{1}</code>，則會改成「人物123」。</div>
+                            <div class="fa-mt6 fa-muted">這些大括號快捷符號只會在勾選「正規表示式」時生效；其他正規表示式語法仍可直接輸入。</div>
                         </div>
                         </div>
                     </details>
@@ -2830,12 +2876,12 @@
                 </div>
             </div>
 
-            <div id="faceAdvancedPreview" style="display:none;margin-top:14px;">
-                <h4 style="margin:0 0 8px;">修改預覽</h4>
-                <div id="faceAdvancedPreviewList" style="max-height:42vh;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px;"></div>
-                <p style="color:var(--muted);font-size:13px;">請確認左側原名稱與右側修改後名稱。按「儲存」才會套用。</p>
+            <div class="fa-preview-box" id="faceAdvancedPreview" style="display:none">
+                <h4 class="fa-h4">修改預覽</h4>
+                <div class="fa-preview-list" id="faceAdvancedPreviewList"></div>
+                <p class="fa-hint">請確認左側原名稱與右側修改後名稱。按「儲存」才會套用。</p>
             </div>
-            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px;">
+            <div class="fa-footer">
                 <button type="button" id="faceAdvancedBack" style="display:none;">返回修改</button>
                 <button type="button" id="faceAdvancedCancel">取消</button>
                 <button type="button" id="faceAdvancedConfirm">預覽</button>
@@ -2847,6 +2893,19 @@
     
     <script src="zip.js"></script>
     <script src="app.js"></script>
+    <script>
+    /* 輸入欄防抖：停止輸入 150ms 後才重算 JSON；點擊任何按鈕前會先補算，避免複製到舊內容 */
+    (function () {
+      var t = null;
+      window.generateDebounced = function () {
+        clearTimeout(t);
+        t = setTimeout(function () { t = null; generate(); }, 150);
+      };
+      document.addEventListener('pointerdown', function () {
+        if (t !== null) { clearTimeout(t); t = null; generate(); }
+      }, true);
+    })();
+    </script>
     <script>
 /* 主題相關功能集中於此檔：亮暗色／設計模式、20 組配色、透明度與背景粒子。 */
 
