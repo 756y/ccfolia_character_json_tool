@@ -17,7 +17,7 @@
     <!-- 繁體中文楷體（Google Fonts：LXGW WenKai TC） -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Serif+TC:wght@500;800&family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap">
 
     <style>
     * {
@@ -2235,6 +2235,512 @@
 
     /* 變動屬性：名稱、目前值、上限全部置中（電腦與手機） */
     #statusList > .repeat .row > * { text-align: center; }
+
+    /* ==================================================
+       調色盤：圖示按鈕（線條調色盤／太陽／月亮）與面板
+       ================================================== */
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      padding: 0 !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      pointer-events: none;
+    }
+
+    /* 亮／暗切換：單一按鈕，亮色顯示太陽、暗色顯示月亮，按一下切換 */
+    #modeToggle .i-sun { display: none; }
+    body.light #modeToggle .i-sun { display: block; }
+    body.light #modeToggle .i-moon { display: none; }
+
+    .palette-popover {
+      width: 290px;
+    }
+
+    .layout-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .layout-card {
+      display: flex !important;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      min-width: 0;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.3;
+      padding: 7px 9px !important;
+    }
+
+    .layout-card small {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .layout-card[aria-pressed="true"] {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    /* ==================================================
+       版面（調色盤 → 版面）。只改外觀，欄位與功能不變。
+       data-n = ①~⑧ 區塊編號（由 script 標記）
+       ================================================== */
+    body[data-layout] .section { overflow: visible; }
+
+    /* ---- 2 活頁手帳 ---- */
+body[data-layout="2"] .workspace-main,
+body[data-layout="2"] .workspace-aside .section { --panel:#fbf7ec;--panel2:#f3ecdb;--panel-solid:#fbf7ec;--line:#cfc5b4;--text:#35302a;--muted:#8a7f72;--accent:#b4636f;--accent2:#9a4f5b;--accent-on:#fff;--button-text:#fff;--input-bg:#fffdf8;--danger:#b23b32;--ok:#4f7a5a;--warn:#a98245;--file-bg:#f3ecdb;--file-text:#35302a;--file-border:#cfc5b4;--secondary-bg:#e7dfcc;--checkbox-bg:#cdc3ad;--checkbox-knob:#fff;--preview-bg:#f3ecdb;--shadow:rgba(0,0,0,.14);color:#35302a;color-scheme:light; }
+body[data-layout="2"] .workspace-main {
+      position: relative;
+      margin: 7px;
+      padding: 12px 34px;
+      max-width: 860px;
+      margin-left: auto;
+      margin-right: auto;
+      border-radius: 6px 18px 18px 6px;
+      background: radial-gradient(#9d927f66 1px,transparent 1.5px) 0 0/16px 16px,#fbf7ec;
+      box-shadow: 0 0 0 4px #ece4d2, 0 0 0 7px #7c4f55;
+    }
+body[data-layout="2"] .workspace-main::before {
+      content: "";
+      position: absolute;
+      left: -2px; top: 20px; bottom: 20px;
+      width: 22px;
+      background: radial-gradient(circle at 70% 50%, #3d4a45 6px, transparent 7px) 0 0/22px 44px;
+      pointer-events: none;
+    }
+body[data-layout="2"] .workspace-main .section {
+      position: relative;
+      background: transparent;
+      border: 0;
+      border-bottom: 2px dashed #cfc5b4;
+      border-radius: 0;
+      box-shadow: none;
+      margin: 0;
+      padding: 8px 0 14px;
+    }
+body[data-layout="2"] .workspace-main .section h2 {
+      display: inline-block;
+      flex: 0 1 auto;
+      margin: 10px 0 4px;
+      padding: 0 8px;
+      background: linear-gradient(transparent 55%, var(--hl, #ffd9a8) 55%);
+    }
+body[data-layout="2"] .workspace-main .position-header h2 { padding: 0 8px; flex: 0 1 auto; }
+body[data-layout="2"] .workspace-main .position-header { padding-right: 0; }
+body[data-layout="2"] .workspace-main .section[data-n="1"], body[data-layout="2"] .workspace-main .section[data-n="4"], body[data-layout="2"] .workspace-main .section[data-n="7"] { --hl: #ffd9a8; }
+body[data-layout="2"] .workspace-main .section[data-n="2"], body[data-layout="2"] .workspace-main .section[data-n="5"], body[data-layout="2"] .workspace-main .section[data-n="8"] { --hl: #c4e6cf; }
+body[data-layout="2"] .workspace-main .section[data-n="3"], body[data-layout="2"] .workspace-main .section[data-n="6"] { --hl: #cfdcf7; }
+body[data-layout="2"] .workspace-main .grid { padding: 8px 4px; }
+body[data-layout="2"] .workspace-main .section::after {
+      content: "";
+      position: absolute;
+      top: -14px; right: -12px;
+      width: 86px; height: 22px;
+     
+      background: repeating-linear-gradient(45deg, #e8a0a8aa 0 6px, #f6d5d8aa 6px 12px);
+      pointer-events: none;
+    }
+body[data-layout="2"] .workspace-main .section[data-n="2"]::after, body[data-layout="2"] .workspace-main .section[data-n="4"]::after, body[data-layout="2"] .workspace-main .section[data-n="6"]::after, body[data-layout="2"] .workspace-main .section[data-n="8"]::after {
+      right: auto; left: -40px; top: -10px;
+      background: repeating-linear-gradient(90deg, #8fc2b0aa 0 8px, #d5ece3aa 8px 16px);
+    }
+body[data-layout="2"] .workspace-main .section:last-of-type { border-bottom: 0; }
+body[data-layout="2"] .workspace-aside .section {
+      background: radial-gradient(#9d927f66 1px,transparent 1.5px) 0 0/16px 16px,#fbf7ec;
+      border: 2px solid #cfc5b4;
+      border-radius: 6px 14px 14px 6px;
+      box-shadow: 0 0 0 3px #ece4d2;
+    }
+
+    /* ---- 7 超長收據 ---- */
+body[data-layout="7"] .workspace-main,
+body[data-layout="7"] .workspace-aside .section {
+      --panel:#fdfcf8;--panel2:#f1efe8;--panel-solid:#fdfcf8;--line:#8d877f;--text:#22201e;--muted:#6c6863;--accent:#22201e;--accent2:#22201e;--accent-on:#fff;--button-text:#fff;--input-bg:transparent;--danger:#b23b32;--ok:#4f7a5a;--warn:#a98245;--file-bg:#f1efe8;--file-text:#22201e;--file-border:#8d877f;--secondary-bg:#e7e4da;--checkbox-bg:#b9b4aa;--checkbox-knob:#fff;--preview-bg:#f1efe8;--shadow:rgba(0,0,0,.14);color:#22201e;color-scheme:light;
+      font-family: ui-monospace, SFMono-Regular, Menlo, "LXGW WenKai TC", monospace;
+    }
+body[data-layout="7"] .workspace-main {
+      position: relative;
+      background: #fdfcf8;
+      margin: 12px auto;
+      max-width: 760px;
+      padding: 30px 20px 26px;
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,.35));
+    }
+body[data-layout="7"] .workspace-main::before,
+body[data-layout="7"] .workspace-main::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0;
+      height: 10px;
+      background: linear-gradient(135deg,#fdfcf8 25%,transparent 25%) -6px 0/12px 12px,linear-gradient(225deg,#fdfcf8 25%,transparent 25%) -6px 0/12px 12px;
+      top: -10px;
+      transform: rotate(180deg);
+      pointer-events: none;
+    }
+body[data-layout="7"] .workspace-main::after { top: auto; bottom: -10px; transform: none; }
+body[data-layout="7"] .workspace-main .section {
+      background: transparent;
+      border: 0;
+      border-top: 2px dashed #8d877f;
+      border-radius: 0;
+      box-shadow: none;
+      margin: 0;
+      padding: 6px 0;
+    }
+body[data-layout="7"] .workspace-main .section h2 { text-align: center; font-size: 15px; padding: 12px 0 6px; }
+body[data-layout="7"] .workspace-main .position-header { padding-right: 0; }
+body[data-layout="7"] .workspace-main .position-header h2 { padding: 12px 0 6px; }
+body[data-layout="7"] .workspace-main .grid { padding: 6px 0; }
+body[data-layout="7"] .workspace-aside .section {
+      background: #fdfcf8;
+      border: 1px dashed #8d877f;
+      border-radius: 2px;
+    }
+body[data-layout="7"] .workspace-main input:not([type=checkbox]):not([type=color]):not([type=file]):not([type=range]),
+body[data-layout="7"] .workspace-main textarea {
+      border: 0 !important;
+      border-bottom: 1px dashed #8d877f !important;
+      border-radius: 0 !important;
+      padding-left: 2px !important;
+      padding-right: 2px !important;
+    }
+
+    /* ---- 9 報紙號外 ---- */
+body[data-layout="9"] .workspace-main,
+body[data-layout="9"] .workspace-aside .section {
+      --panel:#e8e2d0;--panel2:#ddd6bf;--panel-solid:#e8e2d0;--line:#2a2722;--text:#1b1915;--muted:#59544a;--accent:#1b1915;--accent2:#1b1915;--accent-on:#e8e2d0;--button-text:#e8e2d0;--input-bg:#f4efe0;--danger:#b23b32;--ok:#4f7a5a;--warn:#a98245;--file-bg:#ddd6bf;--file-text:#1b1915;--file-border:#2a2722;--secondary-bg:#d5cdb3;--checkbox-bg:#a9a18a;--checkbox-knob:#fff;--preview-bg:#ddd6bf;--shadow:rgba(0,0,0,.14);color:#1b1915;color-scheme:light;
+      font-family: "Noto Serif TC", "Noto Serif CJK TC", "LXGW WenKai TC", serif;
+    }
+body[data-layout="9"] .workspace-main {
+      background: transparent;
+      padding: 0;
+      box-shadow: none;
+    }
+body[data-layout="9"] .workspace-main .section {
+      background: #e8e2d0;
+      border: 1px solid #2a2722;
+      border-top: 4px double #2a2722;
+      border-radius: 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
+      margin: 0 0 16px;
+      padding: 6px 14px 10px;
+    }
+body[data-layout="9"] .workspace-main .section h2 { font-size: 21px; font-weight: 800; padding: 8px 0 4px; }
+body[data-layout="9"] .workspace-main .position-header { padding-right: 0; }
+body[data-layout="9"] .workspace-main .position-header h2 { padding: 8px 0 4px; }
+body[data-layout="9"] .workspace-main .grid { padding: 6px 0; }
+body[data-layout="9"] .workspace-main input:not([type=checkbox]):not([type=color]):not([type=file]):not([type=range]),
+body[data-layout="9"] .workspace-main textarea,
+body[data-layout="9"] .workspace-aside textarea { border-radius: 0 !important; }
+body[data-layout="9"] .workspace-main .section[data-n="7"] {
+      background: #1b1915;
+      --text: #e8e2d0;
+      --muted: #bdb6a2;
+      --line: #6a6455;
+      --input-bg: #2a2722;
+      color: #e8e2d0;
+      padding: 6px 12px 12px;
+    }
+body[data-layout="9"] .workspace-aside .section {
+      background: #e8e2d0;
+      border: 1px solid #2a2722;
+      border-top: 4px double #2a2722;
+      border-radius: 0;
+    }
+@media (min-width: 1400px) {
+  body[data-layout="9"] .workspace-main { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; }
+  body[data-layout="9"] .workspace-main > * { grid-column: 1 / -1; }
+  body[data-layout="9"] .workspace-main > .section[data-n="5"] { grid-column: 1 / 2; padding-right: 14px; border-right: 1px solid #2a2722; }
+  body[data-layout="9"] .workspace-main > .section[data-n="6"] { grid-column: 2 / 3; padding-left: 14px; }
+}
+
+    /* ---- 17 漫畫分鏡 ---- */
+body[data-layout="17"] .workspace-main,
+body[data-layout="17"] .workspace-aside .section { --panel:#ffffff;--panel2:#fff3a8;--panel-solid:#ffffff;--line:#111111;--text:#111111;--muted:#555555;--accent:#111111;--accent2:#111111;--accent-on:#fff;--button-text:#fff;--input-bg:#ffffff;--danger:#b23b32;--ok:#4f7a5a;--warn:#a98245;--file-bg:#fff3a8;--file-text:#111111;--file-border:#111111;--secondary-bg:#ececec;--checkbox-bg:#bdbdbd;--checkbox-knob:#fff;--preview-bg:#fff3a8;--shadow:rgba(0,0,0,.14);color:#111111;color-scheme:light; }
+body[data-layout="17"] .workspace-main {
+      background: transparent;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+      margin: 0;
+    }
+body[data-layout="17"] .workspace-main .section,
+body[data-layout="17"] .workspace-aside .section {
+      position: relative;
+      background: #fff;
+      border: 4px solid #111;
+      border-radius: 0;
+      box-shadow: 6px 6px 0 #111;
+    }
+body[data-layout="17"] .workspace-main .section { margin: 0 8px 24px 0; }
+body[data-layout="17"] .workspace-aside .section { margin: 0 8px 0 0; }
+body[data-layout="17"] .section[data-n="2"] {
+      background: radial-gradient(#0002 1.4px, transparent 2px) 0 0/8px 8px, #fff;
+    }
+body[data-layout="17"] .section h2 {
+      display: inline-block;
+      flex: 0 1 auto;
+      margin: 14px 0 6px 14px;
+      padding: 4px 12px;
+      background: #ffe45c;
+      border: 3px solid #111;
+      color: #111;
+    }
+body[data-layout="17"] .position-header h2 { padding: 4px 12px; flex: 0 1 auto; }
+body[data-layout="17"] .position-header { padding-right: 14px; }
+body[data-layout="17"] .workspace-main input:not([type=checkbox]):not([type=color]):not([type=file]):not([type=range]),
+body[data-layout="17"] .workspace-main textarea,
+body[data-layout="17"] .workspace-aside textarea {
+      border: 2px solid #111 !important;
+      border-radius: 0 !important;
+    }
+
+    /* 7 / 9 / 17：按鈕直角 */
+body[data-layout="7"] .workspace-main button,
+body[data-layout="7"] .workspace-aside button,
+body[data-layout="9"] .workspace-main button,
+body[data-layout="9"] .workspace-aside button {
+      border-radius: 0 !important;
+    }
+body[data-layout="17"] .workspace-main button,
+body[data-layout="17"] .workspace-aside button {
+      border-radius: 0 !important;
+      border-width: 2px !important;
+      border-color: #111 !important;
+    }
+
+    /* ==== 整頁預設：五款版面各自帶背景與面板（不吃配色），亮／暗各一套 ==== */
+body[data-layout="2"]:not(.expert) { --bg:#5d6f68;--panel:#ece4d2;--panel2:#f3ecdb;--panel-solid:#ece4d2;--line:#cfc5b4;--text:#35302a;--muted:#6f655a;--accent:#b4636f;--accent2:#9a4f5b;--accent-on:#fff;--button-text:#fff;--input-bg:#fffdf8;--page-ink:#e9efec;--file-bg:#f3ecdb;--file-text:#35302a;--file-border:#cfc5b4;--secondary-bg:#f3ecdb;--checkbox-bg:#cfc5b4;--checkbox-knob:#fff;--preview-bg:#fffdf8;--toast-bg:#ece4d2;--modal-overlay:rgba(0,0,0,.55);--shadow:rgba(0,0,0,.18);--modal-shadow:rgba(0,0,0,.5);--danger:#b23b32;--danger-bg:#98534d;--success-bg:#668d70;--ok:#4f7a5a;--warn:#a98245;color-scheme:light; background-image: none; }
+body[data-layout="2"]:not(.light):not(.expert) { --bg:#26302c;--panel:#3a3631;--panel2:#443f39;--panel-solid:#3a3631;--line:#57514a;--text:#efe8d8;--muted:#b5aa98;--accent:#d98a96;--accent2:#e6a3ad;--accent-on:#2a1f21;--button-text:#2a1f21;--input-bg:#2f2b27;--page-ink:#cfd8d3;--file-bg:#443f39;--file-text:#efe8d8;--file-border:#57514a;--secondary-bg:#443f39;--checkbox-bg:#57514a;--checkbox-knob:#fff;--preview-bg:#2f2b27;--toast-bg:#3a3631;--modal-overlay:rgba(0,0,0,.55);--shadow:rgba(0,0,0,.5);--modal-shadow:rgba(0,0,0,.5);--danger:#e18a82;--danger-bg:#98534d;--success-bg:#668d70;--ok:#8fc5a0;--warn:#d8b475;color-scheme:dark; }
+body[data-layout="7"]:not(.expert) { --bg:#d6d9dd;--panel:#fdfcf8;--panel2:#f1efe8;--panel-solid:#fdfcf8;--line:#8d877f;--text:#22201e;--muted:#6c6863;--accent:#22201e;--accent2:#22201e;--accent-on:#fff;--button-text:#fff;--input-bg:#ffffff;--page-ink:#22201e;--file-bg:#f1efe8;--file-text:#22201e;--file-border:#8d877f;--secondary-bg:#f1efe8;--checkbox-bg:#8d877f;--checkbox-knob:#fff;--preview-bg:#ffffff;--toast-bg:#fdfcf8;--modal-overlay:rgba(0,0,0,.55);--shadow:rgba(0,0,0,.18);--modal-shadow:rgba(0,0,0,.5);--danger:#b23b32;--danger-bg:#98534d;--success-bg:#668d70;--ok:#4f7a5a;--warn:#a98245;color-scheme:light; background-image: none; }
+body[data-layout="7"]:not(.light):not(.expert) { --bg:#44494f;--panel:#3a3d42;--panel2:#43474c;--panel-solid:#3a3d42;--line:#5d6166;--text:#eceae4;--muted:#b4b2aa;--accent:#fdfcf8;--accent2:#fdfcf8;--accent-on:#22201e;--button-text:#22201e;--input-bg:#2f3236;--page-ink:#d8d6cf;--file-bg:#43474c;--file-text:#eceae4;--file-border:#5d6166;--secondary-bg:#43474c;--checkbox-bg:#5d6166;--checkbox-knob:#fff;--preview-bg:#2f3236;--toast-bg:#3a3d42;--modal-overlay:rgba(0,0,0,.55);--shadow:rgba(0,0,0,.5);--modal-shadow:rgba(0,0,0,.5);--danger:#e18a82;--danger-bg:#98534d;--success-bg:#668d70;--ok:#8fc5a0;--warn:#d8b475;color-scheme:dark; }
+body[data-layout="9"]:not(.expert) { --bg:#cdd3cc;--panel:#e8e2d0;--panel2:#ddd6bf;--panel-solid:#e8e2d0;--line:#2a2722;--text:#1b1915;--muted:#59544a;--accent:#1b1915;--accent2:#1b1915;--accent-on:#e8e2d0;--button-text:#e8e2d0;--input-bg:#f4efe0;--page-ink:#1b1915;--file-bg:#ddd6bf;--file-text:#1b1915;--file-border:#2a2722;--secondary-bg:#ddd6bf;--checkbox-bg:#2a2722;--checkbox-knob:#fff;--preview-bg:#f4efe0;--toast-bg:#e8e2d0;--modal-overlay:rgba(0,0,0,.55);--shadow:rgba(0,0,0,.18);--modal-shadow:rgba(0,0,0,.5);--danger:#b23b32;--danger-bg:#98534d;--success-bg:#668d70;--ok:#4f7a5a;--warn:#a98245;color-scheme:light; background-image: none; }
+body[data-layout="9"]:not(.light):not(.expert) { --bg:#1f231f;--panel:#2d2c26;--panel2:#37362e;--panel-solid:#2d2c26;--line:#5a574c;--text:#e8e2d0;--muted:#aaa590;--accent:#e8e2d0;--accent2:#e8e2d0;--accent-on:#1b1915;--button-text:#1b1915;--input-bg:#26251f;--page-ink:#cfcbb6;--file-bg:#37362e;--file-text:#e8e2d0;--file-border:#5a574c;--secondary-bg:#37362e;--checkbox-bg:#5a574c;--checkbox-knob:#fff;--preview-bg:#26251f;--toast-bg:#2d2c26;--modal-overlay:rgba(0,0,0,.55);--shadow:rgba(0,0,0,.5);--modal-shadow:rgba(0,0,0,.5);--danger:#e18a82;--danger-bg:#98534d;--success-bg:#668d70;--ok:#8fc5a0;--warn:#d8b475;color-scheme:dark; }
+body[data-layout="17"]:not(.expert) { --bg:#ffe45c;--panel:#ffffff;--panel2:#fff3a8;--panel-solid:#ffffff;--line:#111111;--text:#111111;--muted:#555555;--accent:#111111;--accent2:#111111;--accent-on:#fff;--button-text:#fff;--input-bg:#ffffff;--page-ink:#111111;--file-bg:#fff3a8;--file-text:#111111;--file-border:#111111;--secondary-bg:#fff3a8;--checkbox-bg:#111111;--checkbox-knob:#fff;--preview-bg:#ffffff;--toast-bg:#ffffff;--modal-overlay:rgba(0,0,0,.55);--shadow:rgba(0,0,0,.18);--modal-shadow:rgba(0,0,0,.5);--danger:#b23b32;--danger-bg:#98534d;--success-bg:#668d70;--ok:#4f7a5a;--warn:#a98245;color-scheme:light; background-image: none; }
+body[data-layout="17"]:not(.light):not(.expert) { --bg:#111111;--panel:#1d1d1d;--panel2:#262626;--panel-solid:#1d1d1d;--line:#555555;--text:#ffffff;--muted:#bdbdbd;--accent:#ffe45c;--accent2:#ffe45c;--accent-on:#111;--button-text:#111;--input-bg:#161616;--page-ink:#ffffff;--file-bg:#262626;--file-text:#ffffff;--file-border:#555555;--secondary-bg:#262626;--checkbox-bg:#555555;--checkbox-knob:#fff;--preview-bg:#161616;--toast-bg:#1d1d1d;--modal-overlay:rgba(0,0,0,.55);--shadow:rgba(0,0,0,.5);--modal-shadow:rgba(0,0,0,.5);--danger:#e18a82;--danger-bg:#98534d;--success-bg:#668d70;--ok:#8fc5a0;--warn:#d8b475;color-scheme:dark; }
+
+body[data-layout] .site-footer { color: var(--page-ink); }
+/* 配色（20 組主題、透明度、粒子）只在「預設」版面出現 */
+body[data-layout] #colorThemeBox { display: none; }
+
+    /* ---- 彩蛋：彩虹圖示 ---- */
+    #modeToggle .i-rainbow { display: none; }
+    body.expert #modeToggle .i-sun,
+    body.expert #modeToggle .i-moon { display: none; }
+    body.expert #modeToggle .i-rainbow { display: block; }
+
+    /* ---- 版面頂部標題區（script 插入；報紙、漫畫、手帳、收據使用） ---- */
+    .layout-hero { display: none; }
+    .layout-hero > * { display: none; }
+    body[data-layout="2"] .layout-hero, body[data-layout="7"] .layout-hero,
+    body[data-layout="9"] .layout-hero, body[data-layout="17"] .layout-hero { display: block; }
+    body[data-layout="2"] .layout-hero .hero-2, body[data-layout="7"] .layout-hero .hero-7,
+    body[data-layout="9"] .layout-hero .hero-9, body[data-layout="17"] .layout-hero .hero-17 { display: block; }
+    .hero-name { overflow-wrap: anywhere; }
+
+    /* 手帳：印章 + 標題 */
+    .hero-2 { text-align: center; margin: 0 0 8px; color: var(--text); }
+    .hero-2 .stamp {
+      display: inline-block; border: 3px double var(--accent); color: var(--accent);
+      border-radius: 50%; width: 76px; height: 76px; line-height: 70px; font-size: 15px; font-weight: 700;
+    }
+    .hero-2 h1 { margin: 6px 0 0; font-size: 24px; line-height: 1.4; }
+
+    /* 收據：店名 + 顧客 */
+    .hero-7 { text-align: center; margin: 0 0 14px; color: var(--text); }
+    .hero-7 h1 { margin: 0; font-size: 24px; line-height: 1.4; }
+    .hero-7 p { margin: 2px 0; color: var(--muted); font-size: 12px; }
+
+    /* 報紙：報頭 + 頭版標題 */
+    .hero-9 { color: var(--text); margin-bottom: 8px; }
+    .hero-9 .mast { border-block: 5px double var(--text); text-align: center; margin-bottom: 12px; padding: 6px 0; }
+    .hero-9 .mast h1 { font-size: 38px; margin: 0; letter-spacing: .15em; font-weight: 800; }
+    .hero-9 .mast p { margin: 0; font-size: 11px; border-top: 1px solid var(--text); padding-top: 4px; }
+    .hero-9 .headline { font-size: 26px; font-weight: 800; line-height: 1.35; margin: 0 0 12px; overflow-wrap: anywhere; }
+
+    /* 漫畫：對話泡泡 */
+    .hero-17 {
+      position: relative; background: #fff; color: #111; font-weight: 700; text-align: center;
+      border: 3px solid #111; border-radius: 40px; padding: 12px 22px; margin: 0 16px 28px;
+    }
+    .hero-17::after {
+      content: ""; position: absolute; bottom: -17px; left: 30%; width: 18px; height: 18px;
+      background: #111; clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    /* 主圖片預覽 → 拍立得照片（五款版面共通，不傾斜） */
+    body[data-layout] .quick-preview {
+      --text: #2c2830; --muted: #7d7482; color: #2c2830;
+      background: #fff; border: 0; border-radius: 2px;
+      padding: 12px 12px 18px; box-shadow: 0 8px 20px rgba(0,0,0,.3);
+    }
+    body[data-layout] .quick-preview-image { border-radius: 0; background: #ece2ee; }
+    body[data-layout] .quick-preview-name { font-size: 19px; margin-top: 12px; }
+    body[data-layout] .quick-preview .quick-kicker {
+      font-size: 0; letter-spacing: 0; text-align: center; margin: 0;
+      height: 240px; display: flex; align-items: center; justify-content: center;
+      background: #ece2ee; color: #7d7482;
+    }
+    body[data-layout] .quick-preview .quick-kicker::before { content: "＋ 選擇主圖片"; font-size: 13px; font-weight: 400; }
+    body[data-layout] .quick-preview:has(.quick-preview-image:not([style*="none"])) .quick-kicker { display: none; }
+
+    /* 手帳：底線式欄位（同原版面） */
+    body[data-layout="2"] .workspace-main input:not([type=checkbox]):not([type=color]):not([type=file]):not([type=range]),
+    body[data-layout="2"] .workspace-main textarea {
+      background: transparent !important;
+      border: 0 !important;
+      border-bottom: 1.5px solid color-mix(in srgb, var(--text) 30%, transparent) !important;
+      border-radius: 0 !important;
+      padding: 7px 2px !important;
+    }
+
+    /* 手機版：手帳與收據貼近原版面 */
+    @media (max-width: 760px) {
+      body[data-layout="2"] .workspace-main { margin: 7px; padding: 14px 24px 12px 28px; }
+      body[data-layout="2"] .workspace-main::before { left: -4px; }
+      body[data-layout="7"] .workspace-main { margin: 14px 6px; padding: 26px 16px 22px; }
+    }
+
+    /* 按鈕列不換行（所有版面）：文字不折行，空間不夠就縮小內距與字級 */
+    .face-actions { flex-wrap: nowrap; }
+    .face-actions button,
+    .workspace-main .actions button,
+    .workspace-aside .actions button { white-space: nowrap; }
+    .face-actions button { flex: 1 1 0; min-width: 0; padding-left: 8px; padding-right: 8px; }
+    body[data-layout] .workspace-main .face-actions { padding: 10px 0; gap: 6px; }
+    body[data-layout] .workspace-main .face-actions button { font-size: 13px; padding-left: 4px; padding-right: 4px; }
+    body[data-layout] .workspace-layout { grid-template-columns: minmax(0,1fr) 300px; gap: 18px; }
+
+
+    /* 手帳／收據置中：.workspace-main 原本 width:100%，再加左右 margin 會比容器多出一截而偏右。
+       改成自動寬度（扣掉 margin 後撐滿），左右對稱。 */
+    body[data-layout="2"] .workspace-main,
+    body[data-layout="7"] .workspace-main { width: auto; align-self: stretch; margin-left: auto; margin-right: auto; }
+    @media (max-width: 760px) {
+      body[data-layout="2"] .workspace-main { width: calc(100% - 20px); margin: 7px auto; }
+      body[data-layout="7"] .workspace-main { width: calc(100% - 20px); margin: 14px auto; }
+    }
+
+    /* 紙膠帶／印章：各種角度，不全是橫的 */
+    body[data-layout="2"] .workspace-main .section::after { transform: rotate(14deg); }
+    body[data-layout="2"] .workspace-main .section[data-n="1"]::after { transform: rotate(14deg); }
+    body[data-layout="2"] .workspace-main .section[data-n="2"]::after { transform: rotate(-24deg); left: -30px; top: -8px; }
+    body[data-layout="2"] .workspace-main .section[data-n="3"]::after { transform: rotate(32deg); right: -6px; width: 70px; background: repeating-linear-gradient(135deg, #f2d27aaa 0 6px, #fbeec4aa 6px 12px); }
+    body[data-layout="2"] .workspace-main .section[data-n="4"]::after { transform: rotate(-12deg); left: -34px; width: 78px; }
+    body[data-layout="2"] .workspace-main .section[data-n="5"]::after { transform: rotate(-38deg); right: -4px; top: -10px; width: 74px; background: repeating-linear-gradient(0deg, #9bb7e6aa 0 5px, #dbe6f8aa 5px 10px); }
+    body[data-layout="2"] .workspace-main .section[data-n="6"]::after { transform: rotate(21deg); left: -28px; top: -12px; }
+    body[data-layout="2"] .workspace-main .section[data-n="7"]::after { transform: rotate(8deg); right: -14px; width: 92px; }
+    body[data-layout="2"] .workspace-main .section[data-n="8"]::after { transform: rotate(-28deg); left: -34px; width: 80px; background: repeating-linear-gradient(45deg, #e8a0a8aa 0 6px, #f6d5d8aa 6px 12px); }
+    .hero-2 .stamp { transform: rotate(-14deg); }
+
+    /* 收據底部：長條形條碼（依 JSON 內容產生粗細，內容改變條碼就跟著變） */
+    .receipt-bar { display: none; }
+    body[data-layout="7"] .receipt-bar { display: block; margin: 14px 0 0; padding-top: 12px; border-top: 2px dashed #8d877f; text-align: center; color: var(--text); }
+    .receipt-bar .bars { display: block; width: 100%; height: 54px; }
+    .receipt-bar p { margin: 6px 0 0; font-size: 12px; letter-spacing: .3em; color: var(--muted); }
+
+    /* ==================================================
+       加強暗黑模式：四款版面在暗色下都改成深色面板＋亮色線條與文字
+       ================================================== */
+
+    /* 活頁手帳（暗）：深色點點紙、玫瑰色鐵環外框 */
+    body[data-layout="2"]:not(.light):not(.expert) .workspace-main,
+    body[data-layout="2"]:not(.light):not(.expert) .workspace-aside .section { --panel:#34302b;--panel2:#3e3933;--panel-solid:#34302b;--line:#6f675b;--text:#f3ecdc;--muted:#c4b9a6;--accent:#f0a0ac;--accent2:#f6b8c1;--accent-on:#2a1f21;--button-text:#2a1f21;--input-bg:#292622;--file-bg:#3e3933;--file-text:#f3ecdc;--file-border:#6f675b;--secondary-bg:#4a443c;--checkbox-bg:#5a5348;--preview-bg:#292622;--danger:#ff8f86;--ok:#8fd5a3;--warn:#e6c07a;--shadow:rgba(0,0,0,.5);color:#f3ecdc;color-scheme:dark; }
+    body[data-layout="2"]:not(.light):not(.expert) .workspace-main {
+      background: radial-gradient(#d9cdb52e 1px,transparent 1.5px) 0 0/16px 16px,#34302b;
+      box-shadow: 0 0 0 4px #4a443c, 0 0 0 7px #f0a0ac;
+    }
+    body[data-layout="2"]:not(.light):not(.expert) .workspace-main::before { background: radial-gradient(circle at 70% 50%, #121516 6px, #8a8276 6.5px, #8a8276 7.5px, transparent 8px) 0 0/22px 44px; }
+    body[data-layout="2"]:not(.light):not(.expert) .workspace-main .section { border-bottom-color: #7a7266; }
+    body[data-layout="2"]:not(.light):not(.expert) .workspace-main .section[data-n="1"], body[data-layout="2"]:not(.light):not(.expert) .workspace-main .section[data-n="4"], body[data-layout="2"]:not(.light):not(.expert) .workspace-main .section[data-n="7"] { --hl: #9a6428; }
+    body[data-layout="2"]:not(.light):not(.expert) .workspace-main .section[data-n="2"], body[data-layout="2"]:not(.light):not(.expert) .workspace-main .section[data-n="5"], body[data-layout="2"]:not(.light):not(.expert) .workspace-main .section[data-n="8"] { --hl: #2f7a55; }
+    body[data-layout="2"]:not(.light):not(.expert) .workspace-main .section[data-n="3"], body[data-layout="2"]:not(.light):not(.expert) .workspace-main .section[data-n="6"] { --hl: #3f62a8; }
+    body[data-layout="2"]:not(.light):not(.expert) .workspace-aside .section {
+      background: radial-gradient(#d9cdb52e 1px,transparent 1.5px) 0 0/16px 16px,#34302b;
+      border-color: #7a7266;
+      box-shadow: 0 0 0 3px #4a443c;
+    }
+    body[data-layout="2"]:not(.light):not(.expert) .workspace-main input:not([type=checkbox]):not([type=color]):not([type=file]):not([type=range]),
+    body[data-layout="2"]:not(.light):not(.expert) .workspace-main textarea { border-bottom-color: #a39a8b !important; }
+
+    /* 超長收據（暗）：深色熱感紙＋淺色虛線 */
+    body[data-layout="7"]:not(.light):not(.expert) .workspace-main,
+    body[data-layout="7"]:not(.light):not(.expert) .workspace-aside .section { --panel:#2b2e32;--panel2:#34383d;--panel-solid:#2b2e32;--line:#9aa0a6;--text:#f1efe8;--muted:#bdbbb3;--accent:#f1efe8;--accent2:#ffffff;--accent-on:#22201e;--button-text:#22201e;--input-bg:transparent;--file-bg:#34383d;--file-text:#f1efe8;--file-border:#9aa0a6;--secondary-bg:#3b3f45;--checkbox-bg:#6c7178;--preview-bg:#34383d;--danger:#ff8f86;--ok:#8fd5a3;--warn:#e6c07a;--shadow:rgba(0,0,0,.5);color:#f1efe8;color-scheme:dark; }
+    body[data-layout="7"]:not(.light):not(.expert) .workspace-main { background: #2b2e32; }
+    body[data-layout="7"]:not(.light):not(.expert) .workspace-main::before,
+    body[data-layout="7"]:not(.light):not(.expert) .workspace-main::after {
+      background: linear-gradient(135deg,#2b2e32 25%,transparent 25%) -6px 0/12px 12px,linear-gradient(225deg,#2b2e32 25%,transparent 25%) -6px 0/12px 12px;
+    }
+    body[data-layout="7"]:not(.light):not(.expert) .workspace-main .section { border-top-color: #9aa0a6; }
+    body[data-layout="7"]:not(.light):not(.expert) .workspace-main input:not([type=checkbox]):not([type=color]):not([type=file]):not([type=range]),
+    body[data-layout="7"]:not(.light):not(.expert) .workspace-main textarea { border-bottom-color: #9aa0a6 !important; }
+    body[data-layout="7"]:not(.light):not(.expert) .workspace-aside .section { background: #2b2e32; border-color: #9aa0a6; }
+    body[data-layout="7"]:not(.light):not(.expert) .receipt-bar { border-top-color: #9aa0a6; }
+
+    /* 報紙號外（暗）：深墨色版面＋米白框線與文字；⑦ 區塊反白成米色 */
+    body[data-layout="9"]:not(.light):not(.expert) .workspace-main,
+    body[data-layout="9"]:not(.light):not(.expert) .workspace-aside .section { --panel:#2d2c26;--panel2:#37362e;--panel-solid:#2d2c26;--line:#e8e2d0;--text:#f1ebd8;--muted:#c9c3ae;--accent:#e8e2d0;--accent2:#f4efe0;--accent-on:#1b1915;--button-text:#1b1915;--input-bg:#23221d;--file-bg:#37362e;--file-text:#f1ebd8;--file-border:#e8e2d0;--secondary-bg:#3e3d34;--checkbox-bg:#6a6455;--preview-bg:#23221d;--danger:#ff8f86;--ok:#8fd5a3;--warn:#e6c07a;--shadow:rgba(0,0,0,.5);color:#f1ebd8;color-scheme:dark; }
+    body[data-layout="9"]:not(.light):not(.expert) .workspace-main .section,
+    body[data-layout="9"]:not(.light):not(.expert) .workspace-aside .section {
+      background: #2d2c26;
+      border-color: #e8e2d0;
+      box-shadow: 0 4px 12px rgba(0,0,0,.5);
+    }
+    body[data-layout="9"]:not(.light):not(.expert) .workspace-main .section[data-n="7"] {
+      --panel:#e8e2d0;--panel2:#ddd6bf;--panel-solid:#e8e2d0;--line:#2a2722;--text:#1b1915;--muted:#59544a;--accent:#1b1915;--accent2:#1b1915;--accent-on:#e8e2d0;--button-text:#e8e2d0;--input-bg:#f4efe0;--file-bg:#ddd6bf;--file-text:#1b1915;--file-border:#2a2722;--secondary-bg:#d5cdb3;--checkbox-bg:#a9a18a;--preview-bg:#f4efe0;--danger:#ff8f86;--ok:#8fd5a3;--warn:#e6c07a;--shadow:rgba(0,0,0,.5);color:#1b1915;color-scheme:light;
+      background: #e8e2d0;
+    }
+    body[data-layout="9"]:not(.light):not(.expert) .hero-9 .mast { border-color: #e8e2d0; }
+    body[data-layout="9"]:not(.light):not(.expert) .hero-9 .mast p { border-top-color: #e8e2d0; }
+
+    /* 漫畫分鏡（暗）：深色格子＋亮黃／白粗框，黑框改成看得見的顏色 */
+    body[data-layout="17"]:not(.light):not(.expert) .workspace-main,
+    body[data-layout="17"]:not(.light):not(.expert) .workspace-aside .section { --panel:#1d1d1d;--panel2:#2a2a2a;--panel-solid:#1d1d1d;--line:#d9d9d9;--text:#ffffff;--muted:#c9c9c9;--accent:#ffe45c;--accent2:#ffe45c;--accent-on:#111111;--button-text:#111111;--input-bg:#141414;--file-bg:#2a2a2a;--file-text:#ffffff;--file-border:#d9d9d9;--secondary-bg:#2e2e2e;--checkbox-bg:#666666;--preview-bg:#141414;--danger:#ff8f86;--ok:#8fd5a3;--warn:#e6c07a;--shadow:rgba(0,0,0,.5);color:#ffffff;color-scheme:dark; }
+    body[data-layout="17"]:not(.light):not(.expert) .workspace-main .section,
+    body[data-layout="17"]:not(.light):not(.expert) .workspace-aside .section {
+      background: #1d1d1d;
+      border-color: #ffffff;
+      box-shadow: 6px 6px 0 #ffe45c;
+    }
+    body[data-layout="17"]:not(.light):not(.expert) .section[data-n="2"] { background: radial-gradient(#ffffff26 1.4px, transparent 2px) 0 0/8px 8px, #1d1d1d; }
+    body[data-layout="17"]:not(.light):not(.expert) .section h2 { border-color: #ffffff; }
+    body[data-layout="17"]:not(.light):not(.expert) .workspace-main input:not([type=checkbox]):not([type=color]):not([type=file]):not([type=range]),
+    body[data-layout="17"]:not(.light):not(.expert) .workspace-main textarea,
+    body[data-layout="17"]:not(.light):not(.expert) .workspace-aside textarea { border-color: #d9d9d9 !important; }
+    body[data-layout="17"]:not(.light):not(.expert) .workspace-main button,
+    body[data-layout="17"]:not(.light):not(.expert) .workspace-aside button { border-color: #ffffff !important; }
+    body[data-layout="17"]:not(.light):not(.expert) .hero-17 { border-color: #ffe45c; }
+    body[data-layout="17"]:not(.light):not(.expert) .hero-17::after { background: #ffe45c; }
+
+    /* 字體：英文使用 Times New Roman。
+       Tinos（Google Fonts 免費字型）與 Times New Roman 字形、字寬相同，只含拉丁字元，
+       所以中文仍然是原本的標楷體。若使用者裝置有 Times New Roman，也一併當備用。 */
+    /* 最終 JSON 輸出框（與匯入 JSON 視窗）原本是等寬字體，勾選後英文也改用 Times New Roman */
+    body.tnr #output,
+    body.tnr .jsonbox textarea,
+    body.tnr .modal-body textarea { font-family: "Tinos", "Times New Roman", "LXGW WenKai TC","Kaiti TC","BiauKai","標楷體","DFKai-SB","KaiTi","STKaiti","PingFang TC","Microsoft JhengHei",serif; }
+    body.tnr { font-family: "Tinos", "Times New Roman", "LXGW WenKai TC","Kaiti TC","BiauKai","標楷體","DFKai-SB","KaiTi","STKaiti","PingFang TC","Microsoft JhengHei",serif; }
+    body.tnr[data-layout="7"] .workspace-main,
+    body.tnr[data-layout="7"] .workspace-aside .section { font-family: "Tinos", "Times New Roman", "LXGW WenKai TC", serif; }
+    body.tnr[data-layout="9"] .workspace-main,
+    body.tnr[data-layout="9"] .workspace-aside .section { font-family: "Tinos", "Times New Roman", "Noto Serif TC", "Noto Serif CJK TC", "LXGW WenKai TC", serif; }
     </style>
 
     
@@ -2252,7 +2758,9 @@
             <div class="top-nav-title">CCFOLIA Character Maker</div>
         </div>
         <div class="top-nav-actions">
-            <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()">☀️ 亮色</button>
+            <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="rainbowGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3b30"/><stop offset=".2" stop-color="#ff9500"/><stop offset=".4" stop-color="#ffd60a"/><stop offset=".6" stop-color="#34c759"/><stop offset=".8" stop-color="#0a84ff"/><stop offset="1" stop-color="#bf5af2"/></linearGradient></defs></svg>
+            <button type="button" id="paletteToggle" class="icon-btn" aria-label="調色盤" title="調色盤" onclick="togglePalette()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6c1.5 0 2.2-1 2.2-2.1 0-.6-.3-1.1-.6-1.5-.4-.5-.7-.9-.7-1.5 0-1.1.9-2 2-2H17a3.9 3.9 0 0 0 3.9-3.9C20.9 6.4 17 3.2 12 3.2z"/><circle cx="7.6" cy="11.2" r=".9" fill="currentColor"/><circle cx="10.4" cy="7.4" r=".9" fill="currentColor"/><circle cx="15" cy="7.4" r=".9" fill="currentColor"/></svg></button>
+            <button type="button" id="modeToggle" class="icon-btn" aria-label="切換亮色／暗色" title="切換亮色／暗色" onclick="toggleMode()"><span class="i-sun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></svg></span><span class="i-moon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13.6A8.5 8.5 0 1 1 10.4 3.5a6.8 6.8 0 0 0 10.1 10.1z"/></svg></span><span class="i-rainbow"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2.5 18a9.5 9.5 0 0 1 19 0" stroke="#ff3b30"/><path d="M5 18a7 7 0 0 1 14 0" stroke="#ffd60a"/><path d="M7.5 18a4.5 4.5 0 0 1 9 0" stroke="#34c759"/><path d="M10 18a2 2 0 0 1 4 0" stroke="#0a84ff"/></svg></span></button>
             <button type="button" id="settingsToggle" class="settings-toggle" aria-label="設定" title="設定" onclick="toggleAppSettings()">⚙</button>
             <div id="appSettingsPopover" class="settings-popover">
                 <div class="settings-group-title">基本資料</div>
@@ -2286,9 +2794,26 @@
                     <strong>自動修正教育及智力名稱</strong>
                     <input id="autoFixEducationCommand" type="checkbox" checked>
                 </label>
+            </div>
+            <div id="paletteSettingsPopover" class="settings-popover palette-popover">
+                <div class="settings-group-title">版面</div>
+                <div class="layout-grid" id="layoutGrid">
+                    <button type="button" class="layout-card" data-layout="0" aria-pressed="true"><b>預設</b><small>簡潔表單</small></button>
+                    <button type="button" class="layout-card" data-layout="2" aria-pressed="false"><b>活頁手帳</b><small>點點紙、紙膠帶</small></button>
+                    <button type="button" class="layout-card" data-layout="7" aria-pressed="false"><b>超長收據</b><small>熱感紙鋸齒邊</small></button>
+                    <button type="button" class="layout-card" data-layout="9" aria-pressed="false"><b>報紙號外</b><small>頭版標題、分欄版面</small></button>
+                    <button type="button" class="layout-card" data-layout="17" aria-pressed="false"><b>漫畫分鏡</b><small>粗框分格、對話泡泡</small></button>
+                </div>
 
-                <div class="settings-group-title settings-group-separated">主題</div>
-                <div id="themeBoxDark">
+                <div class="settings-group-title settings-group-separated">字體</div>
+                <label class="checkbox-title">
+                    <strong>英文使用 Times New Roman</strong>
+                    <input id="tnrFont" type="checkbox">
+                </label>
+
+                <div id="colorThemeBox">
+                <div class="settings-group-title settings-group-separated">配色</div>
+                                <div id="themeBoxDark">
                     <div class="theme-sub">暗色模式主題</div>
                     <div class="theme-grid" id="themeGridDark"></div>
                 </div>
@@ -2307,6 +2832,7 @@
                     <strong>粒子特效</strong>
                     <input id="themeFxToggle" type="checkbox" checked>
                 </label>
+                </div>
             </div>
         </div>
     </nav>
@@ -2324,10 +2850,6 @@
     </aside>
 
     <div class="wrap">
-
-        <div class="sub sub-tight">
-            填寫角色資料 → 上傳圖片 → 導入到 CCFOLIA。
-        </div>
 
         <!-- 匯入工具 -->
         <div class="actions import-actions">
@@ -2918,79 +3440,51 @@
 
     function applyTheme(theme) {
 
-      document.body.classList.remove(
-        'light',
-        'expert'
-      );
+      if (theme !== 'light' && theme !== 'expert') theme = 'dark';
 
-      if (theme === 'light') {
+      document.body.classList.remove('light', 'expert');
 
-        document.body.classList.add('light');
+      if (theme === 'light') document.body.classList.add('light');
+      else if (theme === 'expert') document.body.classList.add('expert');
 
-        $('themeToggle').textContent =
-          '🌙 深色';
+      /* 單一按鈕：亮色顯示太陽、暗色顯示月亮（圖示由 CSS 依 body.light 切換） */
+      const mt = document.getElementById('modeToggle');
+      if (mt) mt.setAttribute('aria-pressed', String(theme === 'light'));
 
-      } else if (theme === 'expert') {
-
-        document.body.classList.add('expert');
-
-        // 彩虹模式啟用時，按鈕顯示模式名稱；點擊後仍可返回深色模式。
-        $('themeToggle').textContent =
-          '🌈 我已經完全學會設計了';
-
-      } else {
-
-        $('themeToggle').textContent =
-          '☀️ 亮色';
-
-      }
-
-      localStorage.setItem(
-        'ccfolia-theme',
-        theme
-      );
+      localStorage.setItem('ccfolia-theme', theme);
 
     }
 
 
-    /* 主題按鈕 */
+    /* 亮／暗切換：單一按鈕，按一下換成另一個 */
 
-    function toggleTheme() {
+    function toggleMode() {
+      setMode(document.body.classList.contains('light') ? 'dark' : 'light');
+    }
 
-      /* 如果已經進入彩虹地獄 */
+    function setMode(mode) {
 
+      /* 已經在彩虹地獄：點任一顆回到該模式 */
       if (document.body.classList.contains('expert')) {
-
         themeSwitchCount = 0;
-
-        applyTheme('dark');
-
+        applyTheme(mode);
         return;
       }
 
+      const isLight = document.body.classList.contains('light');
+
+      /* 點到目前已選的模式 → 不算切換 */
+      if ((mode === 'light') === isLight) return;
 
       themeSwitchCount++;
 
-
       /* 連續切換 5 次 */
-
       if (themeSwitchCount >= 5) {
-
         applyTheme('expert');
-
         return;
       }
 
-
-      const isLight =
-        document.body.classList.contains('light');
-
-
-      applyTheme(
-        isLight
-          ? 'dark'
-          : 'light'
-      );
+      applyTheme(mode);
 
     }
 
@@ -3255,7 +3749,7 @@
         }
         function paintVars() {
             clearVars();
-            if (cur < 0 || body.classList.contains('expert')) return false;
+            if (cur < 0 || body.classList.contains('expert') || body.hasAttribute('data-layout')) return false;
             var th = THEMES[cur], v = vars(th);
             for (var k in v) { body.style.setProperty(k, v[k]); applied.push(k); }
             body.style.setProperty('color-scheme', th.m === 'd' ? 'dark' : 'light');
@@ -3279,7 +3773,7 @@
             var bd = byId('themeBoxDark'), bl = byId('themeBoxLight');
             if (bd) bd.style.display = md === 'd' ? '' : 'none';
             if (bl) bl.style.display = md === 'l' ? '' : 'none';
-            lastState = md + body.classList.contains('expert');
+            lastState = md + body.classList.contains('expert') + body.hasAttribute('data-layout');
             if (paintVars()) startFor(THEMES[cur]); else stopFx();
             var cards = document.querySelectorAll('.theme-card');
             for (var j = 0; j < cards.length; j++) cards[j].setAttribute('aria-pressed', String(+cards[j].getAttribute('data-i') === cur));
@@ -3319,13 +3813,13 @@
             });
             sw.addEventListener('change', function () {
                 store(KEY.fx, sw.checked);
-                if (cur >= 0 && !body.classList.contains('expert')) startFor(THEMES[cur]); else stopFx();
+                if (cur >= 0 && !body.classList.contains('expert') && !body.hasAttribute('data-layout')) startFor(THEMES[cur]); else stopFx();
             });
 
             /* 亮／暗切換或「設計模式」(body.expert) 啟動時：換顯示對應的主題；設計模式期間讓出配色，結束後套回 */
             new MutationObserver(function () {
-                if (mode() + body.classList.contains('expert') !== lastState) applyTheme();
-            }).observe(body, { attributes: true, attributeFilter: ['class'] });
+                if (mode() + body.classList.contains('expert') + body.hasAttribute('data-layout') !== lastState) applyTheme();
+            }).observe(body, { attributes: true, attributeFilter: ['class', 'data-layout'] });
 
             /* 點擊背景粒子 → 該粒子消失（鍵盤觸發的 click 座標無效，略過） */
             document.addEventListener('click', function (e) {
@@ -3341,6 +3835,107 @@
         init();
     })();
     </script>
+    <script>
+/* =========================================================
+   調色盤：版面（2 活頁手帳、7 超長收據、9 報紙號外、17 漫畫分鏡）
+   以 body[data-layout] 控制；亮暗色與 20 組配色另外運作，可自由搭配。
+========================================================= */
+(function () {
+    var KEY = 'ccfolia-layout', ALLOWED = ['2', '7', '9', '17'];
+    var body = document.body;
+    function byId(id) { return document.getElementById(id); }
+    function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+    /* 依 ①~⑧ 標題替每個區塊標號，版面 CSS 靠 data-n 辨識 */
+    function tagSections() {
+        var nums = '①②③④⑤⑥⑦⑧';
+        document.querySelectorAll('.section').forEach(function (sec) {
+            var h = sec.querySelector('h2');
+            if (!h) return;
+            var i = nums.indexOf((h.textContent || '').trim().charAt(0));
+            if (i >= 0) sec.setAttribute('data-n', String(i + 1));
+        });
+    }
+
+    function applyLayout(v) {
+        v = String(v);
+        if (ALLOWED.indexOf(v) < 0) { v = '0'; body.removeAttribute('data-layout'); }
+        else body.setAttribute('data-layout', v);
+        document.querySelectorAll('.layout-card').forEach(function (b) {
+            b.setAttribute('aria-pressed', String(b.getAttribute('data-layout') === v));
+        });
+        store(KEY, v);
+    }
+
+    /* 調色盤面板開關（與設定面板互斥） */
+    var pop = byId('paletteSettingsPopover'), tgl = byId('paletteToggle');
+    var setPop = byId('appSettingsPopover'), setTgl = byId('settingsToggle');
+    window.togglePalette = function () {
+        if (!pop) return;
+        if (setPop) setPop.classList.remove('show');
+        pop.classList.toggle('show');
+    };
+    if (setTgl) setTgl.addEventListener('click', function () { if (pop) pop.classList.remove('show'); });
+    document.addEventListener('click', function (e) {
+        if (pop && pop.classList.contains('show') && !pop.contains(e.target) && tgl && !tgl.contains(e.target)) pop.classList.remove('show');
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && pop) pop.classList.remove('show');
+    });
+
+    var grid = byId('layoutGrid');
+    if (grid) grid.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('.layout-card') : null;
+        if (b) applyLayout(b.getAttribute('data-layout'));
+    });
+
+    /* 版面頂部標題區：報紙頭版、漫畫對話泡泡、手帳印章、收據店名（名字會跟著角色名稱即時更新） */
+    function heroName() { var el = byId('name'); return ((el && el.value) || '').trim() || '古閣雲'; }
+    function updateHero() {
+        var n = heroName(), d = new Date();
+        document.querySelectorAll('.hero-name').forEach(function (e) { e.textContent = n; });
+        var dt = document.querySelector('.hero-date');
+        if (dt) dt.textContent = d.getFullYear() + ' 年 ' + (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日　號外';
+    }
+    function ensureHero() {
+        var main = document.querySelector('.workspace-main');
+        if (!main || main.querySelector('.layout-hero')) return;
+        var h = document.createElement('div');
+        h.className = 'layout-hero';
+        h.innerHTML =
+            '<div class="hero-2"><span class="stamp">調查中</span><h1><span class="hero-name"></span> 的手帳</h1></div>' +
+            '<div class="hero-7"><h1>★ 角色商店 ★</h1><p>顧客：<span class="hero-name"></span></p></div>' +
+            '<div class="hero-9"><div class="mast"><h1>調查日報</h1><p class="hero-date"></p></div><div class="headline">神祕人物「<span class="hero-name"></span>」現身！</div></div>' +
+            '<div class="hero-17">這次的主角是「<span class="hero-name"></span>」！</div>';
+        main.insertBefore(h, main.firstChild);
+        updateHero();
+        var pn = document.querySelector('.quick-preview-name');
+        if (pn && window.MutationObserver) new MutationObserver(updateHero).observe(pn, { childList: true, characterData: true, subtree: true });
+    }
+    document.addEventListener('input', function (e) { if (e.target && e.target.id === 'name') updateHero(); }, true);
+
+    function setup() { tagSections(); ensureHero(); }
+    setup();
+    document.addEventListener('DOMContentLoaded', setup);
+    window.addEventListener('load', setup);
+    applyLayout(load(KEY) || '0');
+})();
+    </script>
+    <script>
+    /* 字體開關：英文使用 Times New Roman（預設關閉，記在 localStorage） */
+    (function () {
+        var KEY = 'ccfolia-tnr', cb = document.getElementById('tnrFont');
+        function load() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
+        function apply(on) {
+            document.body.classList.toggle('tnr', on);
+            if (cb) cb.checked = on;
+            try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+        }
+        apply(load());
+        if (cb) cb.addEventListener('change', function () { apply(cb.checked); });
+    })();
+    </script>
     <script src="googleSheets.js"></script>
     <script src="faceAdvancedSettings.js"></script>
 
@@ -3351,6 +3946,49 @@
     
 
         
+
+
+    <script>
+    /* 超長收據：底部長條形條碼。粗細由最終 JSON 的內容決定（裝飾用，無法掃出 JSON） */
+    (function () {
+        var last = null;
+        function hash(str) {
+            var h = 2166136261;
+            for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+            return h >>> 0;
+        }
+        function box() {
+            var main = document.querySelector('.workspace-main');
+            if (!main) return null;
+            var el = main.querySelector('.receipt-bar');
+            if (!el) { el = document.createElement('div'); el.className = 'receipt-bar'; main.appendChild(el); }
+            return el;
+        }
+        function render() {
+            if (document.body.getAttribute('data-layout') !== '7') return;
+            var out = document.getElementById('output'), el = box();
+            if (!out || !el) return;
+            var text = out.value || '';
+            if (text === last) return;
+            last = text;
+            if (!text.trim()) { el.innerHTML = ''; return; }
+            var seed = hash(text), x = 0, d = '', code = '';
+            function rnd() { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; seed >>>= 0; return seed; }
+            d += 'M0 0h2v54h-2zM4 0h1v54h-1z'; x = 8;
+            while (x < 296) {
+                var w = 1 + rnd() % 4, gap = 1 + rnd() % 3;
+                d += 'M' + x + ' 0h' + w + 'v54h-' + w + 'z';
+                x += w + gap;
+            }
+            d += 'M' + (x + 1) + ' 0h1v54h-1zM' + (x + 3) + ' 0h2v54h-2z';
+            x += 6;
+            for (var i = 0; i < 12; i++) code += rnd() % 10;
+            el.innerHTML = '<svg class="bars" viewBox="0 0 ' + x + ' 54" preserveAspectRatio="none" role="img" aria-label="條碼"><path d="' + d + '" fill="currentColor"/></svg><p>' + code + '</p><p style="letter-spacing:0">謝謝惠顧，祝你擲骰大成功</p>';
+        }
+        setInterval(render, 600);
+        document.addEventListener('click', function () { last = null; setTimeout(render, 50); });
+    })();
+    </script>
 
     <footer class="site-footer" aria-label="相關連結">
         <a href="https://ccfolia.com/" target="_blank" rel="noopener noreferrer">CCFOLIA 官方網站</a>
